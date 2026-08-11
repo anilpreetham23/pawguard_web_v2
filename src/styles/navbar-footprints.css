@@ -1,0 +1,104 @@
+/* ─── Container ───────────────────────────────────────────────── */
+.paw-trail-container {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  animation: paw-trail-drift 36s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes paw-trail-drift {
+  0%,  100% { transform: translateX(0px);   }
+  40%        { transform: translateX(1.5px); }
+  60%        { transform: translateX(2px);   }
+}
+
+/* ─── Gap 1: Trail line ───────────────────────────────────────── */
+.paw-trail-line {
+  position: absolute;
+  inset: 0;
+}
+
+:is(.dark *) .paw-trail-line path {
+  stroke: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* ─── Gap 1: Paw prints ───────────────────────────────────────── */
+.paw-print {
+  position: absolute;
+  display: inline-flex;
+  line-height: 0;
+}
+
+:is(.dark *) .paw-print svg path {
+  fill: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* ─── Gap 2: Bone icons ───────────────────────────────────────── */
+.nav-bone {
+  position: absolute;
+  display: inline-flex;
+  line-height: 0;
+}
+
+:is(.dark *) .nav-bone svg circle,
+:is(.dark *) .nav-bone svg rect {
+  fill: rgba(255, 255, 255, 0.09) !important;
+}
+
+/* ─── Gap 3: Heartbeat line ───────────────────────────────────── */
+.nav-heartbeat {
+  position: absolute;
+  display: inline-flex;
+  line-height: 0;
+
+  /* Centered vertically in the 72px navbar */
+  top: 50%;
+  transform: translateY(-50%);
+
+  /* Sits in the gap between nav cluster and CTA buttons (~73% of 1280px) */
+  left: 73%;
+
+  /* Slow opacity pulse — like a resting heartbeat */
+  animation: heartbeat-breathe 4s ease-in-out infinite;
+}
+
+@keyframes heartbeat-breathe {
+  0%,  100% { opacity: 1;    }
+  50%        { opacity: 0.55; }
+}
+
+:is(.dark *) .nav-heartbeat svg path {
+  stroke: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* ─── Tablet: simplify — hide bones, keep paws + heartbeat ───── */
+@media (max-width: 1024px) {
+  .paw-print:first-child,
+  .paw-print:last-child {
+    display: none;
+  }
+  .nav-bone {
+    display: none;
+  }
+}
+
+/* ─── Mobile: hide everything ─────────────────────────────────── */
+@media (max-width: 767px) {
+  .paw-trail-container {
+    display: none;
+  }
+}
+
+/* ─── Reduced motion ──────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .paw-trail-container {
+    animation: none;
+    will-change: auto;
+  }
+  .nav-heartbeat {
+    animation: none;
+  }
+}

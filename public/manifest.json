@@ -1,0 +1,13 @@
+{
+  "name": "PawGuard — Dog Rescue & Adoption",
+  "short_name": "PawGuard",
+  "description": "Report a dog emergency, find your next companion, or support dog rescue. PawGuard coordinates emergency rescue, adoption services, and veterinary care.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf8ff",
+  "theme_color": "#00236f",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

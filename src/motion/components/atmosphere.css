@@ -1,0 +1,86 @@
+.atmosphere {
+  isolation: isolate;
+  z-index: 0;
+}
+
+/* Orb wrapper anchors the glow (translate centers it); the inner orb
+   animates so the two transforms never collide. */
+.atmosphere-orb-wrap {
+  position: absolute;
+  transform: translate3d(-50%, -50%, 0);
+  border-radius: 9999px;
+}
+
+.atmosphere-orb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgb(var(--atmos-tint) / calc(var(--orb-op, 0.5) * var(--atmos-opacity, 1))) 0%,
+    rgb(var(--atmos-tint) / 0) 68%
+  );
+}
+
+.atmosphere-orb::after {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgb(255 255 255 / calc(var(--orb-op, 0.5) * 0.28 * var(--atmos-opacity, 1))) 0%,
+    rgb(255 255 255 / 0) 70%
+  );
+}
+
+/* Floating dust motes. */
+.atmosphere-particle-wrap {
+  position: absolute;
+  border-radius: 9999px;
+  transform: translate3d(-50%, -50%, 0);
+}
+
+.atmosphere-particle {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: rgb(var(--atmos-tint) / calc(var(--p-op, 0.4) * var(--atmos-opacity, 1)));
+  box-shadow: 0 0 6px rgb(var(--atmos-tint) / calc(var(--p-op, 0.4) * 0.7 * var(--atmos-opacity, 1)));
+}
+
+/* Film grain — barely-there texture tile with a slow drift. */
+.atmosphere-grain {
+  position: absolute;
+  inset: -60px;
+  opacity: 0.05;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-repeat: repeat;
+  mix-blend-mode: soft-light;
+}
+
+@keyframes atmos-grain {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-36px, 24px, 0); }
+}
+
+.animate-atmos-grain {
+  animation: atmos-grain 1.2s steps(3) infinite;
+}
+
+/* Dark theme — dampen every glow so saturated tints never glare. */
+.dark .atmosphere {
+  --atmos-opacity: 0.42;
+}
+
+/* Motion safety: freeze everything, keep the soft static glow. */
+@media (prefers-reduced-motion: reduce) {
+  .atmosphere-orb,
+  .atmosphere-particle,
+  .atmosphere-grain {
+    animation: none !important;
+  }
+}

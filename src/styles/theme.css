@@ -1,0 +1,1003 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+
+  --top-strip-height: 40px;
+  --top-strip-compact-height: 32px;
+  --navbar-height: 72px;
+  --header-height: calc(var(--top-strip-height) + var(--navbar-height));
+
+  /* ── Z-index scale (semantic, no magic numbers) ──
+     Drawer sits BELOW the header so the top strip + navbar stay crisp while
+     the mobile menu overlay dims only the page content. */
+  --z-header: 50;
+  --z-top-strip: 60;
+  --z-drawer: 40;
+  --z-modal: 100;
+  --z-toast: 110;
+  --z-skip: 120;
+
+  --background: #faf6ef;
+  --foreground: #1a1b1e;
+  --card: #f5f1e9;
+  --card-foreground: #1a1b1e;
+  --popover: #faf6ef;
+  --popover-foreground: #1a1b1e;
+  --primary: #00236f;
+  --primary-foreground: #faf6ef;
+  --secondary: #eceae3;
+  --secondary-foreground: #1a1b1e;
+  --muted: #eceae3;
+  --muted-foreground: #444651;
+  --accent: #eceae3;
+  --accent-foreground: #1a1b1e;
+  --destructive: #c41a1a;
+  --destructive-foreground: #ffffff;
+  --emergency: #c41a1a;
+  --emergency-foreground: #ffffff;
+  --rescue: #14507e;
+  --rescue-foreground: #ffffff;
+  --donate: #1d6b3c;
+  --donate-foreground: #ffffff;
+  --border: #e2ddd4;
+  --input: transparent;
+  --input-background: #ffffff;
+  --switch-background: #c5c5d3;
+  --ring: #00236f;
+  --primary-hover: #001850;
+  --destructive-hover: #a01515;
+  --destructive-active: #8a1212;
+  --footer-bg: #0b0c10;
+  --radius: 0.625rem;
+
+  /* ── Emotional palette ──
+     RGB triplets consumed as rgba(var(--emotion-*), <alpha>) by the
+     Atmosphere / lighting system. One tint per scene so every section
+     carries a distinct emotional temperature. */
+  --emotion-hope:           255 196 120;  /* warm amber      — Hero */
+  --emotion-trust:          255 214 150;  /* warm peach      — TrustBar */
+  --emotion-urgency:        196 26 26;    /* signal red      — EmergencyStory */
+  --emotion-compassion:     255 224 178;  /* soft cream      — Mission */
+  --emotion-reality:        15 23 42;     /* deep navy       — VideoSection */
+  --emotion-proof:          255 180 96;   /* amber           — ImpactSection */
+  --emotion-guidance:       0 35 111;     /* navy            — HowItWorks / Services */
+  --emotion-transformation: 16 137 124;   /* teal            — RescueJourney */
+  --emotion-joy:            180 83 9;     /* warm amber      — FeaturedAnimals */
+  --emotion-action:         0 35 111;     /* navy            — VolunteerDonate */
+  --emotion-belonging:      255 154 130;  /* soft coral      — CommunityStories */
+  --emotion-promise:        0 35 111;     /* navy            — Footer */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-28: 112px;
+  --space-32: 128px;
+
+  /* ── Section spacing tokens ── */
+  --section-gap-xl: var(--space-24);  /* 96px  — hero-like sections */
+  --section-gap-lg: var(--space-20);  /* 80px  — standard section (default) */
+  --section-gap-md: var(--space-16);  /* 64px  — compact section */
+  --section-gap-sm: var(--space-12);  /* 48px  — tight section */
+
+  /* ── Grid gap tokens ── */
+  --grid-gap-lg: var(--space-8);   /* 32px — desktop */
+  --grid-gap-md: var(--space-6);   /* 24px — tablet */
+  --grid-gap-sm: var(--space-4);   /* 16px — mobile */
+
+  --opacity-disabled: 0.5;
+  --opacity-muted: 0.6;
+  --opacity-subtle: 0.15;
+  --opacity-overlay: 0.5;
+
+  --border-width-standard: 1px;
+  --border-width-emphasis: 2px;
+  --border-width-accent: 4px;
+
+  --icon-xs: 12px;
+  --icon-sm: 14px;
+  --icon-md: 16px;
+  --icon-lg: 18px;
+  --icon-xl: 22px;
+  --icon-2xl: 28px;
+
+  --content-max: 1280px;
+  --content-narrow: 720px;
+  --content-text: 540px;
+
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: #030213;
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-emergency: var(--emergency);
+  --color-emergency-foreground: var(--emergency-foreground);
+  --color-rescue: var(--rescue);
+  --color-rescue-foreground: var(--rescue-foreground);
+  --color-donate: var(--donate);
+  --color-donate-foreground: var(--donate-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-primary-hover: var(--primary-hover);
+  --color-destructive-hover: var(--destructive-hover);
+  --color-destructive-active: var(--destructive-active);
+  --color-footer-bg: var(--footer-bg);
+  --color-chart-1: oklch(0.646 0.222 41.116);
+  --color-chart-2: oklch(0.6 0.118 184.704);
+  --color-chart-3: oklch(0.398 0.07 227.392);
+  --color-chart-4: oklch(0.828 0.189 84.429);
+  --color-chart-5: oklch(0.769 0.188 70.08);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  --font-condensed: 'Barlow Condensed', 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* ── Section rhythm / grid-gap utilities ──
+     Backed by the --section-gap-* and --grid-gap-* scales so every component
+     (Section, PageHeader, self-padded sections, card grids) shares one scale. */
+  --spacing-section-sm: var(--section-gap-sm);   /* 48px  — compact  */
+  --spacing-section-md: var(--section-gap-md);   /* 64px  — standard */
+  --spacing-section-lg: var(--section-gap-lg);   /* 80px  — relaxed  */
+  --spacing-section-xl: var(--section-gap-xl);   /* 96px  — hero-like */
+  --spacing-grid-sm: var(--grid-gap-sm);         /* 16px  — mobile card grids */
+  --spacing-grid-md: var(--grid-gap-md);         /* 24px  — tablet   */
+  --spacing-grid-lg: var(--grid-gap-lg);         /* 32px  — desktop  */
+
+  --text-2xs: 10px;
+  --text-2xs--line-height: 1.3;
+  --text-xs: 12px;
+  --text-xs--line-height: 1.4;
+  --text-sm: 14px;
+  --text-sm--line-height: 1.5;
+  --text-base: 16px;
+  --text-base--line-height: 1.6;
+  --text-lg: 18px;
+  --text-lg--line-height: 1.6;
+  --text-xl: 24px;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 32px;
+  --text-2xl--line-height: 1.2;
+  --text-3xl: 40px;
+  --text-3xl--line-height: 1.15;
+  --text-4xl: 52px;
+  --text-4xl--line-height: 1.08;
+  --text-5xl: 64px;
+  --text-5xl--line-height: 1.05;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.05em;
+  --tracking-wider: 0.1em;
+  --tracking-widest: 0.15em;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-btn: 16px;
+  --radius-input: 12px;
+  --radius-card: 20px;
+  --radius-img: 20px;
+  --radius-glass: 24px;
+  --radius-modal: 20px;
+
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 8px 24px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 12px 40px -8px rgb(0 0 0 / 0.12);
+  --shadow-glow-primary: var(--shadow-glow-primary);
+  --shadow-glow-destructive: var(--shadow-glow-destructive);
+  --shadow-glow-soft: var(--shadow-glow-soft);
+  --shadow-glow-card: var(--shadow-glow-card);
+  --shadow-hover-card: var(--shadow-hover-card);
+  --shadow-btn-glow-primary: var(--shadow-btn-glow-primary);
+  --shadow-btn-glow-destructive: var(--shadow-btn-glow-destructive);
+  --shadow-glow-primary: 0 0 20px -4px rgba(0, 35, 111, 0.35);
+  --shadow-glow-destructive: 0 0 20px -4px rgba(186, 26, 26, 0.35);
+  --shadow-glow-soft: 0 0 12px -4px rgba(0, 35, 111, 0.12);
+  --shadow-glow-card: var(--shadow-lg);
+  --shadow-hover-card: var(--shadow-lg);
+  --shadow-btn-glow-primary: 0 0 20px -6px rgba(0, 35, 111, 0.4);
+  --shadow-btn-glow-destructive: 0 0 24px -6px rgba(186, 26, 26, 0.4);
+
+  --duration-fast: 150ms;
+  --duration-standard: 200ms;
+  --duration-ui: 220ms;
+  --duration-gentle: 300ms;
+  --duration-scroll: 350ms;
+  --duration-reveal: 450ms;
+  --duration-narrative: 500ms;
+  --duration-slow: 700ms;
+  --duration-deliberate: 1000ms;
+
+  --ease-fast: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-gentle: cubic-bezier(0, 0, 0.2, 1);
+  --ease-narrative: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-fade-in: fade-in var(--duration-gentle) var(--ease-standard);
+  --animate-slide-up: slide-up var(--duration-gentle) var(--ease-standard);
+  --animate-scale-in: scale-in var(--duration-standard) var(--ease-standard);
+  --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
+  --animate-pulse-emergency: pulse-emergency 1.5s ease-in-out infinite;
+  --animate-scroll-reveal: scroll-reveal var(--duration-narrative) var(--ease-narrative) forwards;
+  --animate-accordion-down: accordion-down var(--duration-standard) var(--ease-standard);
+  --animate-accordion-up: accordion-up var(--duration-standard) var(--ease-standard);
+  --animate-stagger-fade: stagger-fade var(--duration-gentle) var(--ease-gentle) forwards;
+  --animate-shake: shake 0.4s var(--ease-fast);
+  --animate-celebration-pop: celebration-pop 0.4s var(--ease-gentle);
+  --animate-float: float 4s ease-in-out infinite;
+  --animate-glow-pulse: glow-pulse 2s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.8s ease-in-out infinite;
+  --animate-ambient-pulse: ambient-pulse 3.6s ease-in-out infinite;
+  --animate-ambient-drift: ambient-drift 5.5s ease-in-out infinite;
+  --animate-hint-nudge: hint-nudge 2.2s ease-in-out infinite;
+  --animate-ring-pulse: ring-pulse 7s ease-in-out infinite;
+
+  --animate-hero-camera-drift: hero-camera-drift 18s ease-in-out infinite;
+  --animate-hero-sun: hero-sun 14s ease-in-out infinite;
+  --animate-hero-bloom: hero-bloom 9s ease-in-out infinite;
+  --animate-hero-vignette: hero-vignette 11s ease-in-out infinite;
+  --animate-hero-atmosphere: hero-atmosphere 22s ease-in-out infinite;
+--animate-hero-glow: hero-glow 12s ease-in-out infinite;
+  --animate-hero-live-dot: hero-live-dot 2.2s ease-in-out infinite;
+  --animate-hero-heartbeat: hero-heartbeat 4.5s ease-in-out infinite;
+  --animate-hero-scroll-dot: hero-scroll-dot 1.8s ease-in-out infinite;
+  --animate-hero-caret: hero-caret-blink 1.1s steps(1) infinite;
+  --animate-hero-ticker-dot: hero-ticker-dot 2.2s ease-out infinite;
+  --animate-emergency-heartbeat-sparse: emergency-heartbeat-sparse 5.5s ease-in-out infinite;
+  --animate-paw-scroll: paw-scroll-bounce 1.6s ease-in-out infinite;
+  --animate-paw-trail: paw-trail 1.6s ease-out infinite;
+  --animate-tail-wag: tail-wag 0.9s ease-in-out 1;
+
+  --animate-services-hub-breathe: services-hub-breathe 8s ease-in-out infinite;
+  --animate-services-sector-drift: services-sector-drift 22s ease-in-out infinite;
+  --animate-services-ring-energy: services-ring-energy 11s ease-in-out infinite;
+  --animate-story-photo-zoom: story-photo-zoom 20s ease-in-out infinite alternate;
+  --animate-story-name-breathe: story-name-breathe 7s ease-in-out infinite;
+  --animate-stat-shimmer: stat-shimmer 38s linear infinite;
+  --animate-footer-network-fade: footer-network-fade 14s ease-in-out infinite;
+
+  --animate-hero-headline-accent-draw: hero-headline-accent-draw 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-hero-decoration-drift: hero-decoration-drift 12s ease-in-out infinite;
+  --animate-hero-float-gentle: hero-float-gentle 5s ease-in-out infinite;
+
+  /* Hero Cinematic Lighting (Phase 1.3) */
+  --animate-hero-sun-drift: hero-sun-drift 22s ease-in-out infinite;
+  --animate-hero-volumetric-rays: hero-volumetric-rays 18s ease-in-out infinite;
+  --animate-hero-dynamic-vignette: hero-dynamic-vignette 14s ease-in-out infinite;
+  /* Image system */
+  --animate-img-float: img-float 8s ease-in-out infinite;
+  --animate-badge-urgent-pulse: badge-urgent-pulse 6s ease-in-out infinite;
+  --animate-badge-new-shimmer: badge-new-shimmer 3s ease-in-out infinite;
+
+  /* Atmosphere: living background */
+  --animate-atmosphere-orb: atmosphere-orb var(--atmos-orb-dur, 16s) ease-in-out var(--atmos-orb-delay, 0s) infinite;
+  --animate-atmosphere-particle: atmosphere-particle var(--atmos-p-dur, 16s) ease-in-out var(--atmos-p-delay, 0s) infinite;
+  --animate-atmosphere-feather: atmosphere-feather var(--atmos-p-dur, 28s) ease-in-out var(--atmos-p-delay, 0s) infinite;
+
+  /* Cursor system */
+  --animate-cursor-heartbeat: cursor-heartbeat 1.15s ease-in-out infinite;
+  --animate-cursor-focus: cursor-focus 2.4s ease-in-out infinite;
+  --animate-button-sheen: button-sheen 0.55s ease-in-out;
+
+  /* Top emergency strip — sparse urgency pulse (10s) */
+  --animate-top-strip-siren: top-strip-siren 10s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-emergency {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.05); }
+}
+
+@keyframes scroll-reveal {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes accordion-down {
+  from { opacity: 0; transform: scaleY(0.8); transform-origin: top; }
+  to { opacity: 1; transform: scaleY(1); transform-origin: top; }
+}
+
+@keyframes accordion-up {
+  from { opacity: 1; transform: scaleY(1); transform-origin: top; }
+  to { opacity: 0; transform: scaleY(0.8); transform-origin: top; }
+}
+
+@keyframes stagger-fade {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@keyframes celebration-pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(1.02); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes ambient-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.45); }
+}
+
+@keyframes ambient-drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(4px, -5px); }
+}
+
+@keyframes hint-nudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(7px); }
+}
+
+@keyframes ring-pulse {
+  0%, 100% { opacity: 0.28; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.015); }
+}
+
+@keyframes hero-camera-drift {
+  0% { transform: translateX(0) scale(1); }
+  22% { transform: translateX(8px) scale(1.012); }
+  38% { transform: translateX(8px) scale(1.02); }
+  64% { transform: translateX(-8px) scale(1.02); }
+  82% { transform: translateX(-8px) scale(1.008); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes hero-sun {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(12px, -14px) scale(1.07); }
+}
+
+@keyframes hero-vignette {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+@keyframes hero-atmosphere {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(var(--tx, 24px), var(--ty, -24px)); }
+}
+
+@keyframes hero-live-dot {
+  0% { opacity: 1; transform: scale(1); }
+  70% { opacity: 0.4; transform: scale(1.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes hero-heartbeat {
+  0%, 2%, 100% { transform: scale(1); }
+  2.8% { transform: scale(1.012); }
+  3.6% { transform: scale(1); }
+  4.6% { transform: scale(1.006); }
+  5.6% { transform: scale(1); }
+}
+
+@keyframes hero-scroll-dot {
+  0%, 100% { transform: translateY(0); opacity: 0.9; }
+  50% { transform: translateY(10px); opacity: 0.2; }
+}
+
+@keyframes hero-caret-blink {
+  0%, 45% { opacity: 1; }
+  46%, 100% { opacity: 0; }
+}
+
+@keyframes hero-ticker-dot {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  70% { opacity: 1; transform: scale(1.5); }
+}
+
+@keyframes emergency-heartbeat-sparse {
+  0%, 74%, 100% { transform: scale(1); }
+  78% { transform: scale(1.04); }
+  82% { transform: scale(1); }
+  86% { transform: scale(1.03); }
+  90% { transform: scale(1); }
+}
+
+@keyframes paw-scroll-bounce {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(7px); opacity: 0.85; }
+}
+
+@keyframes paw-trail {
+  0% { transform: translateY(0); opacity: 0; }
+  30% { opacity: 0.45; }
+  100% { transform: translateY(18px); opacity: 0; }
+}
+
+@keyframes tail-wag {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(14deg); }
+  55% { transform: rotate(-10deg); }
+  80% { transform: rotate(8deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* ── Atmosphere: living background ─────────────────────────────────────────── */
+/* Light orbs drift + breathe on slow, independent loops. Pure transform +
+   opacity so they composite cheaply and pause off-screen via [data-ambient]. */
+@keyframes atmosphere-orb {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: var(--orb-op, 0.5); }
+  33%       { transform: translate3d(var(--orb-dx, 6px), var(--orb-dy, -8px), 0) scale(1.07); }
+  66%       { transform: translate3d(calc(var(--orb-dx, 6px) * -0.7), var(--orb-dy2, 10px), 0) scale(0.96); }
+}
+
+/* Tiny floating particles — rise with a soft sway then fade. Each particle
+   overrides --p-x / --p-y / --p-dur / --p-op inline for variety. */
+@keyframes atmosphere-particle {
+  0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+  14%  { opacity: var(--p-op, 0.5); }
+  82%  { opacity: var(--p-op, 0.5); }
+  100% { transform: translate3d(var(--p-x, 10px), var(--p-y, -48px), 0); opacity: 0; }
+}
+
+/* ── Cursor system ─────────────────────────────────────────────────────────── */
+@keyframes cursor-heartbeat {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  14%      { transform: scale(1.22); opacity: 1; }
+  26%      { transform: scale(1); opacity: 0.8; }
+  38%      { transform: scale(1.12); opacity: 0.95; }
+  50%      { transform: scale(1); opacity: 0.8; }
+}
+
+@keyframes cursor-focus {
+  0%, 100% { opacity: 0.95; }
+  50%      { opacity: 0.4; }
+}
+
+/* Sweeping highlight across a button on hover (GPU transform only). */
+@keyframes button-sheen {
+  0%          { transform: translateX(-115%) skewX(-18deg); opacity: 0; }
+  12%         { opacity: 1; }
+  55%, 100%   { transform: translateX(215%) skewX(-18deg); opacity: 0; }
+}
+
+/* ── Top emergency strip ────────────────────────────────────────────────────── */
+/* Sparse double-beat every 10s — urgency, not panic. */
+@keyframes top-strip-siren {
+  0%, 93%, 100% { transform: scale(1); }
+  94%           { transform: scale(1.18); }
+  96%           { transform: scale(1); }
+  98%           { transform: scale(1.1); }
+}
+
+/* ── Emergency story (component-scoped tokens) ─────────────────────── */
+
+.emergency-story {
+  --timeline-node-size: clamp(48px, 4vw, 56px);
+  --timeline-image-size: clamp(88px, 8vw, 112px);
+  --timeline-gap-x: clamp(20px, 2vw, 32px);
+  --timeline-track-stroke: 2.5;
+  --timeline-fill-stroke: 4;
+  --timeline-row-h: clamp(190px, 15vw, 240px);
+}
+
+/* Equal desktop row heights → the six nodes sit on an even vertical pitch.
+   The tallest card (set on .emergency-story as --timeline-row-h by
+   EmergencyStory's measurement) determines every row height, so node spacing
+   is uniform and each card stays vertically centered on its node. */
+@media (min-width: 1024px) {
+  .emergency-story .rescue-row {
+    min-height: var(--timeline-row-h);
+  }
+}
+
+/* ── Rescue process scrub states ────────────────────────────────────── */
+
+.rescue-node {
+  border-color: var(--border);
+  background: var(--background);
+  color: var(--muted-foreground);
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.rescue-node[data-state="upcoming"] {
+  border-color: var(--border);
+  background: var(--background);
+  color: var(--muted-foreground);
+}
+
+.rescue-node[data-state="active"] {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent),
+              0 0 18px 2px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.rescue-node[data-state="complete"] {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.rescue-node[data-state="active"]::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  border: 2px solid var(--primary);
+  animation: rescue-node-pulse 2s ease-out infinite;
+}
+
+/* Soft glow trailing the drawn path — lights the "current" beat as it passes */
+.emergency-story .rescue-fill {
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--primary) 45%, transparent));
+}
+
+@keyframes rescue-node-pulse {
+  0% { transform: scale(0.85); opacity: 0.9; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+
+/* ── Dog image — consistent sizing via clamp() ──────────────────────── */
+
+.rescue-card-img {
+  width: var(--timeline-image-size);
+  height: var(--timeline-image-size);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 9999px;
+  border: 3px solid color-mix(in srgb, var(--primary) 15%, transparent);
+  box-shadow: 0 2px 10px 0 rgb(0 0 0 / 0.08);
+}
+
+/* ── Card hover — filter instead of boxShadow for performance ───────── */
+
+.rescue-card {
+  transition: transform 300ms cubic-bezier(0, 0, 0.2, 1),
+              border-color 300ms cubic-bezier(0, 0, 0.2, 1),
+              filter 300ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.rescue-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--primary) 25%, transparent);
+  filter: drop-shadow(0 8px 24px color-mix(in srgb, var(--primary) 10%, transparent));
+}
+
+/* ── Mobile vertical timeline connector ─────────────────────────────── */
+
+@media (max-width: 1023px) {
+  .emergency-story .rescue-row {
+    padding-left: calc(var(--timeline-node-size) / 2 + 12px);
+  }
+
+  .emergency-story .rescue-node {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+  .emergency-story .rescue-row::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--timeline-node-size) / 2);
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  .emergency-story .rescue-row:last-child::before {
+    display: none;
+  }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .emergency-story .rescue-card:hover {
+    transform: none;
+    filter: none;
+  }
+
+  .emergency-story .rescue-node {
+    transition: none;
+    box-shadow: none;
+  }
+
+  .emergency-story .rescue-node[data-state="active"]::after {
+    animation: none;
+  }
+
+  .emergency-story .rescue-card {
+    transition: none;
+  }
+
+  .emergency-story .rescue-fill {
+    filter: none;
+  }
+
+  .top-emergency-strip,
+  .top-emergency-strip * {
+    transition: none !important;
+  }
+}
+
+/* --- Ambient life (Phase B) --- */
+
+@keyframes services-hub-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.005); }
+}
+
+@keyframes services-sector-drift {
+  0%, 100% { filter: brightness(0.98); }
+  50% { filter: brightness(1.02); }
+}
+
+@keyframes services-ring-energy {
+  0%, 68% { stroke-dashoffset: 0; opacity: 0.4; }
+  82% { stroke-dashoffset: -26; opacity: 0.85; }
+  100% { stroke-dashoffset: -26; opacity: 0.4; }
+}
+
+@keyframes story-photo-zoom {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.01); }
+}
+
+@keyframes story-name-breathe {
+  0%, 100% { opacity: 0.99; }
+  50% { opacity: 1; }
+}
+
+@keyframes stat-shimmer {
+  0% { transform: translateX(-140%) skewX(-12deg); opacity: 0; }
+  4% { opacity: 0.9; }
+  12% { transform: translateX(260%) skewX(-12deg); opacity: 0; }
+  100% { transform: translateX(260%) skewX(-12deg); opacity: 0; }
+}
+
+@keyframes footer-network-fade {
+  0%, 100% { opacity: 0.07; }
+  50% { opacity: 0.02; }
+}
+
+/* --- Hero Cinematic Animations (Phase 9-10) --- */
+
+@keyframes hero-headline-accent-draw {
+  from { transform: scaleX(0); opacity: 0; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+
+@keyframes hero-decoration-drift {
+  0%, 100% { transform: translate(0, 0) rotate(var(--rot, 0deg)); }
+  50% { transform: translate(var(--drift-x, 3px), var(--drift-y, -2px)) rotate(calc(var(--rot, 0deg) + 1deg)); }
+}
+
+@keyframes hero-float-gentle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+/* ── Hero Cinematic Lighting (Phase 1.3) ── */
+
+@keyframes hero-sun-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(18px, -18px) scale(1.08); }
+  50% { transform: translate(24px, -24px) scale(1.12); }
+  75% { transform: translate(12px, -30px) scale(1.08); }
+}
+
+@keyframes hero-volumetric-rays {
+  0%, 100% { opacity: 0.25; transform: translateY(0) scaleY(1); }
+  50% { opacity: 0.45; transform: translateY(-8px) scaleY(1.05); }
+}
+
+@keyframes hero-dynamic-vignette {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 0.95; }
+}
+
+/* Dust particles — rise with sway, then fade */
+@keyframes atmosphere-particle {
+  0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+  14%  { opacity: var(--p-op, 0.5); }
+  82%  { opacity: var(--p-op, 0.5); }
+  100% { transform: translate3d(var(--p-x, 10px), var(--p-y, -48px), 0); opacity: 0; }
+}
+
+/* Feather — slow drift down with gentle rotation */
+@keyframes atmosphere-feather {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--feather-rot, 0deg)); }
+  33% { transform: translate3d(var(--p-x, 20px), calc(var(--p-y, 60px) * 0.33), 0) rotate(calc(var(--feather-rot, 0deg) + 8deg)); }
+  66% { transform: translate3d(calc(var(--p-x, 20px) * -0.5), calc(var(--p-y, 60px) * 0.66), 0) rotate(calc(var(--feather-rot, 0deg) - 5deg)); }
+  100% { transform: translate3d(var(--p-x, 20px), var(--p-y, 120px), 0) rotate(var(--feather-rot, 0deg)); }
+}
+
+/* ── Image system ──────────────────────────────────────────────────────────── */
+
+@keyframes img-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-2px); }
+}
+
+@keyframes badge-urgent-pulse {
+  0%, 88%, 100% { transform: scale(1); opacity: 1; }
+  92%           { transform: scale(1.08); opacity: 0.9; }
+  96%           { transform: scale(1); opacity: 1; }
+}
+
+@keyframes badge-new-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Pause ambient loops while their container is off-screen. */
+[data-ambient="off"] .animate-services-hub-breathe,
+[data-ambient="off"] .animate-services-sector-drift,
+[data-ambient="off"] .animate-services-ring-energy,
+[data-ambient="off"] .animate-story-photo-zoom,
+[data-ambient="off"] .animate-story-name-breathe {
+  animation-play-state: paused;
+}
+
+/* Hero ambient loops pause when the full-bleed scene leaves the viewport.
+   They still run fully while the hero is visible; pausing off-screen drops the
+   main-thread cost of the continuous full-screen video/lighting composites so
+   scrolling stays smooth and in sync with the rest of the page. */
+[data-ambient="off"] .animate-hero-camera-drift,
+[data-ambient="off"] .animate-hero-sun,
+[data-ambient="off"] .animate-hero-vignette,
+[data-ambient="off"] .animate-hero-atmosphere,
+[data-ambient="off"] .animate-hero-live-dot,
+[data-ambient="off"] .animate-hero-heartbeat,
+[data-ambient="off"] .animate-hero-scroll-dot,
+[data-ambient="off"] .animate-hero-decoration-drift,
+[data-ambient="off"] .animate-hero-float-gentle,
+[data-ambient="off"] .animate-hero-glow,
+[data-ambient="off"] .animate-services-hub-breathe,
+[data-ambient="off"] .animate-services-sector-drift,
+[data-ambient="off"] .animate-services-ring-energy,
+[data-ambient="off"] .animate-story-photo-zoom,
+[data-ambient="off"] .animate-story-name-breathe,
+[data-ambient="off"] .animate-footer-network-fade,
+[data-ambient="off"] .animate-atmosphere-particle,
+[data-ambient="off"] .animate-atmosphere-feather,
+[data-ambient="off"] .animate-paw-scroll,
+[data-ambient="off"] .animate-paw-trail {
+  animation-play-state: paused;
+}
+
+/* While the user is actively scrolling over the hero, freeze the
+   compositor-heavy loops (full-screen video transform + blend-mode gradients)
+   so the viewport isn't re-rasterized on every scroll frame. Opacity-only
+   loops (bloom) keep running. The cinematic motion resumes the moment
+   scrolling stops. */
+[data-scroll-active="true"] .animate-hero-camera-drift,
+[data-scroll-active="true"] .animate-hero-sun,
+[data-scroll-active="true"] .animate-hero-vignette,
+[data-scroll-active="true"] .animate-hero-atmosphere {
+  animation-play-state: paused;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-serif;
+  }
+
+  html {
+    font-size: var(--font-size);
+    scroll-padding-top: calc(var(--header-height) + 8px);
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring/60;
+    transition: outline-offset 200ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  ::selection {
+    @apply bg-primary/15 text-foreground;
+  }
+
+  /* Fix: visible selection on dark backgrounds */
+  .bg-section-dark ::selection,
+  footer ::selection,
+  [data-theme="dark"] ::selection,
+  .dark ::selection {
+    @apply bg-primary-foreground/30 text-primary-foreground;
+  }
+}
+
+@layer utilities {
+  .noise-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+  }
+
+  /* Promote the full-bleed hero backdrop (video + lighting blends + grain) to
+     its own compositing layer. While the page scrolls, the browser then moves
+     one pre-rendered texture instead of re-rasterizing the full-viewport
+     video/blend-mode stack on the main thread every frame — the biggest
+     source of hero lag during scroll. The inner video layer keeps animating
+     (camera drift) on the compositor without invalidating this texture. */
+  .hero-scene-exit {
+    will-change: transform;
+  }
+
+  .bg-section-dark {
+    background: linear-gradient(180deg, var(--footer-bg) 0%, #0a0b0f 100%);
+    position: relative;
+  }
+
+  .bg-section-dark::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0, 35, 111, 0.08) 0%, transparent 60%);
+  }
+
+  /* Hide scrollbars on carousels/scroll-spy tracks (Chrome/WebKit + Firefox) */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

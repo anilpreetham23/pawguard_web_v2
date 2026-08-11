@@ -1,0 +1,104 @@
+/* ── Fixed bar at the very bottom of the viewport ─────────────── */
+.puppy-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  pointer-events: none;
+  height: 80px;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* ── Track — thin progress line at the very bottom ────────────── */
+.puppy-bar__track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: rgba(202, 115, 0, 0.16);
+  overflow: visible;
+}
+
+/* ── Filled portion ────────────────────────────────────────────── */
+.puppy-bar__fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #CA7300, #EFAD03);
+  opacity: 0.5;
+  transform-origin: left center;
+  will-change: transform;
+}
+
+/* ── Paw prints laid at every 5% milestone ─────────────────────── */
+.puppy-bar__paws {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.puppy-bar__paw {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  color: rgba(202, 115, 0, 0.55);
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.puppy-bar__paw[data-laid="true"] {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* ── Dog icon — floats above the track line ──────────────────── */
+.puppy-bar__dog {
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  will-change: transform;
+}
+
+/* Heart celebrates reaching ~100% */
+.puppy-bar__heart {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  color: #e11d48;
+  opacity: 0;
+  transform: translate(-50%, 6px) scale(0.4);
+  transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+
+.puppy-bar__dog[data-complete="true"] .puppy-bar__heart {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+/* Gentle breathing loop while the dog is idle (walk animation paused) */
+.puppy-bar__dog.is-idle .puppy-bar__lottie {
+  animation: puppy-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes puppy-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+
+/* ── Amber tint on the Lottie dog — matches the loading-screen dog ── */
+.puppy-bar__lottie {
+  filter: drop-shadow(0 2px 8px rgba(217, 119, 6, 0.4));
+}
+
+/* ── Reduced motion ────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .puppy-bar__lottie {
+    filter: drop-shadow(0 2px 8px rgba(217, 119, 6, 0.4));
+    animation: none;
+  }
+  .puppy-bar__dog.is-idle .puppy-bar__lottie {
+    animation: none;
+  }
+}

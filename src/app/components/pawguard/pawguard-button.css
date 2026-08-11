@@ -1,0 +1,138 @@
+/* PawGuard button physicality: a beveled top edge + a warm sheen that sweeps
+   across on hover. Kept CSS-only so every button gets it for free. */
+
+.pawguard-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform var(--duration-gentle) var(--ease-gentle),
+              box-shadow var(--duration-gentle) var(--ease-gentle),
+              background-color var(--duration-gentle) var(--ease-gentle);
+}
+
+.pawguard-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), inset 0 -1px 0 rgba(0, 0, 0, 0.16);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pawguard-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 42%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: translateX(-115%) skewX(-18deg);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.pawguard-btn:hover::after {
+  animation: button-sheen 0.55s ease-in-out;
+}
+
+/* Premium hover lift + glow */
+.pawguard-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18), 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Active press state */
+.pawguard-btn:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 75ms;
+}
+
+/* Focus visible ring */
+.pawguard-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring-color, var(--primary));
+}
+
+/* Ripple effect on click */
+.pawguard-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), inset 0 -1px 0 rgba(0, 0, 0, 0.16);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%), 
+    rgba(255,255,255,0.3) 0%, transparent 70%);
+  transform: scale(0);
+  transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+}
+
+.pawguard-btn:active::before {
+  opacity: 1;
+  transform: scale(2.5);
+  transition: transform 0s, opacity 0s;
+}
+
+/* Destructive variant premium glow */
+.pawguard-btn[variant="destructive"]:hover {
+  box-shadow: 0 8px 32px rgba(186, 26, 26, 0.4), 0 4px 16px rgba(186, 26, 26, 0.25);
+}
+
+.pawguard-btn[variant="destructive"]:focus-visible {
+  --ring-color: #ba1a1a;
+}
+
+/* Light variant premium glow */
+.pawguard-btn[variant="light"]:hover {
+  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.3), 0 4px 16px rgba(255, 255, 255, 0.15);
+}
+
+.pawguard-btn[variant="light"]:focus-visible {
+  --ring-color: #ffffff;
+}
+
+/* Outline variant premium glow */
+.pawguard-btn[variant="outline"]:hover {
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.12), 0 4px 8px rgba(255, 255, 255, 0.08);
+}
+
+.pawguard-btn[variant="outline"]:focus-visible {
+  --ring-color: #ffffff;
+}
+
+/* Ghost variant premium glow */
+.pawguard-btn[variant="ghost"]:hover {
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.08);
+}
+
+.pawguard-btn[variant="ghost"]:focus-visible {
+  --ring-color: #ffc478;
+}
+
+/* Loading state pulse */
+.pawguard-btn[aria-busy="true"] {
+  position: relative;
+}
+
+.pawguard-btn[aria-busy="true"]::after {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pawguard-btn::after {
+    animation: none !important;
+  }
+  .pawguard-btn:hover {
+    transform: none;
+  }
+  .pawguard-btn:active {
+    transform: scale(0.98);
+  }
+  .pawguard-btn::before {
+    transition: none !important;
+  }
+}

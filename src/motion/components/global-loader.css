@@ -1,0 +1,14 @@
+/* ── Global yellow-dog loading overlay ─────────────────────────── */
+.global-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f5ef;
+}
+
+.global-loader__dog {
+  filter: drop-shadow(0 10px 24px rgba(217, 119, 6, 0.18));
+}
