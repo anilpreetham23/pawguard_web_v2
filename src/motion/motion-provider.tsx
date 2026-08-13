@@ -12,6 +12,7 @@ interface MotionProviderProps {
 
 function MotionInit({ children }: { children: ReactNode }) {
   const setReducedMotion = useMotionStore((s) => s.setReducedMotion);
+  const setReady = useMotionStore((s) => s.setReady);
 
   useEffect(() => {
     registerGsapPlugins();
@@ -23,8 +24,10 @@ function MotionInit({ children }: { children: ReactNode }) {
       setReducedMotion(matches);
     });
 
+    setReady(true);
+
     return cleanup;
-  }, [setReducedMotion]);
+  }, [setReducedMotion, setReady]);
 
   return <>{children}</>;
 }

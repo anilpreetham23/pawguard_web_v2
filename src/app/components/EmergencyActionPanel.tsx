@@ -29,7 +29,7 @@ export default function EmergencyActionPanel({ variant = "banner" }: EmergencyAc
           </div>
           <div>
             <p className="text-white/80 text-xs font-semibold tracking-wider uppercase font-condensed">Emergency</p>
-            <p className="text-white font-bold text-xl">1-800-PAW-GUARD</p>
+            <p className="text-white font-bold text-xl">+91 98765 43210</p>
             <p className="text-white/70 text-sm">Available 24/7 — Dispatch within minutes</p>
           </div>
         </div>
@@ -73,10 +73,10 @@ export default function EmergencyActionPanel({ variant = "banner" }: EmergencyAc
                 <ArrowRight size={16} />
               </Link>
               <a
-                href="tel:1-800-PAW-GUARD"
+                href="tel:+919876543210"
                 className="text-white font-bold text-lg tracking-tight hover:underline underline-offset-4 transition-all duration-fast"
               >
-                1-800-PAW-GUARD
+                +91 98765 43210
               </a>
             </div>
           </div>

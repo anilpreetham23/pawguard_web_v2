@@ -26,9 +26,9 @@ export function DispatchPanel({
     "You will receive a status update once a team is dispatched.",
   ],
   contacts = [
-    { label: "PawGuard Emergency", number: "1-800-PAW-GUARD" },
-    { label: "Animal Control", number: "1-800-555-0199" },
-    { label: "Veterinary Helpline", number: "1-800-555-0177" },
+    { label: "PawGuard Emergency", number: "+91 98765 43210" },
+    { label: "Animal Control", number: "+91 80 1234 5678" },
+    { label: "Veterinary Helpline", number: "+91 80 8765 4321" },
   ],
   tips = [
     "Keep a safe distance from injured dogs.",

@@ -1,16 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Shield, RefreshCw } from "lucide-react";
+import { CheckCircle2, Shield, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import SectionHeading from "../components/SectionHeading";
 import PageHeader from "../components/PageHeader";
 import AdoptionCard from "../components/AdoptionCard";
-import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, EmptyState } from "../components/pawguard";
-import { ANIMALS } from "../data/animals";
+import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, EmptyState, Skeleton, Alert } from "../components/pawguard";
+import { useAdoptionPets } from "../hooks/useAdoptionPets";
+import { getErrorMessage } from "@/lib/api";
 
-const AGE_OPTIONS = ["Puppy", "Young", "Adult", "Senior"];
+const AGE_OPTIONS = ["Puppy", "Adult", "Senior"];
 const SIZE_OPTIONS = ["Small", "Medium", "Large"];
+type PetAgeGroup = "puppy" | "adult" | "senior";
+type PetSize = "small" | "medium" | "large";
+
+const AGE_ORDER: Record<PetAgeGroup, number> = { puppy: 0, adult: 1, senior: 2 };
+const AGE_LABEL: Record<PetAgeGroup, string> = { puppy: "Puppy", adult: "Adult", senior: "Senior" };
+const SIZE_LABEL: Record<PetSize, string> = { small: "Small", medium: "Medium", large: "Large" };
+
+const PAGE_SIZE = 9;
 
 function FilterCheckbox({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
   return (
@@ -26,27 +35,51 @@ function FilterCheckbox({ label, checked, onChange }: { label: string; checked: 
   );
 }
 
+function CardSkeleton() {
+  return (
+    <div className="bg-card border border-border rounded-card overflow-hidden shadow-sm flex flex-col">
+      <Skeleton className="aspect-[4/3] rounded-none" />
+      <div className="p-5 flex flex-col gap-2">
+        <Skeleton className="h-5 w-2/3" />
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-10 w-full mt-2" />
+      </div>
+    </div>
+  );
+}
+
 export default function AdoptionPage() {
+  const { data: pets = [], isLoading, isError, error, refetch } = useAdoptionPets();
+
   const [selectedAge, setSelectedAge] = useState<string[]>([]);
   const [selectedSize, setSelectedSize] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("default");
+  const [page, setPage] = useState(1);
 
   function toggle(list: string[], value: string, setter: (v: string[]) => void) {
     setter(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
   }
 
-  const filtered = ANIMALS.filter((a) => {
-    if (selectedAge.length && !selectedAge.includes(a.ageGroup)) return false;
-    if (selectedSize.length && !selectedSize.includes(a.size)) return false;
+  const filtered = pets.filter((pet) => {
+    if (selectedAge.length && !selectedAge.includes(AGE_LABEL[pet.ageGroup])) return false;
+    if (selectedSize.length && !selectedSize.includes(SIZE_LABEL[pet.size])) return false;
     return true;
   }).sort((a, b) => {
     if (sortBy === "name") return a.name.localeCompare(b.name);
-    const ageOrder = ["Puppy", "Young", "Adult", "Senior"];
-    if (sortBy === "age") return ageOrder.indexOf(a.ageGroup) - ageOrder.indexOf(b.ageGroup);
+    if (sortBy === "age") return AGE_ORDER[a.ageGroup] - AGE_ORDER[b.ageGroup];
     return 0;
   });
 
   const hasFilters = selectedAge.length > 0 || selectedSize.length > 0;
+
+  // Reset to first page whenever any filter, search, or sort changes
+  useEffect(() => {
+    setPage(1);
+  }, [selectedAge, selectedSize, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagePets = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <PageShell>
@@ -115,7 +148,7 @@ export default function AdoptionPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-6">
                 <p className="text-muted-foreground text-sm">
-                  <span className="font-semibold text-foreground">{filtered.length}</span> dogs available
+                  <span className="font-semibold text-foreground">{isLoading ? "…" : filtered.length}</span> dogs available
                 </p>
                 <select
                   value={sortBy}
@@ -129,20 +162,69 @@ export default function AdoptionPage() {
                 </select>
               </div>
 
-              {filtered.length === 0 ? (
+              {isLoading ? (
+                <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+                  {[0, 1, 2, 3, 4, 5].map((i) => (
+                    <StaggerItem key={i}>
+                      <CardSkeleton />
+                    </StaggerItem>
+                  ))}
+                </StaggerGrid>
+              ) : isError ? (
+                <Alert variant="error" title="Couldn't load available dogs">
+                  {getErrorMessage(error)} <button onClick={() => refetch()} className="font-semibold text-destructive underline underline-offset-2 hover:opacity-80 transition-opacity">Retry</button>
+                </Alert>
+              ) : filtered.length === 0 ? (
                 <EmptyState
-                  title="No dogs match your filters"
-                  description="Try adjusting your selection — every dog here is waiting for someone like you."
+                  title={pets.length === 0 ? "No dogs available right now" : "No dogs match your filters"}
+                  description={pets.length === 0 ? "New dogs join our care every week. Check back soon or follow us for updates." : "Try adjusting your selection — every dog here is waiting for someone like you."}
                   action={hasFilters ? { label: "Clear Filters", onClick() { setSelectedAge([]); setSelectedSize([]); } } : undefined}
                 />
               ) : (
                 <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
-                  {filtered.map((a) => (
-                    <StaggerItem key={a.name}>
-                      <AdoptionCard {...a} />
+                  {pagePets.map((pet) => (
+                    <StaggerItem key={pet.id}>
+                      <AdoptionCard
+                        name={pet.name}
+                        breed={pet.breed}
+                        age={pet.age}
+                        gender={pet.gender === "female" ? "Female" : "Male"}
+                        desc={pet.description}
+                        temperament={pet.personalityTraits.join(", ")}
+                        vaccinated={pet.vaccinationStatus === "up-to-date"}
+                        urgent={pet.adoptionBadge === "recent"}
+                        newArrival={(pet.addedDaysAgo ?? 99) <= 14}
+                        slug={pet.id}
+                        emoji={pet.emoji}
+                        tone={pet.tone}
+                      />
                     </StaggerItem>
                   ))}
                 </StaggerGrid>
+              )}
+
+              {!isLoading && !isError && pagePets.length > 0 && totalPages > 1 && (
+                <div className="flex items-center justify-between mt-10 gap-4">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage <= 1}
+                    className="inline-flex items-center gap-2 bg-card border border-border text-foreground text-xs font-semibold tracking-wider uppercase px-4 py-2.5 rounded-btn hover:border-primary hover:text-primary transition-all duration-fast disabled:opacity-40 disabled:pointer-events-none"
+                  >
+                    <ChevronLeft size={15} />
+                    Prev
+                  </button>
+                  <p className="text-muted-foreground text-sm">
+                    Page <span className="font-semibold text-foreground">{currentPage}</span> of {totalPages}
+                  </p>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage >= totalPages}
+                    className="inline-flex items-center gap-2 bg-card border border-border text-foreground text-xs font-semibold tracking-wider uppercase px-4 py-2.5 rounded-btn hover:border-primary hover:text-primary transition-all duration-fast disabled:opacity-40 disabled:pointer-events-none"
+                  >
+                    Next
+                    <ChevronRight size={15} />
+                  </button>
+                </div>
               )}
             </div>
           </div>

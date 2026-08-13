@@ -18,6 +18,7 @@ import Hero from "../components/hero/Hero";
 import { PageShell, Section, Button, Reveal, StaggerGrid, StaggerItem, CommunityStories, EditorialHeading } from "../components/pawguard";
 import { Atmosphere, Parallax } from "../../motion";
 import { useAmbientPause } from "../hooks/useAmbientPause";
+import { useImpactStats } from "../hooks/useImpactStats";
 import { InteractiveImage } from "../../motion/components/InteractiveImage";
 import { useMotionStore } from "../../motion/motion-store";
 
@@ -205,12 +206,7 @@ function VideoSection() {
 
 function ImpactSection() {
   const sectionRef = useAmbientPause<HTMLElement>();
-  const stats = [
-    { value: "4,200+", label: "Dogs Rescued" },
-    { value: "1,850+", label: "Successful Adoptions" },
-    { value: "800+", label: "Active Volunteers" },
-    { value: "24/7", label: "Emergency Response" },
-  ];
+  const stats = useImpactStats();
 
   return (
     <section ref={sectionRef} className="bg-white py-section-md lg:py-section-lg px-6 lg:px-8 relative overflow-hidden">
@@ -307,7 +303,7 @@ function VolunteerDonateSection() {
             <p className="text-primary-foreground/60 text-xs font-semibold tracking-widest uppercase font-condensed">Make an Impact</p>
             <h2 className="text-primary-foreground font-serif font-bold text-2xl lg:text-3xl leading-tight tracking-tight">Support Our Mission</h2>
             <p className="text-primary-foreground/70 text-base leading-relaxed max-w-[440px]">
-              $25 covers a week of foster care. $100 funds emergency triage. $500 deploys a full rescue team. You choose the impact.
+              ₹2,000 covers a week of foster care. ₹8,000 funds emergency triage. ₹40,000 deploys a full rescue team. You choose the impact.
             </p>
           </div>
           <div className="flex items-center gap-6">

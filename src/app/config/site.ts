@@ -1,7 +1,7 @@
 export const EMERGENCY = {
   hotline: {
-    display: "1-800-PAW-GUARD",
-    tel: "tel:+18007294827",
+    display: "+91 98765 43210",
+    tel: "tel:+919876543210",
   },
 };
 

@@ -14,12 +14,14 @@ interface DonationActionPanelProps {
 
 function formatSummary(amount: number | null, frequency: DonationFrequency): string {
   if (!amount) return "Select an amount";
+  const fmt = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount);
   const unit = frequency === "monthly" ? "/ month" : "/ one-time";
-  return `$${amount}${unit}`;
+  return `${fmt}${unit}`;
 }
 
 function formatCta(amount: number | null): string {
-  return amount ? `Give $${amount}` : "Donate Now";
+  if (!amount) return "Donate Now";
+  return `Give ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount)}`;
 }
 
 export function DonationActionPanel({

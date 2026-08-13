@@ -17,6 +17,7 @@ const SOCIALS = [
 const SERVICES = [
   { label: "Emergency Rescue", to: "/emergency" },
   { label: "Dog Adoption", to: "/adopt" },
+  { label: "Scan Safety Tag", to: "/scan" },
   { label: "Volunteer", to: "/volunteer" },
   { label: "Donate", to: "/donate" },
 ];
@@ -31,8 +32,8 @@ const COMPANY = [
 
 const CONTACTS = [
   { icon: Mail, label: "support@pawguard.org", href: "mailto:support@pawguard.org" },
-  { icon: Phone, label: "+1 (800) 555-RESCUE", href: "tel:+18005557372" },
-  { icon: MapPin, label: "428 Millbrook Rd, Dover, DE 19901", href: "#" },
+  { icon: Phone, label: "+91 98765 43210", href: "tel:+919876543210" },
+  { icon: MapPin, label: "12 Jubilee Hills Road, Hyderabad, Telangana", href: "#" },
 ];
 
 const TRUST = [

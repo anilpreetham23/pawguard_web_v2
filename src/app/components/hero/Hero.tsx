@@ -72,11 +72,14 @@ export default function Hero() {
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (rafRef.current) return;
+      const element = e.currentTarget;
+      const clientX = e.clientX;
+      const clientY = e.clientY;
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = 0;
-        const rect = e.currentTarget.getBoundingClientRect();
-        const nx = (e.clientX - rect.left) / rect.width;
-        const ny = (e.clientY - rect.top) / rect.height;
+        const rect = element.getBoundingClientRect();
+        const nx = (clientX - rect.left) / rect.width;
+        const ny = (clientY - rect.top) / rect.height;
         mouseX.set(nx * 100);
         mouseY.set(ny * 100);
       });

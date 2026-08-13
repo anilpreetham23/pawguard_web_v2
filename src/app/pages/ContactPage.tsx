@@ -8,6 +8,8 @@ import SectionHeading from "../components/SectionHeading";
 import { useFocusOnError } from "../hooks/useFocusOnError";
 import PageHeader from "../components/PageHeader";
 import { PageShell, Section, Button, Input, Textarea, Reveal, DispatchReveal, StaggerGrid, StaggerItem } from "../components/pawguard";
+import { contactService } from "@/services/api/contact";
+import { getErrorMessage } from "@/lib/api";
 
 const FAQS = [
   { q: "How quickly does PawGuard respond to emergency reports?", a: "Our average response time is under 15 minutes for critical emergencies within our coverage area. Non-critical situations are typically attended within 4 hours." },
@@ -23,6 +25,7 @@ export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [formError, setFormError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { setRef } = useFocusOnError(errors);
@@ -47,14 +50,18 @@ export default function ContactPage() {
     if (!validate()) return;
     setIsLoading(true);
     setHasError(false);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (Math.random() < 0.15) {
+    contactService
+      .submitContactMessage({
+        email: form.email.trim(),
+        subject: form.subject || "General inquiry",
+        message: form.message.trim(),
+      })
+      .then(() => setSubmitted(true))
+      .catch((err) => {
         setHasError(true);
-        return;
-      }
-      setSubmitted(true);
-    }, 1500);
+        setFormError(getErrorMessage(err));
+      })
+      .finally(() => setIsLoading(false));
   }
 
   return (
@@ -121,9 +128,9 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-foreground font-bold text-xl">Message failed to send</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  Something went wrong. Please try again or email us directly at hello@pawguard.org.
+                  {formError || "Something went wrong. Please try again or email us directly at hello@pawguard.org."}
                 </p>
-                <Button variant="primary" size="md" onClick={() => setHasError(false)} className="self-start">
+                <Button variant="primary" size="md" onClick={() => { setHasError(false); setFormError(""); }} className="self-start">
                   Try Again
                 </Button>
               </div>
@@ -204,7 +211,7 @@ export default function ContactPage() {
                 { label: "General Inquiries", value: "hello@pawguard.org" },
                 { label: "Volunteer Coordinator", value: "volunteer@pawguard.org" },
                 { label: "Adoption Team", value: "adopt@pawguard.org" },
-                { label: "Operations Line", value: "1-800-PAW-GUARD" },
+                { label: "Operations Line", value: "+91 98765 43210" },
               ].map((c) => (
                 <StaggerItem key={c.label}>
                 <div className="bg-card border border-border rounded-card p-4 shadow-sm hover:shadow-md transition-all duration-ui">

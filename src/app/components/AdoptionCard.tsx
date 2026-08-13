@@ -8,10 +8,36 @@ import { HoverCard, HoverCardTrigger, HoverCardContent } from "../components/ui/
 import { InteractiveImage } from "../../motion/components/InteractiveImage";
 import { useMotionStore } from "../../motion/motion-store";
 import { cn } from "./ui/utils";
+import { useFavorites } from "../hooks/useFavorites";
 
 // ─── Springs ──────────────────────────────────────────────────────────────────
 const TILT_SPRING  = { stiffness: 180, damping: 22, mass: 0.6 };
 const GLOW_SPRING  = { stiffness: 100, damping: 20, mass: 0.5 };
+
+// ─── Placeholder art (used when the live API has no photo) ───────────────────
+const TONE_GRADIENTS: Record<string, string> = {
+  amber: "from-amber-200/90 via-orange-100 to-amber-100",
+  purple: "from-violet-200/90 via-purple-100 to-indigo-100",
+  sky: "from-sky-200/90 via-cyan-100 to-sky-100",
+  rose: "from-rose-200/90 via-pink-100 to-rose-100",
+  teal: "from-teal-200/90 via-emerald-100 to-teal-100",
+};
+
+function PetPlaceholder({ emoji, tone }: { emoji?: string; tone?: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={cn(
+        "absolute inset-0 flex items-center justify-center bg-gradient-to-br",
+        TONE_GRADIENTS[tone ?? ""] ?? TONE_GRADIENTS.amber,
+      )}
+    >
+      <span className="text-7xl leading-none drop-shadow-sm select-none">
+        {emoji ?? "🐶"}
+      </span>
+    </div>
+  );
+}
 
 // ─── Urgent badge ─────────────────────────────────────────────────────────────
 function UrgentBadge() {
@@ -42,21 +68,25 @@ function NewBadge() {
 }
 
 // ─── Heart burst ──────────────────────────────────────────────────────────────
-function HeartButton() {
+function HeartButton({ saved, onToggle }: { saved?: boolean; onToggle?: () => void }) {
   const [burst, setBurst] = useState(false);
   const handle = useCallback((e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     setBurst(true);
     setTimeout(() => setBurst(false), 600);
-  }, []);
+    onToggle?.();
+  }, [onToggle]);
 
   return (
-    <button onClick={handle} aria-label="Save to favourites"
-      className="relative flex items-center justify-center w-6 h-6 shrink-0">
+    <button onClick={handle} aria-label={saved ? "Remove from saved" : "Save to favourites"}
+      className="relative flex items-center justify-center w-6 h-6 shrink-0"
+      type="button"
+      aria-pressed={saved}
+    >
       <motion.div animate={burst ? { scale: 1.2 } : { scale: 1 }}
         transition={{ duration: 0.18, ease: [0.22,1,0.36,1] }}>
         <Heart size={12} className={cn("transition-colors duration-200",
-          burst ? "text-destructive fill-destructive" : "text-muted-foreground/40")} />
+          saved ? "text-destructive fill-destructive" : "text-muted-foreground/40")} />
       </motion.div>
       <AnimatePresence>
         {burst && [0,60,120,180,240,300].map((deg) => (
@@ -83,14 +113,19 @@ export default function AdoptionCard({
   name, breed, age, gender, img,
   desc = "", temperament, vaccinated,
   urgent, newArrival, slug,
+  emoji, tone,
 }: {
-  name: string; breed: string; age: string; gender: string; img: string;
+  name: string; breed: string; age: string; gender: string; img?: string;
   desc?: string; temperament?: string; vaccinated?: boolean;
   urgent?: boolean; newArrival?: boolean; slug?: string;
+  emoji?: string; tone?: string;
 }) {
   const cardRef  = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
   const [btnHovered, setBtnHovered] = useState(false);
+
+  const { isFavorited, toggleFavorite } = useFavorites();
+  const saved = slug ? isFavorited(slug) : false;
 
   const tier = useMotionStore((s) => s.motionTier);
   const isReduced = tier === "reduced" || tier === "none";
@@ -189,16 +224,20 @@ export default function AdoptionCard({
               : "0 1px 3px rgba(0,0,0,0.06)",
           }}
         >
-          {/* ── Image ─────────────────────────────────────────────────────── */}
+          {/* ── Image / placeholder art ──────────────────────────────────── */}
           <div className="relative aspect-[4/3] overflow-hidden">
-            <InteractiveImage
-              src={img}
-              alt={`${name} — ${breed}, ${age}, ${gender}`}
-              variant="featured"
-              className="absolute inset-0 w-full h-full"
-              noParallax
-              noFloat
-            />
+            {img ? (
+              <InteractiveImage
+                src={img}
+                alt={`${name} — ${breed}, ${age}, ${gender}`}
+                variant="featured"
+                className="absolute inset-0 w-full h-full"
+                noParallax
+                noFloat
+              />
+            ) : (
+              <PetPlaceholder emoji={emoji} tone={tone} />
+            )}
 
             {/* Badges */}
             <div className="absolute top-3 left-3 flex gap-2 z-20">
@@ -236,7 +275,10 @@ export default function AdoptionCard({
                   <h3 className="text-foreground font-bold text-lg group-hover:text-primary transition-colors duration-ui">
                     {name}
                   </h3>
-                  <HeartButton />
+                  <HeartButton
+                    saved={saved}
+                    onToggle={slug ? () => toggleFavorite({ id: slug, name, breed, age, gender, emoji, tone }) : undefined}
+                  />
                 </div>
               </HoverCardTrigger>
               <HoverCardContent className="w-72" side="top" align="start">

@@ -1,17 +1,123 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Phone, Upload, AlertTriangle, CheckCircle2, MapPin, ArrowRight, Timer, Navigation } from "lucide-react";
+import { Phone, Upload, AlertTriangle, CheckCircle2, MapPin, ArrowRight, Timer, Navigation, LocateFixed, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useFocusOnError } from "../hooks/useFocusOnError";
+import { useGeolocation } from "../hooks/useGeolocation";
 import { Button, Input, Textarea, Card, Skeleton, RescueTimelineGSAP, DispatchReveal, PageShell } from "../components/pawguard";
+import { rescueService } from "@/services/api/rescue";
+import { getErrorMessage } from "@/lib/api";
+import type { RescuePhysicalCondition, RescueSeverity } from "@/lib/api";
 
 type FormStep = "situation" | "details" | "review";
+
+const PHYSICAL_CONDITIONS: { value: RescuePhysicalCondition; label: string }[] = [
+  { value: "critical_life_threatening", label: "Critical — life threatening" },
+  { value: "fractured_injured", label: "Fractured / injured" },
+  { value: "contagious_sick", label: "Contagious / sick" },
+  { value: "malnourished", label: "Malnourished" },
+  { value: "abandoned_stray", label: "Abandoned / stray" },
+  { value: "unknown", label: "Unknown" },
+];
+
+const RESCUE_STATUS_LABEL: Record<string, string> = {
+  reported: "Reported",
+  verified: "Verified",
+  dispatched: "Dispatched",
+  located: "Located",
+  rescued: "Rescued",
+  admitted: "Admitted",
+  rejected: "Rejected",
+};
+
+function ReportTracker() {
+  const [ticket, setTicket] = useState("");
+  const [phone, setPhone] = useState("");
+  const [result, setResult] = useState<{ ticket: string; status: string; severity: string; createdAt: string } | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading" | "error" | "done">("idle");
+  const [errMsg, setErrMsg] = useState("");
+
+  async function lookUp(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus("loading");
+    setErrMsg("");
+    setResult(null);
+    try {
+      const res = await rescueService.getPublicStatus(ticket.trim(), phone.trim());
+      setResult({
+        ticket: res.ticket_number,
+        status: res.status,
+        severity: res.severity,
+        createdAt: res.created_at,
+      });
+      setStatus("done");
+    } catch (err) {
+      setErrMsg(getErrorMessage(err));
+      setStatus("error");
+    }
+  }
+
+  return (
+    <div className="bg-card border border-border rounded-card p-5 shadow-sm">
+      <div className="flex items-center gap-2 mb-4">
+        <span className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+          <Timer size={16} />
+        </span>
+        <div>
+          <p className="text-foreground font-bold text-sm">Track a report</p>
+          <p className="text-muted-foreground text-xs">Check a rescue case status</p>
+        </div>
+      </div>
+
+      <form onSubmit={lookUp} className="flex flex-col gap-3">
+        <input
+          type="text"
+          value={ticket}
+          onChange={(e) => { setTicket(e.target.value); setErrMsg(""); }}
+          placeholder="Ticket number (RES-…)"
+          aria-label="Ticket number"
+          className="w-full bg-background border border-border rounded-btn px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+        />
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => { setPhone(e.target.value); setErrMsg(""); }}
+          placeholder="Phone used to report"
+          aria-label="Phone number"
+          className="w-full bg-background border border-border rounded-btn px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+        />
+        <Button type="submit" variant="primary" size="sm" isLoading={status === "loading"}>
+          Check Status
+        </Button>
+      </form>
+
+      {status === "error" && (
+        <p className="text-sm text-destructive mt-3" role="alert">{errMsg}</p>
+      )}
+      {status === "done" && result && (
+        <div className="mt-4 bg-secondary rounded-xl p-4" role="status">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-foreground font-semibold text-sm tracking-wide">{result.ticket}</span>
+            <span className="inline-flex items-center rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 text-[11px] font-bold tracking-wider uppercase px-2.5 py-0.5">
+              {RESCUE_STATUS_LABEL[result.status] ?? result.status}
+            </span>
+          </div>
+          <p className="text-muted-foreground text-xs mt-2">
+            {new Date(result.createdAt).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function EmergencyPage() {
   const [pageReady, setPageReady] = useState(false);
   const [step, setStep] = useState<FormStep>("situation");
   const [severity, setSeverity] = useState<"critical" | "non-critical">("critical");
+  const [physicalCondition, setPhysicalCondition] = useState<RescuePhysicalCondition>("unknown");
+  const [reporterName, setReporterName] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [contact, setContact] = useState("");
@@ -19,11 +125,23 @@ export default function EmergencyPage() {
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
   const { setRef } = useFocusOnError(errors);
   const [fileName, setFileName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const geo = useGeolocation();
+  const [ticketNumber, setTicketNumber] = useState<string | null>(null);
 
   const draftNotified = useRef(false);
+
+  // When GPS coords arrive, store them and optionally pre-fill address field
+  useEffect(() => {
+    if (geo.status === "granted" && geo.coords) {
+      setLat(geo.coords.latitude);
+      setLng(geo.coords.longitude);
+    }
+  }, [geo.status, geo.coords]);
 
   useEffect(() => {
     const t = setTimeout(() => setPageReady(true), 400);
@@ -36,9 +154,13 @@ export default function EmergencyPage() {
       try {
         const data = JSON.parse(saved);
         if (data.severity) setSeverity(data.severity);
+        if (data.physicalCondition) setPhysicalCondition(data.physicalCondition);
+        if (data.reporterName) setReporterName(data.reporterName);
         if (data.location) setLocation(data.location);
         if (data.description) setDescription(data.description);
         if (data.contact) setContact(data.contact);
+        if (data.lat) setLat(data.lat);
+        if (data.lng) setLng(data.lng);
       } catch {}
     }
   }, []);
@@ -46,21 +168,24 @@ export default function EmergencyPage() {
   useEffect(() => {
     localStorage.setItem(
       "pawguard-emergency-draft",
-      JSON.stringify({ severity, location, description, contact, step }),
+      JSON.stringify({ severity, physicalCondition, reporterName, location, description, contact, step, lat, lng }),
     );
     if (!draftNotified.current && (location || description || contact)) {
       draftNotified.current = true;
       toast.info("Draft saved locally", { description: "Your progress is saved. You can close this page and come back." });
     }
-  }, [severity, location, description, contact, step]);
+  }, [severity, physicalCondition, reporterName, location, description, contact, step, lat, lng]);
 
   function validate(advancingTo: FormStep) {
     const e: Record<string, string> = {};
     if (advancingTo === "details" && !severity) e.severity = "Select the situation type";
     if (advancingTo === "review") {
+      if (!reporterName.trim()) e.reporterName = "Your name is required";
+      if (!contact.trim()) e.contact = "Your phone number is required so dispatch can reach you";
       if (!location.trim()) e.location = "Location is required";
       if (!description.trim()) e.description = "Description is required";
     }
+    // lat/lng are optional — never block submission
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -70,17 +195,33 @@ export default function EmergencyPage() {
     if (!validate("review")) return;
     setIsLoading(true);
     setHasError(false);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (Math.random() < 0.15) {
+    const severityValue: RescueSeverity = severity === "critical" ? "critical" : "medium";
+    rescueService
+      .reportPublicCase({
+        reporter_name: reporterName.trim(),
+        reporter_phone: contact.trim(),
+        location_address: location.trim(),
+        latitude: lat,
+        longitude: lng,
+        animal_count: 1,
+        physical_condition: physicalCondition,
+        severity: severityValue,
+        is_urgent: severity === "critical",
+        reporter_notes: description.trim(),
+      })
+      .then((res) => {
+        setTicketNumber(res.ticket_number);
+        setSubmitted(true);
+      })
+      .catch((err) => {
         setHasError(true);
-        return;
-      }
-      setSubmitted(true);
-    }, 1500);
+        toast.error("Report failed to submit", { description: getErrorMessage(err) });
+      })
+      .finally(() => setIsLoading(false));
   }
 
-  const reportNumber = `PG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  // ETA is locally calculated from hardcoded maxWait values — no backend ETA contract exists.
+  // critical: 12 min, non-critical: 240 min (4h). These are demo/display-only values.
   const [elapsed, setElapsed] = useState(0);
   const maxWait = severity === "critical" ? 12 : 240;
   const progress = Math.min(elapsed / maxWait, 1);
@@ -145,7 +286,7 @@ export default function EmergencyPage() {
                     <div className="bg-destructive/5 border border-destructive/10 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Phone size={14} className="text-destructive" />
-                        <span className="text-foreground font-bold text-base">1-800-PAW-GUARD</span>
+                        <span className="text-foreground font-bold text-base">+91 98765 43210</span>
                       </div>
                       <p className="text-muted-foreground text-xs">Available 24/7 for emergencies.</p>
                     </div>
@@ -165,7 +306,7 @@ export default function EmergencyPage() {
                         <div>
                           <h2 className="text-foreground font-bold text-2xl">Help is on the way</h2>
                           <p className="text-muted-foreground text-sm mt-0.5">
-                            Report <span className="font-mono text-foreground font-semibold tracking-wider">{reportNumber}</span>
+                            Report <span className="font-mono text-foreground font-semibold tracking-wider">{ticketNumber ?? "RES-…"}</span>
                           </p>
                         </div>
                       </div>
@@ -231,7 +372,7 @@ export default function EmergencyPage() {
                   <Button
                     variant="outline"
                     size="md"
-                    onClick={() => { setSubmitted(false); setLocation(""); setDescription(""); setContact(""); setFileName(""); setErrors({}); localStorage.removeItem("pawguard-emergency-draft"); }}
+                    onClick={() => { setSubmitted(false); setLocation(""); setDescription(""); setContact(""); setReporterName(""); setPhysicalCondition("unknown"); setFileName(""); setErrors({}); setLat(null); setLng(null); setTicketNumber(null); geo.clearLocation(); localStorage.removeItem("pawguard-emergency-draft"); }}
                   >
                     Submit Another Report
                   </Button>
@@ -314,23 +455,95 @@ export default function EmergencyPage() {
 
                   {step === "details" && (
                     <div className="flex flex-col gap-5 animate-fade-in">
-                      <Input
-                        label="Location"
-                        placeholder="Current address or coordinates"
-                        ref={setRef("location")}
-                        value={location}
-                        onChange={(e) => { setLocation(e.target.value); if (errors.location) setErrors({ ...errors, location: "" }); }}
-                        error={errors.location}
-                        prefix={<MapPin size={16} />}
-                        autoComplete="street-address"
-                      />
+                      <div className="flex flex-col gap-2">
+                        <Input
+                          label="Your Name"
+                          placeholder="Full name of the person reporting"
+                          ref={setRef("reporterName")}
+                          value={reporterName}
+                          onChange={(e) => { setReporterName(e.target.value); if (errors.reporterName) setErrors((prev) => ({ ...prev, reporterName: "" })); }}
+                          error={errors.reporterName}
+                          autoComplete="name"
+                        />
+                        <Input
+                          label="Your Contact Number"
+                          type="tel"
+                          placeholder="+91 98765 43210"
+                          ref={setRef("contact")}
+                          value={contact}
+                          onChange={(e) => { setContact(e.target.value); if (errors.contact) setErrors((prev) => ({ ...prev, contact: "" })); }}
+                          error={errors.contact}
+                          autoComplete="tel"
+                          inputMode="tel"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <span className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">Dog's Condition</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {PHYSICAL_CONDITIONS.map((opt) => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => setPhysicalCondition(opt.value)}
+                              aria-pressed={physicalCondition === opt.value}
+                              className={`py-3 px-4 text-left text-sm font-semibold border-2 rounded-btn transition-all duration-ui focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring/60 ${
+                                physicalCondition === opt.value
+                                  ? "bg-primary/10 text-primary border-primary"
+                                  : "bg-white text-muted-foreground border-border hover:border-primary/50"
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <Input
+                          label="Location"
+                          placeholder="Current address or coordinates"
+                          ref={setRef("location")}
+                          value={location}
+                          onChange={(e) => { setLocation(e.target.value); if (errors.location) setErrors((prev) => ({ ...prev, location: "" })); }}
+                          error={errors.location}
+                          prefix={<MapPin size={16} />}
+                          autoComplete="street-address"
+                        />
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              geo.requestLocation();
+                            }}
+                            disabled={geo.status === "loading"}
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-fast"
+                          >
+                            {geo.status === "loading" ? (
+                              <Loader2 size={13} className="animate-spin" />
+                            ) : (
+                              <LocateFixed size={13} />
+                            )}
+                            Use My Location
+                          </button>
+                          {geo.status === "granted" && lat !== null && lng !== null && (
+                            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                              <CheckCircle2 size={12} />
+                              GPS pinned
+                            </span>
+                          )}
+                        </div>
+                        {geo.errorMessage && (
+                          <p className="text-muted-foreground text-xs" role="status">{geo.errorMessage}</p>
+                        )}
+                      </div>
 
                       <Textarea
                         label="Dog Description"
                         placeholder="Breed, size, condition — describe the situation clearly"
                         ref={setRef("description")}
                         value={description}
-                        onChange={(e) => { setDescription(e.target.value); if (errors.description) setErrors({ ...errors, description: "" }); }}
+                        onChange={(e) => { setDescription(e.target.value); if (errors.description) setErrors((prev) => ({ ...prev, description: "" })); }}
                         error={errors.description}
                         rows={5}
                       />
@@ -360,16 +573,6 @@ export default function EmergencyPage() {
                           </div>
                         </div>
                       </div>
-
-                      <Input
-                        label="Your Contact Number"
-                        type="tel"
-                        placeholder="(555) 000-0000"
-                        value={contact}
-                        onChange={(e) => setContact(e.target.value)}
-                        autoComplete="tel"
-                        inputMode="tel"
-                      />
 
                       <div className="flex gap-3 pt-2">
                         <Button
@@ -409,13 +612,19 @@ export default function EmergencyPage() {
                             <span className="text-foreground text-sm font-medium">{location || "Not provided"}</span>
                           </div>
                           <div className="flex flex-col gap-1 sm:col-span-2">
+                            <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase font-condensed">Condition</span>
+                            <span className="text-foreground text-sm font-medium">
+                              {PHYSICAL_CONDITIONS.find((c) => c.value === physicalCondition)?.label ?? physicalCondition}
+                            </span>
+                          </div>
+                          <div className="flex flex-col gap-1 sm:col-span-2">
                             <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase font-condensed">Description</span>
                             <span className="text-foreground text-sm">{description || "Not provided"}</span>
                           </div>
                           {contact && (
                             <div className="flex flex-col gap-1 sm:col-span-2">
-                              <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase font-condensed">Contact</span>
-                              <span className="text-foreground text-sm">{contact}</span>
+                              <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase font-condensed">Reporter</span>
+                              <span className="text-foreground text-sm">{reporterName || "—"} · {contact}</span>
                             </div>
                           )}
                         </div>
@@ -451,9 +660,9 @@ export default function EmergencyPage() {
                   <p className="text-xs font-semibold tracking-wider uppercase font-condensed text-foreground mb-3">Emergency Contacts</p>
                   <div className="flex flex-col gap-3">
                     {[
-                      { label: "PawGuard Emergency", number: "1-800-PAW-GUARD" },
-                      { label: "Animal Control", number: "1-800-555-0199" },
-                      { label: "Veterinary Helpline", number: "1-800-555-0177" },
+                      { label: "PawGuard Emergency", number: "+91 98765 43210" },
+                      { label: "Animal Control", number: "+91 80 1234 5678" },
+                      { label: "Veterinary Helpline", number: "+91 80 8765 4321" },
                     ].map((c) => (
                       <div key={c.label} className="flex items-center justify-between">
                         <span className="text-muted-foreground text-xs">{c.label}</span>
@@ -467,6 +676,7 @@ export default function EmergencyPage() {
 
             <aside className="lg:col-span-4 flex flex-col gap-5">
               <RescueTimelineGSAP severity={severity} />
+              <ReportTracker />
               <div className="bg-card border border-border rounded-card p-5 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-emergency/10 rounded-lg flex items-center justify-center">

@@ -11,11 +11,14 @@ import { cn } from "./ui/utils";
 import { duration, ease } from "../../motion/motion.config";
 import { useEmergencyShortcut } from "../hooks/useEmergencyShortcut";
 import TopEmergencyBar from "./TopEmergencyBar";
+import { AuthNavControls, AuthMobileControls } from "./AuthNavControls";
 
 
 const NAV_LINKS = [
   { label: "Home",      to: "/" },
   { label: "Adopt",     to: "/adopt" },
+  { label: "Veterinary", to: "/veterinary" },
+  { label: "Lost & Found", to: "/lost-found" },
   { label: "Volunteer", to: "/volunteer" },
   { label: "About",     to: "/about" },
   { label: "Stories",   to: "/stories" },
@@ -249,7 +252,9 @@ export default function Navbar() {
               </nav>
 
               {/* Right column — empty, balances logo for true center */}
-              <div className="hidden md:block" />
+              <div className="hidden md:flex items-center justify-end h-full">
+                <AuthNavControls />
+              </div>
 
               {/* Mobile hamburger — visible only on mobile */}
               <button
@@ -328,6 +333,7 @@ export default function Navbar() {
                   animate={reduced ? undefined : { opacity: 1, y: 0 }}
                   transition={{ delay: reduced ? 0 : 0.35, duration: duration.fast / 1000, ease: ease.gentle }}
                 >
+                  <AuthMobileControls onNavigate={() => setMenuOpen(false)} />
                   <div className="flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
                     <span className="tracking-wide">
                       Emergency and Donate actions are in the top bar ↑

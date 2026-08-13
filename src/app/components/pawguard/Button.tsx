@@ -37,6 +37,7 @@ const loadingLabels: Record<string, string> = {
   volunteer: "Submitting...",
   contact: "Sending...",
   newsletter: "Subscribing...",
+  broadcast: "Broadcasting...",
   default: "Processing...",
 };
 
@@ -104,7 +105,7 @@ export function Button({
     e.currentTarget.style.setProperty('--ripple-y', `${y}px`);
     
     onClick?.(e);
-  }, [disabled, isLoading]);
+  }, [disabled, isLoading, onClick]);
 
   const classes = cn(
     "pawguard-btn font-condensed inline-flex items-center justify-center font-semibold tracking-wider uppercase rounded-btn outline-none cursor-pointer",

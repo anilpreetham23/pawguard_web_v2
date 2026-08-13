@@ -3,8 +3,10 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
+import { useEffect } from "react";
 
 import { cn } from "./utils";
+import { getLenis } from "../../../motion/lenis-instance";
 
 function Dialog({
   ...props
@@ -37,6 +39,9 @@ function DialogOverlay({
   return (
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
+      // Lenis skips wheel-event interception for elements with data-lenis-prevent,
+      // so the overlay itself won't accidentally re-enable page scroll on click.
+      data-lenis-prevent
       className={cn(
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
         className,
@@ -51,13 +56,28 @@ function DialogContent({
   children,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
+  // Stop Lenis smooth-scroll while the dialog is mounted (open) so the
+  // background page cannot scroll via wheel/touch. Restore on unmount.
+  useEffect(() => {
+    const lenis = getLenis();
+    if (lenis) lenis.stop();
+    return () => {
+      const l = getLenis();
+      if (l) l.start();
+    };
+  }, []);
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
+        // data-lenis-prevent tells Lenis to skip preventDefault for wheel
+        // events that originate inside this element, so the browser's native
+        // overflow-y:auto scroll on this container receives them directly.
+        data-lenis-prevent
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain",
           className,
         )}
         {...props}
