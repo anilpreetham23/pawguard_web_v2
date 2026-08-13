@@ -512,8 +512,8 @@ export default function RemindersPage() {
           {pets.length === 0 && (
             <Reveal>
               <Card className="mb-8">
-                <Alert variant="info" title="Add a companion pet first">
-                  Reminders are attached to your companion pets. Add a pet from
+                <Alert variant="info" title="Add a pet first">
+                  Reminders are attached to your pets. Add a pet from
                   your profile to start tracking care schedules.
                 </Alert>
               </Card>

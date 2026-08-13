@@ -117,7 +117,7 @@ function AdoptedPetCard({ app }: { app: AdoptionApplicationResponse }) {
         />
         <p className="text-xs text-muted-foreground">
           Manage this pet&apos;s veterinary visits, reminders, and QR safety tag
-          through its companion-pet profile.
+          through its pet profile.
         </p>
         <Link
           href={`/adopt/${app.dog_id}`}
@@ -149,7 +149,7 @@ function CompanionPetCard({ pet }: { pet: CompanionPetResponse }) {
             </p>
           </div>
         </div>
-        <Badge variant="neutral">Companion</Badge>
+        <Badge variant="neutral">My Pet</Badge>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
@@ -258,7 +258,7 @@ export default function MyPetsPage() {
     return (
       <PageShell>
         <main id="main-content" className="flex-1">
-          <PageHeader eyebrow="My Pets" title="My Pets" subtitle="Your adopted and companion pets." />
+          <PageHeader eyebrow="My Pets" title="My Pets" subtitle="Your adopted pets." />
           <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg flex flex-col gap-10">
             <div className="h-8 w-44 bg-muted rounded animate-pulse" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
@@ -274,14 +274,14 @@ export default function MyPetsPage() {
     return (
       <PageShell>
         <main id="main-content" className="flex-1">
-          <PageHeader eyebrow="My Pets" title="My Pets" subtitle="Sign in to see your adopted and companion pets." />
+          <PageHeader eyebrow="My Pets" title="My Pets" subtitle="Sign in to see your adopted pets." />
           <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
             <Reveal>
               <Card>
                 <EmptyState
                   icon="heart"
                   title="Sign in to see your pets"
-                  description="Your adopted pets and companion-pet profiles will appear here once you sign in."
+                  description="Your adopted pets will appear here once you sign in."
                   action={{ label: "Sign in", onClick: () => openAuthDialog("sign-in") }}
                 />
               </Card>
@@ -301,7 +301,7 @@ export default function MyPetsPage() {
         <PageHeader
           eyebrow="My Pets"
           title="My Pets"
-          subtitle="Your adopted pets and the companion-pet profiles linked to your account."
+          subtitle="Your adopted pets and the pet profiles linked to your account."
         />
 
         <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg flex flex-col gap-12">
@@ -327,7 +327,7 @@ export default function MyPetsPage() {
                 </button>
               </Alert>
             ) : (
-              <Alert variant="error" title="We couldn't load your companion pets">
+                <Alert variant="error" title="We couldn't load your pets">
                 {petsError ? getErrorMessage(petsErrorObj) : appsError ? getErrorMessage(appsErrorObj) : ""}{" "}
                 <button
                   onClick={() => {
@@ -383,18 +383,18 @@ export default function MyPetsPage() {
                 )}
               </section>
 
-              {/* ── Companion pets ───────────────────────────────────────────── */}
+              {/* ── My Pets ───────────────────────────────────────────────────── */}
               <section aria-labelledby="companion-heading" className="flex flex-col gap-5">
                 <div className="flex items-end justify-between">
                   <div>
                     <h2 id="companion-heading" className="text-foreground font-bold text-2xl">
-                      Companion Pets
+                      My Pets
                       <span className="ml-2 text-sm font-semibold text-muted-foreground align-middle">
                         {total}
                       </span>
                     </h2>
                     <p className="text-muted-foreground text-sm mt-1">
-                      Pet profiles you can use to book veterinary visits, manage reminders, and use the QR safety tag.
+                      Pets you can use to book veterinary visits, manage reminders, and use the QR safety tag.
                     </p>
                   </div>
                   <Link
@@ -414,8 +414,8 @@ export default function MyPetsPage() {
                   <Card>
                     <EmptyState
                       icon="heart"
-                      title="No companion pets yet"
-                      description="Once an adoption is approved you can add the adopted dog as a companion from My Applications."
+                      title="No pets yet"
+                      description="Once an adoption is approved you can add your pet from My Applications."
                       action={{ label: "Go to My Applications", to: "/applications" }}
                     />
                   </Card>

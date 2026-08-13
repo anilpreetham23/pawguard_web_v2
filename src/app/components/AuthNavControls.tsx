@@ -134,7 +134,7 @@ export function AuthNavControls({ className }: { className?: string }) {
                 href="/account/pets"
                 icon={<PawPrint size={16} />}
                 label="My Pets"
-                desc="Adopted & companion pets"
+                desc="My Pets"
                 onNavigate={() => setOpen(false)}
               />
               <MenuLink
@@ -253,7 +253,7 @@ export function AuthMobileControls({ onNavigate }: { onNavigate?: () => void }) 
           </span>
           <span className="flex-1 text-left truncate">
             <span className="block">My Pets</span>
-            <span className="block text-xs text-muted-foreground font-normal truncate">Adopted &amp; companion pets</span>
+            <span className="block text-xs text-muted-foreground font-normal truncate">Your adopted pets</span>
           </span>
         </Link>
         <Link

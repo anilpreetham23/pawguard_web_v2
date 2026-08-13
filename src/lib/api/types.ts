@@ -335,8 +335,16 @@ export interface SafetyTagScanResponse {
   /** Care-critical notes shown prominently on a scan — `null` when unused. */
   emergency_notes: string | null;
   photo_url: string | null;
+  /** Current status: safe, lost, found, reunited, or inactive. Defaults to "safe". */
+  status?: "safe" | "lost" | "found" | "reunited" | "inactive" | string;
+  /** Associated lost report ID if pet status is lost. */
+  lost_report_id?: string | null;
+  /** Reported lost location address if available. */
+  lost_location?: string | null;
+  /** ISO date-time string when the pet was reported lost. */
+  lost_at?: string | null;
   /** Default guidance text when no custom message is set. */
-  message: string;
+  message?: string;
 }
 
 /**
@@ -897,6 +905,34 @@ export interface OwnershipClaimSubmit {
   vet_bill_url?: string | null;
   photo_proof_url?: string | null;
   verification_notes?: string | null;
+}
+
+/** `POST /lost-found/sighting` request body (`PetSightingCreate`). */
+export interface PetSightingCreate {
+  pet_id?: string | null;
+  lost_report_id?: string | null;
+  finder_name: string;
+  finder_phone: string;
+  finder_address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  location_address: string;
+  message?: string | null;
+}
+
+/** `POST /lost-found/sighting` response payload (`PetSightingResponse`). */
+export interface PetSightingResponse {
+  id: string;
+  pet_id: string | null;
+  lost_report_id: string | null;
+  finder_name: string;
+  finder_phone: string;
+  finder_address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  location_address: string;
+  message: string | null;
+  created_at: string;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -126,7 +126,7 @@ export default function AppointmentBookPage() {
   const minDate = toDateInputValue(today());
 
   const clientValidationError = useMemo(() => {
-    if (!petId) return "Please choose which companion the appointment is for.";
+    if (!petId) return "Please select a pet for this appointment.";
     if (!clinicId) return "Please choose a veterinary clinic.";
     if (!date) return "Please choose an appointment date.";
     if (!startTime) return "Please choose an appointment start time.";
@@ -178,13 +178,13 @@ export default function AppointmentBookPage() {
             <Reveal>
               <SectionHeading eyebrow="Veterinary Care">Book an Appointment</SectionHeading>
               <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[560px]">
-                Schedule a visit for your companion at one of our partner clinics.
+                 Schedule a visit for your pet at one of our partner clinics.
               </p>
             </Reveal>
             <Reveal>
               <Card className="mt-10">
                 <Alert variant="info" title="Sign in to book an appointment">
-                  Appointment booking requires a PawGuard account so we can link the visit to your companion pet.
+                  Appointment booking requires a PawGuard account so we can link the visit to your pet.
                 </Alert>
                 <div className="mt-6 flex flex-col sm:flex-row gap-3">
                   <Button variant="primary" size="md" onClick={() => openAuthDialog("sign-in")}>
@@ -278,7 +278,7 @@ export default function AppointmentBookPage() {
               <Card className="mt-10">
                 <EmptyState
                   icon="heart"
-                  title="No companion pets yet"
+                  title="No pets yet"
                   description="Add your adopted pet to My Pets before booking a veterinary appointment."
                   action={{ label: "Go to My Pets", to: "/account/pets" }}
                 />
@@ -308,7 +308,7 @@ export default function AppointmentBookPage() {
             <div className="max-w-[760px]">
               <SectionHeading eyebrow="Veterinary Care">Book an Appointment</SectionHeading>
               <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[560px]">
-                Choose a companion, pick a clinic, and select a date and time. The clinic reviews your request before confirming.
+                Choose a pet, pick a clinic, and select a date and time. The clinic reviews your request before confirming.
               </p>
             </div>
           </Reveal>
@@ -337,7 +337,7 @@ export default function AppointmentBookPage() {
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <FieldSelect id="book-pet" label="Companion" value={petId} onChange={setPetId} disabled={petsLoading || petsError}>
+                  <FieldSelect id="book-pet" label="Pet" value={petId} onChange={setPetId} disabled={petsLoading || petsError}>
                     {petsLoading ? (
                       <option value="">Loading your pets…</option>
                     ) : (
@@ -375,7 +375,7 @@ export default function AppointmentBookPage() {
                 {petsError && !petsLoading && (
                   <Alert
                     variant="error"
-                    title={petsAuthError ? "Sign in required" : "We couldn't load your companion pets"}
+                     title={petsAuthError ? "Sign in required" : "We couldn't load your pets"}
                   >
                     {petsAuthError
                       ? "Please sign in to view your pets."
@@ -409,8 +409,8 @@ export default function AppointmentBookPage() {
                 {!petsLoading && !petsError && pets.length === 0 && (
                   <EmptyState
                     icon="heart"
-                    title="No companion pets yet"
-                    description="Add a companion pet profile to book veterinary appointments - then return here to schedule a visit."
+                  title="No pets yet"
+                  description="Add a pet to your account to book veterinary appointments - then return here to schedule a visit."
                     action={{ label: "Go to My Pets", to: "/account/pets" }}
                     className="py-8"
                   />

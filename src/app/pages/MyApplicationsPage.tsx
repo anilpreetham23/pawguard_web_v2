@@ -136,7 +136,7 @@ function ApplicationCard({ app }: { app: AdoptionApplicationResponse }) {
             <p className="text-xs text-muted-foreground">
               {app.status === "completed"
                 ? "This adoption is complete. This pet is part of your account."
-                : "Your adoption has been approved. Add this dog to your companion pets to book veterinary visits, set smart reminders, and use the QR safety tag."}
+                : "Your adoption has been approved. Add this dog to your pets to book veterinary visits, set smart reminders, and use the QR safety tag."}
             </p>
             {(app.status === "approved" || app.status === "completed") && (
               <AddCompanionPetButton

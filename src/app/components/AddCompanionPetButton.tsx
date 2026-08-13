@@ -81,7 +81,7 @@ export function AddCompanionPetButton({
         role="status"
       >
         <CheckCircle2 size={14} />
-        {addedPetId ? "Added to companion pets" : "Already in My Companion Pets"}
+        {addedPetId ? "Added to My Pets" : "Already in My Pets"}
       </span>
     );
   }
@@ -99,7 +99,7 @@ export function AddCompanionPetButton({
         onClick={() => mutation.mutate()}
       >
         <Plus size={14} />
-        Add to My Companion Pets
+        Add to My Pets
       </Button>
       {error && <span className="text-xs text-destructive">{error}</span>}
     </span>

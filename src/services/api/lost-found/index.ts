@@ -24,6 +24,8 @@ import type {
   LostReportResponse,
   OwnershipClaimSubmit,
   Page,
+  PetSightingCreate,
+  PetSightingResponse,
   ReportMatchResponse,
 } from "@/lib/api";
 import type { LostFoundCase, LostFoundKind } from "@/types";
@@ -174,6 +176,13 @@ export const lostFoundService = {
       data
     );
   },
+
+  /**
+   * `POST /lost-found/sighting` — public submission of a lost pet sighting by a QR-scanner citizen.
+   */
+  reportSighting(data: PetSightingCreate): Promise<PetSightingResponse> {
+    return apiPost<PetSightingResponse>(API_ROUTES.lostFound.sighting, data);
+  },
 };
 
 export type {
@@ -186,5 +195,7 @@ export type {
   LostReportResponse,
   OwnershipClaimSubmit,
   Page,
+  PetSightingCreate,
+  PetSightingResponse,
   ReportMatchResponse,
 };

@@ -66,6 +66,8 @@ export type {
   PetAppointmentResponse,
   PetReminderCreate,
   PetReminderResponse,
+  PetSightingCreate,
+  PetSightingResponse,
   ReminderKind,
   VetClinicQueryParams,
   VetClinicResponse,

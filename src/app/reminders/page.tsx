@@ -4,7 +4,7 @@ import RemindersPage from "../pages/RemindersPage";
 export const metadata: Metadata = {
   title: "Smart Reminders",
   description:
-    "Track vaccination and medication schedules for your companion pets, including reminders your veterinary clinic sets automatically.",
+    "Track vaccination and medication schedules for your pets, including reminders your veterinary clinic sets automatically.",
 };
 
 export default function Page() {

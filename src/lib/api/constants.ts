@@ -116,6 +116,7 @@ export const API_ROUTES = {
   lostFound: {
     lost: "/lost-found/lost",
     found: "/lost-found/found",
+    sighting: "/lost-found/sighting",
     lostById: (id: string) => `/lost-found/lost/${id}`,
     foundById: (id: string) => `/lost-found/found/${id}`,
     broadcast: (reportId: string) => `/lost-found/lost/${reportId}/broadcast`,
@@ -229,6 +230,7 @@ export const QUERY_KEYS = {
     report: (id: string) => ["lost-found", "reports", id] as const,
     matches: (reportId: string) =>
       ["lost-found", "matches", reportId] as const,
+    sighting: ["lost-found", "sighting"] as const,
   },
 
   safetyTag: {
