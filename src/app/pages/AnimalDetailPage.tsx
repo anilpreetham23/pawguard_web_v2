@@ -26,6 +26,7 @@ import { useApiQuery, getErrorMessage, QUERY_KEYS } from "@/lib/api";
 import { adoptionService } from "@/services/api/adoption";
 import { dogProfileToPet, type Pet } from "@/services/api/adoption/mapper";
 import { useAuth } from "../providers/auth-provider";
+import { useAdoptionApplicationsAll } from "../hooks/useAdoptionApplicationsAll";
 
 const energyLabels: Record<string, string> = {
   Low: "Easy-going",
@@ -102,6 +103,20 @@ function LivePetDetailPage({ id }: { id: string }) {
   });
 
   const { isAuthenticated, openAuthDialog } = useAuth();
+  // NOTE: Public adoption dog profiles (DogProfileResponse) do not currently
+  // include safety-tag fields, and GET /dogs/{dog_id}/qr-image is staff-only.
+  // Therefore a PawGuard Safety Tag section cannot be rendered here until the
+  // backend exposes safety-tag metadata or a public QR image endpoint.
+  // Real-backend duplicate-adoption guard: any application the signed-in user
+  // has for this dog (other than a rejected one) locks out a second application.
+  const { applications: myApplications } = useAdoptionApplicationsAll(isAuthenticated);
+  const dogApplication =
+    myApplications.find((app) => app.dog_id === id && app.status !== "rejected") ??
+    null;
+  const alreadyAdopted =
+    !!dogApplication &&
+    (dogApplication.status === "approved" || dogApplication.status === "completed");
+  const applicationPending = !!dogApplication && !alreadyAdopted;
   const [form, setForm] = useState({ name: "", email: "", phone: "", residentialStatus: "owned" });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -162,7 +177,7 @@ function LivePetDetailPage({ id }: { id: string }) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (submitting || !isAvailable) return;
+    if (submitting || !isAvailable || alreadyAdopted || applicationPending) return;
     if (!isAuthenticated) {
       openAuthDialog("sign-in");
       return;
@@ -257,7 +272,24 @@ function LivePetDetailPage({ id }: { id: string }) {
                   )}
                 </div>
 
-                {!submitted ? (
+                {alreadyAdopted ? (
+                  <SuccessState
+                    icon={CheckCircle2}
+                    title="Already Adopted by You"
+                    description={`You have already adopted ${pet.name}. This dog is part of your account - book veterinary visits, set smart reminders, and manage it from My Pets.`}
+                    action={{ label: "Go to My Pets", to: "/account/pets" }}
+                    secondaryAction={{ label: "View My Applications", to: "/applications" }}
+                  />
+                ) : applicationPending ? (
+                  <Alert variant="info" title="Application Already Submitted">
+                    You&apos;ve already submitted an application for {pet.name}. Our team is reviewing it - track its progress in My Applications.
+                    <div className="mt-4">
+                      <Button asLink={{ href: "/applications" }} variant="outline" size="md">
+                        View My Applications
+                      </Button>
+                    </div>
+                  </Alert>
+                ) : !submitted ? (
                   <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-2">
                       <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">

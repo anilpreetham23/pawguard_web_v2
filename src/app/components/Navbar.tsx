@@ -71,11 +71,16 @@ export default function Navbar() {
   // ── Body scroll lock ───────────────────────────────────────────────────────
   useEffect(() => {
     if (!menuOpen) return;
+    const docEl = document.documentElement;
     document.body.style.overflow = "hidden";
+    docEl.style.overflow = "hidden";
+    docEl.style.overscrollBehavior = "none";
     const lenis = getLenis(); lenis?.stop();
     const t = setTimeout(() => menuRef.current?.querySelector<HTMLElement>("a")?.focus(), 80);
     return () => {
       document.body.style.overflow = "";
+      docEl.style.overflow = "";
+      docEl.style.overscrollBehavior = "";
       getLenis()?.start();
       clearTimeout(t);
     };
@@ -294,7 +299,7 @@ export default function Navbar() {
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: duration.scroll / 1000, ease: ease.gentle }}
               >
-                <nav aria-label="Mobile navigation" className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-1">
+                <nav aria-label="Mobile navigation" className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-6 flex flex-col gap-1">
                   {NAV_LINKS.map(({ label, to }, i) => {
                     const active = pathname === to;
                     return (

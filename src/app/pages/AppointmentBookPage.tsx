@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, CalendarDays, Clock, Stethoscope, PawPrint } from "lucide-react";
 import { PageShell, Card, Reveal, Alert, Button, Input, Textarea, Skeleton, EmptyState } from "../components/pawguard";
 import SectionHeading from "../components/SectionHeading";
-import { useApiMutation, useApiErrorMessage, QUERY_KEYS, toApiDateTime } from "@/lib/api";
+import { useApiMutation, useApiErrorMessage, QUERY_KEYS, toApiDateTime, isApiError } from "@/lib/api";
 import { queryClient } from "@/lib/react-query";
 import { appointmentsService } from "@/services/api/appointments";
 import { useAuth } from "../providers/auth-provider";
@@ -96,6 +96,7 @@ export default function AppointmentBookPage() {
   });
 
   const errorText = useApiErrorMessage(mutation.error);
+  const petsAuthError = isApiError(petsErrorObj) && petsErrorObj.isUnauthorized;
 
   // After a 401, once the user signs in, resubmit automatically.
   useEffect(() => {
@@ -262,6 +263,33 @@ export default function AppointmentBookPage() {
     );
   }
 
+  if (!petsLoading && !petsError && pets.length === 0) {
+    return (
+      <PageShell>
+        <main id="main-content" className="flex-1">
+          <div className="max-w-[760px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
+            <Reveal>
+              <SectionHeading eyebrow="Veterinary Care">Book an Appointment</SectionHeading>
+              <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[560px]">
+                Choose a companion, pick a clinic, and select a date and time.
+              </p>
+            </Reveal>
+            <Reveal>
+              <Card className="mt-10">
+                <EmptyState
+                  icon="heart"
+                  title="No companion pets yet"
+                  description="Add your adopted pet to My Pets before booking a veterinary appointment."
+                  action={{ label: "Go to My Pets", to: "/account/pets" }}
+                />
+              </Card>
+            </Reveal>
+          </div>
+        </main>
+      </PageShell>
+    );
+  }
+
   return (
     <PageShell>
       <main id="main-content" className="flex-1">
@@ -309,12 +337,14 @@ export default function AppointmentBookPage() {
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <FieldSelect id="book-pet" label="Companion" value={petId} onChange={setPetId} disabled={petsLoading}>
+                  <FieldSelect id="book-pet" label="Companion" value={petId} onChange={setPetId} disabled={petsLoading || petsError}>
                     {petsLoading ? (
                       <option value="">Loading your pets…</option>
                     ) : (
                       <>
-                        <option value="">{pets.length ? "Select a pet" : "No pets yet"}</option>
+                        <option value="">
+                          {petsError ? "Couldn't load pets" : pets.length ? "Select a pet" : "No pets yet"}
+                        </option>
                         {pets.map((pet) => (
                           <option key={pet.id} value={pet.id}>
                             {pet.name}
@@ -343,11 +373,28 @@ export default function AppointmentBookPage() {
                 </div>
 
                 {petsError && !petsLoading && (
-                  <Alert variant="error" title="Couldn't load your pets">
-                    {getErrorMessage(petsErrorObj)}{" "}
-                    <button onClick={() => refetchPets()} className="font-semibold text-destructive underline underline-offset-2 hover:opacity-80 transition-opacity">
-                      Retry
-                    </button>
+                  <Alert
+                    variant="error"
+                    title={petsAuthError ? "Sign in required" : "We couldn't load your companion pets"}
+                  >
+                    {petsAuthError
+                      ? "Please sign in to view your pets."
+                      : `${getErrorMessage(petsErrorObj)} `}
+                    {petsAuthError ? (
+                      <button
+                        onClick={() => openAuthDialog("sign-in")}
+                        className="font-semibold text-destructive underline underline-offset-2 hover:opacity-80 transition-opacity"
+                      >
+                        Sign in now
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => refetchPets()}
+                        className="font-semibold text-destructive underline underline-offset-2 hover:opacity-80 transition-opacity"
+                      >
+                        Try again
+                      </button>
+                    )}
                   </Alert>
                 )}
                 {clinicsError && !clinicsLoading && (
@@ -363,7 +410,8 @@ export default function AppointmentBookPage() {
                   <EmptyState
                     icon="heart"
                     title="No companion pets yet"
-                    description="You need at least one companion pet profile to book an appointment. Add a pet from your account, then return here to schedule a visit."
+                    description="Add a companion pet profile to book veterinary appointments - then return here to schedule a visit."
+                    action={{ label: "Go to My Pets", to: "/account/pets" }}
                     className="py-8"
                   />
                 )}

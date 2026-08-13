@@ -16,10 +16,31 @@ const DEFAULT_SITE_URL = "https://pawguard.example.com";
 /** Trim trailing slashes so `baseURL + path` concatenation is predictable. */
 const normalizeBaseUrl = (url: string): string => url.replace(/\/+$/, "");
 
+/**
+ * Guarantee the API base URL targets the backend's v1 router (`/api/v1`)
+ * exactly once.
+ *
+ * The verified live backend contract mounts every route under `/api/v1`
+ * (`https://pawguard-backend-mqri.onrender.com/openapi.json`), so a request to
+ * e.g. `/companion-pets` WITHOUT that prefix returns 404 while
+ * `/api/v1/companion-pets` is the real, authenticated endpoint. If
+ * `NEXT_PUBLIC_API_BASE_URL` is provided without the prefix (or with a bare
+ * host / trailing slash) the client would otherwise silently request the
+ * 404-producing URL. This normalizer preserves a correctly-prefixed value and
+ * appends `/api/v1` once when it is missing, so the final request URL is
+ * always `…/api/v1/<route>`.
+ */
+const ensureApiVersionPrefix = (url: string): string => {
+  if (url.includes("/api/v1")) return url;
+  return `${url}/api/v1`;
+};
+
 export const env = {
-  /** Base URL of the PawGuard backend, e.g. `https://…/api/v1`. */
-  apiBaseUrl: normalizeBaseUrl(
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? DEFAULT_API_BASE_URL
+  /** Base URL of the PawGuard backend, always ending in `/api/v1`. */
+  apiBaseUrl: ensureApiVersionPrefix(
+    normalizeBaseUrl(
+      process.env.NEXT_PUBLIC_API_BASE_URL ?? DEFAULT_API_BASE_URL
+    )
   ),
   /** Canonical public site URL used for SEO/sitemap/robots. */
   siteUrl: normalizeBaseUrl(

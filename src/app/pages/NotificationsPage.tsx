@@ -8,6 +8,7 @@ import { PageShell, Section, Card, Reveal, Skeleton, EmptyState, Alert } from ".
 import { useNotifications } from "../hooks/useNotifications";
 import { useAuth } from "../providers/auth-provider";
 import { getErrorMessage } from "@/lib/api";
+import { getNotificationDestination } from "@/lib/notification-destination";
 
 const PAGE_SIZE = 12;
 
@@ -196,16 +197,14 @@ export default function NotificationsPage() {
                         </button>
                       </div>
                     </div>
-                    {n.action_url && (
-                      <div className="px-5 pb-4">
-                        <Link
-                          href={n.action_url}
-                          className="text-xs font-semibold text-primary hover:underline"
-                        >
-                          View details →
-                        </Link>
-                      </div>
-                    )}
+                    <div className="px-5 pb-4">
+                      <Link
+                        href={getNotificationDestination(n)}
+                        className="text-xs font-semibold text-primary hover:underline"
+                      >
+                        View details →
+                      </Link>
+                    </div>
                   </Card>
                 ))}
               </div>

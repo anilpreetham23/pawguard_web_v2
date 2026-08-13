@@ -339,6 +339,21 @@ export interface SafetyTagScanResponse {
   message: string;
 }
 
+/**
+ * `GET /companion-pets/{pet_id}/safety-tag` response payload — metadata
+ * about the safety tag without revealing its raw token.
+ */
+export interface SafetyTagResponse {
+  id: string;
+  pet_id: string;
+  token_prefix: string;
+  is_active: boolean;
+  last_scanned_at: string | null;
+  scan_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
 /** Breed classification enum for public dog scans. */
 export type DogBreedClassification = "pure" | "mix" | "unknown";
 
@@ -444,6 +459,22 @@ export interface CompanionPetResponse {
   is_scan_enabled: boolean;
   created_at: string;
   updated_at: string;
+}
+
+/** `POST /companion-pets` request body (`CompanionPetCreate`). */
+export interface CompanionPetCreate {
+  /** Pet display name (required). */
+  name: string;
+  /** Defaults to `"dog"` on the backend. */
+  species?: string;
+  breed?: string | null;
+  sex?: string | null;
+  birth_date?: string | null;
+  color?: string | null;
+  microchip_id?: string | null;
+  emergency_notes?: string | null;
+  /** Defaults to `true` on the backend (enables QR safety-tag scanning). */
+  is_scan_enabled?: boolean;
 }
 
 /** Query params accepted by `GET /companion-pets`. */

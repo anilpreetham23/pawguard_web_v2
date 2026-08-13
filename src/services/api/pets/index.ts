@@ -11,8 +11,13 @@
  * checkpoint — only the list method required by appointment booking is added.
  */
 
-import { API_ROUTES, apiGetPage } from "@/lib/api";
-import type { CompanionPetsQueryParams, CompanionPetResponse, Page } from "@/lib/api";
+import { API_ROUTES, apiGetPage, apiPost } from "@/lib/api";
+import type {
+  CompanionPetCreate,
+  CompanionPetsQueryParams,
+  CompanionPetResponse,
+  Page,
+} from "@/lib/api";
 
 export const companionPetsService = {
   /**
@@ -27,9 +32,19 @@ export const companionPetsService = {
       params
     );
   },
+
+  /**
+   * `POST /companion-pets` — create a new companion pet owned by the caller.
+   * Only `name` is required; species defaults to `dog` and `is_scan_enabled`
+   * defaults to `true` on the backend.
+   */
+  createPet(data: CompanionPetCreate): Promise<CompanionPetResponse> {
+    return apiPost<CompanionPetResponse>(API_ROUTES.companionPets.base, data);
+  },
 };
 
 export type {
+  CompanionPetCreate,
   CompanionPetsQueryParams,
   CompanionPetResponse,
   Page,

@@ -74,6 +74,20 @@ function applySession(session: LoginResponse): void {
   });
 }
 
+/**
+ * Account isolation guard. All authenticated queries (companion pets,
+ * adoption applications, notifications, appointments, dashboard, …) share
+ * non-user-scoped react-query keys, so when the signed-in identity changes we
+ * must discard every cached query rather than only `auth.me`. Otherwise a
+ * newly signed-in account could momentarily see the previous user's data that
+ * is still sitting in the cache. `queryClient.clear()` removes all cached
+ * queries & mutations; user-scoped queries are re-fetched from the backend
+ * (source of truth) on the next render once the active session is known.
+ */
+function clearUserScopedCache(): void {
+  queryClient.clear();
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<AuthDialogMode>("sign-in");
@@ -124,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       if ("access_token" in result) {
         applySession(result as LoginResponse);
+        clearUserScopedCache();
         await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.me });
       } else {
         const mfa = result as { mfa_required: boolean; pre_auth_token: string };
@@ -151,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       applySession(session);
       setPreAuthToken(null);
+      clearUserScopedCache();
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.me });
     },
     [preAuthToken],
@@ -158,6 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = useCallback(async (input: RegisterRequest) => {
     await authService.register(input);
+    clearUserScopedCache();
     await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.me });
   }, []);
 
@@ -165,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authService.logout();
     } finally {
-      await queryClient.removeQueries({ queryKey: QUERY_KEYS.auth.me });
+      clearUserScopedCache();
     }
   }, []);
 

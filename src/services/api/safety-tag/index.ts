@@ -14,6 +14,7 @@
 import { API_ROUTES, apiGet, apiPost } from "@/lib/api";
 import type {
   PublicDogScanResponse,
+  SafetyTagResponse,
   SafetyTagScanRequest,
   SafetyTagScanResponse,
 } from "@/lib/api";
@@ -30,6 +31,14 @@ export const safetyTagService = {
   },
 
   /**
+   * `GET /companion-pets/{pet_id}/safety-tag` — read safety-tag metadata
+   * for the authenticated owner's pet without revealing the raw token.
+   */
+  getSafetyTag(petId: string): Promise<SafetyTagResponse> {
+    return apiGet<SafetyTagResponse>(API_ROUTES.safetyTag.petTag(petId));
+  },
+
+  /**
    * `GET /dogs/{dog_id}/public-scan` — fetch the privacy-safe public profile
    * of a rescue dog (used when a scan resolves to a dog in care).
    */
@@ -42,5 +51,6 @@ export const safetyTagService = {
 
 export type {
   PublicDogScanResponse,
+  SafetyTagResponse,
   SafetyTagScanResponse,
 } from "@/lib/api";

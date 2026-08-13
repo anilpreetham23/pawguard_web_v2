@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, PawPrint } from "lucide-react";
+import { ChevronLeft, ChevronRight, PawPrint, CheckCircle2 } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import { PageShell, Card, Reveal, Skeleton, EmptyState, Alert } from "../components/pawguard";
+import { AddCompanionPetButton } from "../components/AddCompanionPetButton";
 import {
   useMyApplications,
   ADOPTION_STATUS_ORDER,
@@ -125,6 +126,30 @@ function ApplicationCard({ app }: { app: AdoptionApplicationResponse }) {
           <p className="text-sm text-muted-foreground bg-destructive/5 border border-destructive/15 rounded-card px-4 py-3">
             {app.vetting_officer_notes}
           </p>
+        )}
+
+        {(app.status === "approved" || app.status === "completed") && (
+          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-card px-4 py-3 flex flex-col gap-2">
+            <span className="inline-flex items-center gap-1.5 text-emerald-700 text-sm font-semibold">
+              <CheckCircle2 size={15} /> Adoption Approved
+            </span>
+            <p className="text-xs text-muted-foreground">
+              {app.status === "completed"
+                ? "This adoption is complete. This pet is part of your account."
+                : "Your adoption has been approved. Add this dog to your companion pets to book veterinary visits, set smart reminders, and use the QR safety tag."}
+            </p>
+            {(app.status === "approved" || app.status === "completed") && (
+              <AddCompanionPetButton
+                petName={app.dog?.name ?? app.dog_id}
+                breed={app.dog?.breed ?? null}
+                sex={app.dog?.gender ?? null}
+                species="dog"
+                size="sm"
+                variant="outline"
+                className="mt-1"
+              />
+            )}
+          </div>
         )}
 
         <div className="flex items-center justify-between gap-3 border-t border-border pt-4">

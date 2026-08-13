@@ -18,12 +18,13 @@ import SectionHeading from "../components/SectionHeading";
 import QrScanner from "../components/scan/QrScanner";
 import { useApiMutation, useApiErrorMessage, isRetryableError } from "@/lib/api";
 import { safetyTagService } from "@/services/api/safety-tag";
-import type { SafetyTagScanResponse } from "@/lib/api";
+import type { PublicDogScanResponse, SafetyTagScanResponse } from "@/lib/api";
 
 type ScanState =
   | { status: "idle" }
   | { status: "loading"; token: string }
   | { status: "success"; pet: SafetyTagScanResponse }
+  | { status: "success-dog"; dog: PublicDogScanResponse }
   | { status: "error"; token: string };
 
 const SPECIES_LABEL: Record<string, string> = {
@@ -33,6 +34,10 @@ const SPECIES_LABEL: Record<string, string> = {
   rabbit: "Rabbit",
   other: "Other",
 };
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim());
+}
 
 export default function ScanPage() {
   const [state, setState] = useState<ScanState>({ status: "idle" });
@@ -49,7 +54,7 @@ export default function ScanPage() {
   const isUnauthorized = scan.error?.isUnauthorized === true;
 
   const submitToken = useCallback(
-    (token: string) => {
+    async (token: string) => {
       const clean = token.trim();
       if (clean.length === 0) {
         setScanNotice("Please enter the safety-tag token from the back of the tag.");
@@ -57,7 +62,23 @@ export default function ScanPage() {
       }
       setScanNotice(null);
       setState({ status: "loading", token: clean });
-      scan.mutate(clean);
+      scan.reset();
+
+      try {
+        const pet = await safetyTagService.scanToken(clean);
+        setState({ status: "success", pet });
+      } catch {
+        if (isUuid(clean)) {
+          try {
+            const dog = await safetyTagService.getDogPublicScan(clean);
+            setState({ status: "success-dog", dog });
+            return;
+          } catch {
+            // fall through to error state
+          }
+        }
+        setState({ status: "error", token: clean });
+      }
     },
     [scan]
   );
@@ -77,19 +98,96 @@ export default function ScanPage() {
   const emergencyNotes = state.status === "success" ? state.pet.emergency_notes : null;
 
   const resultView = useMemo(() => {
-    if (state.status !== "success") return null;
-    const pet = state.pet;
-    const speciesLabel = SPECIES_LABEL[pet.species.toLowerCase()] ?? pet.species;
+    if (state.status !== "success" && state.status !== "success-dog") return null;
+
+    if (state.status === "success") {
+      const pet = state.pet;
+      const speciesLabel = SPECIES_LABEL[pet.species.toLowerCase()] ?? pet.species;
+
+      return (
+        <Reveal>
+          <Card className="overflow-hidden">
+            <div className="aspect-[16/9] w-full bg-gradient-to-br from-primary/10 via-background to-amber-100/40 relative flex items-center justify-center">
+              {pet.photo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={pet.photo_url}
+                  alt={`${pet.name}, a ${speciesLabel.toLowerCase()}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                  <PawPrint size={44} strokeWidth={1.2} />
+                  <span className="text-xs font-semibold tracking-widest uppercase font-condensed text-muted-foreground/80">
+                    Photo not available
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 lg:p-8 flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Badge variant="success">Safety tag verified</Badge>
+                  {speciesLabel && <Badge variant="neutral">{speciesLabel}</Badge>}
+                </div>
+                <h2 className="text-foreground font-serif font-bold text-2xl lg:text-3xl leading-tight">{pet.name}</h2>
+                <p className="text-muted-foreground text-sm">
+                  {[pet.breed, pet.color].filter(Boolean).join(" · ") || "Details on file"}
+                </p>
+              </div>
+
+              {emergencyNotes && (
+                <Alert variant="error" title="Emergency notes">
+                  {emergencyNotes}
+                </Alert>
+              )}
+
+              {pet.message && !emergencyNotes && (
+                <Alert variant="info">{pet.message}</Alert>
+              )}
+
+              <div className="flex flex-col gap-3 pt-1">
+                <div className="flex items-center gap-3 text-muted-foreground text-sm">
+                  <ShieldCheck size={16} className="shrink-0 text-primary" />
+                  This pet carries a verified PawGuard safety tag.
+                </div>
+                <Link
+                  href="tel:+18005557372"
+                  className="inline-flex items-center gap-2 text-destructive font-semibold text-sm hover:opacity-80 transition-opacity"
+                >
+                  <Phone size={15} />
+                  {emergencyNotes ? "Need urgent help? Call +91 98765 43210" : "Call PawGuard for help"}
+                </Link>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <Button type="button" variant="primary" size="md" onClick={reset}>
+                  <RotateCcw size={15} />
+                  Scan another tag
+                </Button>
+                <Button variant="outline" size="md" asLink={{ href: "/emergency" }}>
+                  Emergency help
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </Reveal>
+      );
+    }
+
+    const dog = state.dog;
+    const speciesLabel = SPECIES_LABEL[dog.current_status.toLowerCase()] ?? dog.current_status;
 
     return (
       <Reveal>
         <Card className="overflow-hidden">
           <div className="aspect-[16/9] w-full bg-gradient-to-br from-primary/10 via-background to-amber-100/40 relative flex items-center justify-center">
-            {pet.photo_url ? (
+            {dog.photo_gallery_urls && dog.photo_gallery_urls.length > 0 ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={pet.photo_url}
-                alt={`${pet.name}, a ${speciesLabel.toLowerCase()}`}
+                src={dog.photo_gallery_urls[0]}
+                alt={`${dog.name}, a ${speciesLabel.toLowerCase()}`}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -105,37 +203,59 @@ export default function ScanPage() {
           <div className="p-6 lg:p-8 flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <Badge variant="success">Safety tag verified</Badge>
-                {speciesLabel && <Badge variant="neutral">{speciesLabel}</Badge>}
+                <Badge variant="success">Public profile verified</Badge>
+                <Badge variant="neutral">{dog.breed}</Badge>
+                <Badge variant="neutral">{speciesLabel}</Badge>
               </div>
-              <h2 className="text-foreground font-serif font-bold text-2xl lg:text-3xl leading-tight">{pet.name}</h2>
+              <h2 className="text-foreground font-serif font-bold text-2xl lg:text-3xl leading-tight">{dog.name}</h2>
               <p className="text-muted-foreground text-sm">
-                {[pet.breed, pet.color].filter(Boolean).join(" · ") || "Details on file"}
+                {dog.registration_number}
               </p>
             </div>
 
-            {emergencyNotes && (
-              <Alert variant="error" title="Emergency notes">
-                {emergencyNotes}
-              </Alert>
-            )}
-
-            {pet.message && !emergencyNotes && (
-              <Alert variant="info">{pet.message}</Alert>
-            )}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-5 bg-card border border-border rounded-card">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-muted-foreground text-2xs font-semibold tracking-wider uppercase font-condensed">Status</span>
+                <span className="text-foreground font-semibold text-sm capitalize">{dog.current_status.replace(/_/g, " ")}</span>
+              </div>
+              {dog.gender && (
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-muted-foreground text-2xs font-semibold tracking-wider uppercase font-condensed">Sex</span>
+                  <span className="text-foreground font-semibold text-sm capitalize">{dog.gender}</span>
+                </div>
+              )}
+              {dog.estimated_age && (
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-muted-foreground text-2xs font-semibold tracking-wider uppercase font-condensed">Age</span>
+                  <span className="text-foreground font-semibold text-sm">{dog.estimated_age}</span>
+                </div>
+              )}
+              {dog.weight_kg !== null && (
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-muted-foreground text-2xs font-semibold tracking-wider uppercase font-condensed">Weight</span>
+                  <span className="text-foreground font-semibold text-sm">{dog.weight_kg} kg</span>
+                </div>
+              )}
+              {dog.color && (
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-muted-foreground text-2xs font-semibold tracking-wider uppercase font-condensed">Colour</span>
+                  <span className="text-foreground font-semibold text-sm">{dog.color}</span>
+                </div>
+              )}
+              {dog.temperament && (
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-muted-foreground text-2xs font-semibold tracking-wider uppercase font-condensed">Temperament</span>
+                  <span className="text-foreground font-semibold text-sm capitalize">{dog.temperament.replace(/_/g, " ")}</span>
+                </div>
+              )}
+            </div>
 
             <div className="flex flex-col gap-3 pt-1">
               <div className="flex items-center gap-3 text-muted-foreground text-sm">
                 <ShieldCheck size={16} className="shrink-0 text-primary" />
-                This pet carries a verified PawGuard safety tag.
+                This is a verified PawGuard public profile.
+                {dog.is_adoptable && " This dog is currently adoptable."}
               </div>
-              <Link
-                href="tel:+18005557372"
-                className="inline-flex items-center gap-2 text-destructive font-semibold text-sm hover:opacity-80 transition-opacity"
-              >
-                <Phone size={15} />
-                {emergencyNotes ? "Need urgent help? Call +91 98765 43210" : "Call PawGuard for help"}
-              </Link>
             </div>
 
             <div className="flex flex-wrap gap-3">
@@ -143,15 +263,17 @@ export default function ScanPage() {
                 <RotateCcw size={15} />
                 Scan another tag
               </Button>
-              <Button variant="outline" size="md" asLink={{ href: "/emergency" }}>
-                Emergency help
-              </Button>
+              {dog.is_adoptable && (
+                <Button variant="outline" size="md" asLink={{ href: `/adopt/${dog.registration_number}` }}>
+                  View adoption profile
+                </Button>
+              )}
             </div>
           </div>
         </Card>
       </Reveal>
     );
-  }, [state, reset, emergencyNotes]);
+  }, [state, reset]);
 
   return (
     <PageShell>
@@ -180,7 +302,7 @@ export default function ScanPage() {
           </Reveal>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-[var(--space-12)] lg:gap-[var(--space-16)] mt-10">
-            {state.status !== "success" ? (
+            {state.status !== "success" && state.status !== "success-dog" ? (
               <Reveal>
                 <Card className="p-6 lg:p-8 flex flex-col gap-6">
                   <div className="flex flex-col gap-2">
@@ -201,7 +323,9 @@ export default function ScanPage() {
               <Reveal>
                 <div className="flex flex-col gap-3">
                   <Alert variant="success" title="Tag verified">
-                    This safety tag is registered and active with PawGuard.
+                    {state.status === "success-dog"
+                      ? "This dog profile is registered and active with PawGuard."
+                      : "This safety tag is registered and active with PawGuard."}
                   </Alert>
                   <Button type="button" variant="outline" size="md" onClick={reset} className="self-start">
                     <ScanLine size={15} />
@@ -212,7 +336,7 @@ export default function ScanPage() {
             )}
 
             {/* Manual token entry */}
-            {state.status !== "success" && (
+            {state.status !== "success" && state.status !== "success-dog" && (
               <Reveal>
                 <Card className="p-6 lg:p-8 flex flex-col gap-6">
                   <div className="flex flex-col gap-2">
@@ -286,6 +410,11 @@ export default function ScanPage() {
           </div>
 
           {state.status === "success" && (
+            <div className="mt-10">
+              {resultView}
+            </div>
+          )}
+          {state.status === "success-dog" && (
             <div className="mt-10">
               {resultView}
             </div>

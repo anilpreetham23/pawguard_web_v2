@@ -19,6 +19,7 @@ import { PageShell, Card, Reveal, Skeleton, EmptyState, Alert } from "../compone
 import { useAuth } from "../providers/auth-provider";
 import { useFavorites } from "../hooks/useFavorites";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
+import { useMyPets } from "../hooks/useMyPets";
 import { getErrorMessage } from "@/lib/api";
 
 function initials(name: string): string {
@@ -157,6 +158,7 @@ export default function AccountPage() {
     error: dashboardErrorObj,
     refetch: refetchDashboard,
   } = useDashboardSummary();
+  const { total: petsTotal } = useMyPets(isAuthenticated);
 
   if (authStatus === "loading") {
     return (
@@ -257,6 +259,13 @@ export default function AccountPage() {
                     My Applications
                   </Link>
                   <Link
+                    href="/account/pets"
+                    className="inline-flex items-center gap-2 bg-card border border-border text-foreground text-xs font-semibold tracking-wider uppercase px-5 py-2.5 rounded-btn hover:border-primary hover:text-primary transition-all duration-fast"
+                  >
+                    <PawPrint size={14} />
+                    My Pets
+                  </Link>
+                  <Link
                     href="/notifications"
                     className="inline-flex items-center gap-2 bg-card border border-border text-foreground text-xs font-semibold tracking-wider uppercase px-5 py-2.5 rounded-btn hover:border-primary hover:text-primary transition-all duration-fast"
                   >
@@ -296,7 +305,14 @@ export default function AccountPage() {
                 </button>
               </Alert>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <DashboardCard
+                  icon={<PawPrint size={18} />}
+                  label="My Pets"
+                  count={petsTotal}
+                  to="/account/pets"
+                  hint="Companion &amp; adopted pets"
+                />
                 <DashboardCard
                   icon={<PawPrint size={18} />}
                   label="Adoption applications"

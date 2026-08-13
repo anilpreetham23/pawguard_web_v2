@@ -2,9 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Bell, CheckCheck, Trash2 } from "lucide-react";
 import { useUnreadCount, useNotifications } from "../hooks/useNotifications";
 import { useApiErrorMessage } from "@/lib/api";
+import type { NotificationResponse } from "@/lib/api";
+import { getNotificationDestination } from "@/lib/notification-destination";
 import { cn } from "./ui/utils";
 
 /** Human-friendly relative time for the bell dropdown (e.g. "2h ago"). */
@@ -47,6 +50,7 @@ function emojiFor(type: string | null): string {
 export function NotificationBell({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const unreadCount = useUnreadCount();
   const {
     notifications,
@@ -79,7 +83,7 @@ export function NotificationBell({ className }: { className?: string }) {
     };
   }, [open]);
 
-  const handleItemClick = async (n: { id: string; is_read: boolean; action_url: string | null }) => {
+  const handleItemClick = async (n: NotificationResponse) => {
     if (!n.is_read) {
       try {
         await markRead(n.id);
@@ -88,9 +92,7 @@ export function NotificationBell({ className }: { className?: string }) {
       }
     }
     setOpen(false);
-    if (n.action_url) {
-      window.location.href = n.action_url;
-    }
+    router.push(getNotificationDestination(n));
   };
 
   return (
