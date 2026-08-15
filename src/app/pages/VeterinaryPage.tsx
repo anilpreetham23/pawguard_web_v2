@@ -435,7 +435,7 @@ export default function VeterinaryPage() {
               </div>
 
               {isLoading ? (
-                <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+                <StaggerGrid key={`skeleton-${page}-${query}-${emergencyOnly}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
                   {[0, 1, 2, 3, 4, 5].map((i) => (
                     <StaggerItem key={i}>
                       <PartnerCardSkeleton />
@@ -481,7 +481,7 @@ export default function VeterinaryPage() {
                   }
                 />
               ) : (
-                <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+                <StaggerGrid key={`${page}-${query}-${emergencyOnly}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
                   {pagePartners.map((partner) => (
                     <StaggerItem key={partner.id}>
                       <PartnerCard

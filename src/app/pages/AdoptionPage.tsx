@@ -163,7 +163,7 @@ export default function AdoptionPage() {
               </div>
 
               {isLoading ? (
-                <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+                <StaggerGrid key={`skeleton-${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
                   {[0, 1, 2, 3, 4, 5].map((i) => (
                     <StaggerItem key={i}>
                       <CardSkeleton />
@@ -181,7 +181,7 @@ export default function AdoptionPage() {
                   action={hasFilters ? { label: "Clear Filters", onClick() { setSelectedAge([]); setSelectedSize([]); } } : undefined}
                 />
               ) : (
-                <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+                <StaggerGrid key={`${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
                   {pagePets.map((pet) => (
                     <StaggerItem key={pet.id}>
                       <AdoptionCard

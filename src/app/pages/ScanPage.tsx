@@ -334,7 +334,16 @@ export default function ScanPage() {
         rawSpecies && SPECIES_LABEL[rawSpecies]
           ? SPECIES_LABEL[rawSpecies]
           : pet.species || "Pet";
-      const isLost = pet.status?.toLowerCase() === "lost";
+      const normalizedStatus = pet.status ? String(pet.status).toLowerCase() : "safe";
+      const isLost = normalizedStatus === "lost";
+      const isFound = normalizedStatus === "found";
+      const isReunited = normalizedStatus === "reunited";
+      const isFoster = normalizedStatus === "foster" || normalizedStatus === "fostered";
+      const isVet = normalizedStatus === "veterinary";
+      const isMedical = normalizedStatus === "medical";
+      const isAdopted = normalizedStatus === "adopted";
+      const isTransferred = normalizedStatus === "transferred" || normalizedStatus === "ownership_transfer";
+      const isShelter = normalizedStatus === "admitted" || normalizedStatus === "in_shelter" || normalizedStatus === "shelter";
 
       return (
         <Reveal>
@@ -364,6 +373,46 @@ export default function ScanPage() {
                       <AlertTriangle size={14} className="mr-1.5 inline" />
                       Status: LOST
                     </Badge>
+                  ) : isFound ? (
+                    <Badge variant="special" className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider shadow-md">
+                      <CheckCircle2 size={14} className="mr-1.5 inline" />
+                      Status: FOUND
+                    </Badge>
+                  ) : isReunited ? (
+                    <Badge variant="success" className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider shadow-md">
+                      <ShieldCheck size={14} className="mr-1.5 inline" />
+                      Status: REUNITED
+                    </Badge>
+                  ) : isFoster ? (
+                    <Badge variant="special" className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider shadow-md">
+                      <PawPrint size={14} className="mr-1.5 inline" />
+                      Status: IN FOSTER CARE
+                    </Badge>
+                  ) : isVet ? (
+                    <Badge variant="neutral" className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider shadow-md">
+                      <ShieldCheck size={14} className="mr-1.5 inline" />
+                      Status: UNDER VET CARE
+                    </Badge>
+                  ) : isMedical ? (
+                    <Badge variant="neutral" className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider shadow-md">
+                      <AlertTriangle size={14} className="mr-1.5 inline" />
+                      Status: UNDER MEDICAL CARE
+                    </Badge>
+                  ) : isAdopted ? (
+                    <Badge variant="success" className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider shadow-md">
+                      <ShieldCheck size={14} className="mr-1.5 inline" />
+                      Status: ADOPTED
+                    </Badge>
+                  ) : isTransferred ? (
+                    <Badge variant="neutral" className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider shadow-md">
+                      <ShieldCheck size={14} className="mr-1.5 inline" />
+                      Status: OWNERSHIP TRANSFERRED
+                    </Badge>
+                  ) : isShelter ? (
+                    <Badge variant="neutral" className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider shadow-md">
+                      <ShieldCheck size={14} className="mr-1.5 inline" />
+                      Status: IN SHELTER
+                    </Badge>
                   ) : (
                     <Badge variant="success" className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider shadow-md">
                       <ShieldCheck size={14} className="mr-1.5 inline" />
@@ -388,6 +437,40 @@ export default function ScanPage() {
                       "Details registered on PawGuard network"}
                   </p>
                 </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 bg-muted/40 border border-border/60 rounded-card">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-muted-foreground text-2xs font-semibold uppercase tracking-wider font-condensed">
+                      Species
+                    </span>
+                    <span className="text-foreground font-semibold text-sm">
+                      {speciesLabel}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-muted-foreground text-2xs font-semibold uppercase tracking-wider font-condensed">
+                      Breed
+                    </span>
+                    <span className="text-foreground font-semibold text-sm">
+                      {pet.breed || "Not specified"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-muted-foreground text-2xs font-semibold uppercase tracking-wider font-condensed">
+                      Colour
+                    </span>
+                    <span className="text-foreground font-semibold text-sm">
+                      {pet.color || "Registered"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-muted-foreground text-2xs font-semibold uppercase tracking-wider font-condensed">
+                      Tag Verification
+                    </span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-sm flex items-center gap-1">
+                      <ShieldCheck size={14} /> Active &amp; Valid
+                    </span>
+                  </div>
+                </div>
 
                 {/* Emergency Notes Banner */}
                 {pet.emergency_notes && (
@@ -405,7 +488,92 @@ export default function ScanPage() {
                   </Alert>
                 )}
 
-                {/* Part 3: Lost State Details & Owner Info */}
+                {/* Section 2: Detailed Lifecycle State Presentation */}
+                {isFoster && (
+                  <div className="p-5 rounded-card bg-primary/5 border border-primary/20 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-primary font-semibold text-sm uppercase tracking-wider font-condensed">
+                      <PawPrint size={16} /> Foster Program Status
+                    </div>
+                    <p className="text-foreground font-serif font-bold text-lg">
+                      Currently Placed in Verified Foster Care
+                    </p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {pet.name} is residing with an approved PawGuard foster family while awaiting permanent placement or owner return.
+                    </p>
+                  </div>
+                )}
+
+                {(isVet || isMedical) && (
+                  <div className="p-5 rounded-card bg-amber-500/10 border border-amber-500/25 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-semibold text-sm uppercase tracking-wider font-condensed">
+                      <AlertTriangle size={16} /> Veterinary &amp; Medical Care Status
+                    </div>
+                    <p className="text-foreground font-serif font-bold text-lg">
+                      Under Active Clinical Care Supervision
+                    </p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      This animal is receiving professional veterinary/medical care. Refer to emergency notes above for care instructions.
+                    </p>
+                  </div>
+                )}
+
+                {(isAdopted || isTransferred) && (
+                  <div className="p-5 rounded-card bg-emerald-500/10 border border-emerald-500/25 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-semibold text-sm uppercase tracking-wider font-condensed">
+                      <ShieldCheck size={16} /> Ownership Status
+                    </div>
+                    <p className="text-foreground font-serif font-bold text-lg">
+                      {isTransferred ? "Ownership Transferred & Registered" : "Adopted Companion"}
+                    </p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {pet.name} is a registered companion pet in an active family home on the PawGuard safety network.
+                    </p>
+                  </div>
+                )}
+
+                {isFound && (
+                  <div className="p-5 rounded-card bg-sky-500/10 border border-sky-500/25 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-sky-700 dark:text-sky-400 font-semibold text-sm uppercase tracking-wider font-condensed">
+                      <CheckCircle2 size={16} /> Animal Found Status
+                    </div>
+                    <p className="text-foreground font-serif font-bold text-lg">
+                      Animal Reported Found — Reunification in Progress
+                    </p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      A member of the community has reported finding {pet.name}. PawGuard coordinators are coordinating safe return to the owner.
+                    </p>
+                  </div>
+                )}
+
+                {isReunited && (
+                  <div className="p-5 rounded-card bg-emerald-500/10 border border-emerald-500/25 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-semibold text-sm uppercase tracking-wider font-condensed">
+                      <ShieldCheck size={16} /> Reunited Status
+                    </div>
+                    <p className="text-foreground font-serif font-bold text-lg">
+                      Successfully Reunited with Family!
+                    </p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      This companion pet was reported missing and has been safely reconnected with their family.
+                    </p>
+                  </div>
+                )}
+
+                {isShelter && (
+                  <div className="p-5 rounded-card bg-slate-500/10 border border-slate-500/25 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-slate-700 dark:text-slate-400 font-semibold text-sm uppercase tracking-wider font-condensed">
+                      <ShieldCheck size={16} /> Shelter Intake Status
+                    </div>
+                    <p className="text-foreground font-serif font-bold text-lg">
+                      Admitted to PawGuard Shelter Care
+                    </p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {pet.name} is under intake, health assessment, and sheltering with PawGuard shelter partners.
+                    </p>
+                  </div>
+                )}
+
+                {/* Section 3: Lost State Details & Owner Info */}
                 {isLost && (
                   <div className="flex flex-col gap-6 p-6 rounded-card bg-destructive/5 border border-destructive/20 mt-2">
                     <div className="flex items-start gap-3">
@@ -450,7 +618,7 @@ export default function ScanPage() {
                     {/* Owner Contact Information Guidance */}
                     <div className="flex flex-col gap-2 pt-4 border-t border-destructive/15">
                       <span className="text-xs font-semibold tracking-wider uppercase font-condensed text-muted-foreground flex items-center gap-1.5">
-                        <User size={14} className="text-primary" /> Owner Notification & Privacy
+                        <User size={14} className="text-primary" /> Owner Notification &amp; Privacy
                       </span>
                       <p className="text-xs text-muted-foreground leading-relaxed">
                         To protect owner privacy, sensitive direct contact information is secured by default. Scanning this tag has automatically notified the owner that {pet.name}&apos;s tag was scanned. Please submit a sighting report below so the owner can reach out directly.
@@ -459,8 +627,8 @@ export default function ScanPage() {
                   </div>
                 )}
 
-                {/* Hotline & Action Buttons */}
-                <div className="flex flex-col gap-4 pt-2">
+                {/* Section 4: What To Do Guidance & Action Buttons */}
+                <div className="flex flex-col gap-4 pt-2 border-t border-border">
                   <div className="flex items-center gap-3 text-muted-foreground text-sm">
                     <ShieldCheck size={18} className="shrink-0 text-primary" />
                     Verified PawGuard Safety Tag (Pet ID: {pet.pet_id.slice(0, 8)}…)
