@@ -281,7 +281,7 @@ export default function ScanPage() {
       setSightingLoading(true);
 
       const payload: PetSightingCreate = {
-        pet_id: pet.pet_id,
+        pet_id: pet.pet_id || pet.dog_id || pet.id || undefined,
         lost_report_id: pet.lost_report_id || undefined,
         finder_name: finderName.trim(),
         finder_phone: finderPhone.trim(),
@@ -631,7 +631,7 @@ export default function ScanPage() {
                 <div className="flex flex-col gap-4 pt-2 border-t border-border">
                   <div className="flex items-center gap-3 text-muted-foreground text-sm">
                     <ShieldCheck size={18} className="shrink-0 text-primary" />
-                    Verified PawGuard Safety Tag (Pet ID: {pet.pet_id.slice(0, 8)}…)
+                    Verified PawGuard Safety Tag (Pet ID: {(pet.pet_id || pet.dog_id || pet.id || "").slice(0, 8)}…)
                   </div>
                   <div className="flex flex-wrap gap-3 items-center">
                     <a

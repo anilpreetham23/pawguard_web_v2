@@ -327,7 +327,9 @@ export interface SafetyTagScanRequest {
  * safe pet info returned to anyone scanning a tag.
  */
 export interface SafetyTagScanResponse {
-  pet_id: string;
+  pet_id: string | null;
+  dog_id?: string | null;
+  id?: string | null;
   name: string;
   species: string;
   breed: string | null;
