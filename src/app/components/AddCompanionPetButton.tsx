@@ -9,7 +9,11 @@ import { companionPetsService } from "@/services/api/pets";
 import { useMyPets } from "../hooks/useMyPets";
 
 interface AddCompanionPetButtonProps {
-  /** Pet display name copied into the new companion-pet profile. */
+  /** Optional adoption application UUID for backend linking. */
+  applicationId?: string;
+  /** Optional original dog profile UUID for deduplication. */
+  dogId?: string;
+  /** Pet display name copied into the new pet profile. */
   petName: string;
   breed?: string | null;
   sex?: string | null;
@@ -27,19 +31,18 @@ function normalizeName(name: string): string {
 }
 
 /**
- * Creates a real companion-pet profile via `POST /companion-pets` with the
- * adopted dog's details, then invalidates the companion-pets cache so the My
- * Pets / booking surfaces update immediately. No fake/local records are ever
- * created — this is a genuine backend write gated behind an approved adoption.
+ * Creates/links a pet profile directly from an approved adoption application
+ * via `POST /companion-pets/from-adoption/{application_id}` (or `POST /companion-pets`),
+ * then invalidates pets, applications, and appointments query caches.
  *
- * Duplicate protection: before rendering the create action it reads the user's
- * real companion pets (`GET /companion-pets`). If a pet with the same name is
- * already present it renders "Already in My Companion Pets" and never POSTs
- * again. The button is also disabled while the companion list is loading so a
- * duplicate cannot slip through before the check resolves, and while a POST is
- * pending so rapid double-clicks cannot create two records.
+ * Duplicate protection: before rendering the action, it reads the user's real
+ * companion pets (`GET /companion-pets`). If a pet linked to `applicationId`,
+ * `dogId`, or matching name is already present, it renders "Already in My Pets"
+ * and prevents double submission.
  */
 export function AddCompanionPetButton({
+  applicationId,
+  dogId,
   petName,
   breed,
   sex,
@@ -50,25 +53,35 @@ export function AddCompanionPetButton({
   onAdded,
 }: AddCompanionPetButtonProps) {
   const [addedPetId, setAddedPetId] = useState<string | null>(null);
-  // Real backend read of the current user's companion pets (deduped by
-  // react-query across every instance on the page).
   const { pets, isLoading: petsLoading } = useMyPets();
 
   const alreadyAdded = useMemo(() => {
     const target = normalizeName(petName);
-    return pets.some((p) => normalizeName(p.name) === target);
-  }, [pets, petName]);
+    return pets.some((p) => {
+      if (applicationId && p.adoption_application_id === applicationId) return true;
+      if (dogId && p.original_dog_id === dogId) return true;
+      return normalizeName(p.name) === target;
+    });
+  }, [pets, petName, applicationId, dogId]);
 
   const mutation = useApiMutation<{ id: string }, void>({
-    mutationFn: () =>
-      companionPetsService.createPet({
+    mutationFn: () => {
+      if (applicationId) {
+        return companionPetsService.createPetFromAdoption(applicationId);
+      }
+      return companionPetsService.createPet({
         name: petName.trim(),
         breed: breed || null,
         sex: sex || null,
         species,
-      }),
+      });
+    },
     onSuccess: async (pet) => {
-      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.companionPets.pets });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.companionPets.pets }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adoption.applications }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.companionPets.appointments }),
+      ]);
       setAddedPetId(pet.id);
       onAdded?.(pet.id);
     },

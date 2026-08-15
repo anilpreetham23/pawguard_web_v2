@@ -465,6 +465,8 @@ export interface CompanionPetResponse {
   microchip_id: string | null;
   emergency_notes: string | null;
   is_scan_enabled: boolean;
+  original_dog_id?: string | null;
+  adoption_application_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -794,6 +796,7 @@ export interface LostReportCreate {
   /** ISO-8601 datetime when the pet was last seen. */
   lost_at: string;
   photo_url?: string | null;
+  companion_pet_id?: string | null;
 }
 
 /**

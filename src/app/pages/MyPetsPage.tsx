@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Stethoscope,
   ArrowRight,
+  AlertTriangle,
 } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import {
@@ -109,6 +110,8 @@ function AdoptedPetCard({ app }: { app: AdoptionApplicationResponse }) {
 
       <div className="flex flex-col gap-3 border-t border-border pt-4">
         <AddCompanionPetButton
+          applicationId={app.id}
+          dogId={app.dog_id}
           petName={dog?.name ?? app.dog_id}
           breed={dog?.breed ?? null}
           sex={dog?.gender ?? null}
@@ -200,6 +203,13 @@ function CompanionPetCard({ pet }: { pet: CompanionPetResponse }) {
       )}
 
       <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+        <Link
+          href={`/lost-found/report/lost?pet_id=${pet.id}`}
+          className="inline-flex items-center gap-1.5 bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold tracking-wider uppercase px-4 py-2.5 rounded-btn hover:bg-destructive hover:text-destructive-foreground transition-all duration-fast"
+        >
+          <AlertTriangle size={14} />
+          Report Pet Lost
+        </Link>
         <Link
           href="/appointments/book"
           className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-semibold tracking-wider uppercase font-condensed px-4 py-2.5 rounded-btn hover:bg-primary-hover transition-all duration-fast"
@@ -434,6 +444,3 @@ export default function MyPetsPage() {
     </PageShell>
   );
 }
-
-
-

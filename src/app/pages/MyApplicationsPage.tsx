@@ -140,6 +140,8 @@ function ApplicationCard({ app }: { app: AdoptionApplicationResponse }) {
             </p>
             {(app.status === "approved" || app.status === "completed") && (
               <AddCompanionPetButton
+                applicationId={app.id}
+                dogId={app.dog_id}
                 petName={app.dog?.name ?? app.dog_id}
                 breed={app.dog?.breed ?? null}
                 sex={app.dog?.gender ?? null}

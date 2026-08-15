@@ -2,16 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, LocateFixed, X, Phone } from "lucide-react";
-import { PageShell, Card, Reveal, Alert, Button, Input, Textarea, SuccessState } from "../components/pawguard";
+import { useSearchParams } from "next/navigation";
+import { ArrowLeft, LocateFixed, X, Phone, PawPrint, CheckCircle2 } from "lucide-react";
+import { PageShell, Card, Reveal, Alert, Button, Input, Textarea, SuccessState, Badge } from "../components/pawguard";
 import SectionHeading from "../components/SectionHeading";
-import { useApiMutation, useApiErrorMessage, QUERY_KEYS } from "@/lib/api";
+import { useApiMutation, useApiErrorMessage, QUERY_KEYS, toApiDateTime } from "@/lib/api";
 import { queryClient } from "@/lib/react-query";
 import { lostFoundService } from "@/services/api/lost-found";
 import { useGeolocation } from "../hooks/useGeolocation";
-import { toApiDateTime } from "@/lib/api";
 import { useAuth } from "../providers/auth-provider";
-import type { Species } from "@/lib/api";
+import { useMyPets } from "../hooks/useMyPets";
+import type { Species, LostReportCreate } from "@/lib/api";
 import type { LostFoundKind } from "@/types";
 
 const SPECIES_OPTIONS: { value: Species; label: string }[] = [
@@ -47,10 +48,15 @@ const GPS_STATUS_HINT: Record<string, string> = {
 };
 
 export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
+  const searchParams = useSearchParams();
+  const urlPetId = searchParams ? searchParams.get("pet_id") : null;
+
   const labels = FIELD_LABELS[kind];
   const { isAuthenticated, openAuthDialog } = useAuth();
+  const { pets, isLoading: petsLoading } = useMyPets(kind === "lost" && isAuthenticated);
 
   // Lost
+  const [companionPetId, setCompanionPetId] = useState("");
   const [petName, setPetName] = useState("");
   const [species, setSpecies] = useState<Species>("dog");
   const [breed, setBreed] = useState("");
@@ -68,8 +74,35 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
   const [eventAt, setEventAt] = useState("");
   const [dateError, setDateError] = useState<string | null>(null);
 
-  // Compute the max datetime-local value once per render (local time, no TZ suffix).
-  // Format: YYYY-MM-DDTHH:mm  — the exact format datetime-local expects.
+  // Auto-select pet matching urlPetId parameter when pets load
+  useEffect(() => {
+    if (kind === "lost" && urlPetId && pets.length > 0) {
+      const matched = pets.find((p) => p.id === urlPetId);
+      if (matched) {
+        setCompanionPetId(matched.id);
+        setPetName(matched.name);
+        if (matched.species) setSpecies(matched.species as Species);
+        if (matched.breed) setBreed(matched.breed);
+        if (matched.color) setColor(matched.color);
+        if (matched.microchip_id) setMicrochipId(matched.microchip_id);
+      }
+    }
+  }, [kind, urlPetId, pets]);
+
+  const handleSelectPet = (selectedId: string) => {
+    setCompanionPetId(selectedId);
+    if (!selectedId) return;
+    const matched = pets.find((p) => p.id === selectedId);
+    if (matched) {
+      setPetName(matched.name);
+      if (matched.species) setSpecies(matched.species as Species);
+      if (matched.breed) setBreed(matched.breed);
+      if (matched.color) setColor(matched.color);
+      if (matched.microchip_id) setMicrochipId(matched.microchip_id);
+    }
+  };
+
+  // Compute the max datetime-local value once per render
   const maxEventAt = useMemo(() => {
     const now = new Date();
     const pad = (n: number) => String(n).padStart(2, "0");
@@ -82,8 +115,6 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
 
   const { status: gpsStatus, coords, errorMessage, requestLocation, clearLocation: clearGps } = useGeolocation();
 
-  // Auto-apply GPS coordinates into the form fields the moment the browser
-  // grants location — no second click required.
   useEffect(() => {
     if (gpsStatus === "granted" && coords) {
       setLatitude(coords.latitude.toFixed(6));
@@ -112,7 +143,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
     };
   }, [latitude, longitude, photoUrl]);
 
-  const losPayload = {
+  const losPayload: LostReportCreate = {
     species,
     pet_name: petName.trim(),
     breed: breed.trim(),
@@ -123,6 +154,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
     longitude: cleanupCoords.longitude,
     lost_at: eventAt ? toApiDateTime(new Date(eventAt)) : "",
     photo_url: cleanupCoords.photo,
+    companion_pet_id: companionPetId.trim() === "" ? null : companionPetId.trim(),
   };
 
   const foundPayload = {
@@ -151,7 +183,6 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
 
   const errorMessageText = useApiErrorMessage(mutation.error);
 
-  // Once the user signs in after a 401, resubmit automatically.
   useEffect(() => {
     if (mutation.isError && mutation.error?.isUnauthorized && isAuthenticated) {
       mutation.mutate();
@@ -202,6 +233,8 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
     );
   }
 
+  const selectedPetObject = pets.find((p) => p.id === companionPetId);
+
   return (
     <PageShell>
       <main id="main-content" className="flex-1">
@@ -230,6 +263,33 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
           <Reveal>
             <Card className="mt-10 max-w-[760px]">
               <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                {kind === "lost" && isAuthenticated && (
+                  <div className="flex flex-col gap-2 p-4 rounded-card bg-primary/5 border border-primary/20">
+                    <label htmlFor="select-my-pet" className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed flex items-center gap-1.5">
+                      <PawPrint size={14} className="text-primary" /> Select My Pet (Optional)
+                    </label>
+                    <select
+                      id="select-my-pet"
+                      value={companionPetId}
+                      onChange={(e) => handleSelectPet(e.target.value)}
+                      disabled={petsLoading}
+                      className="w-full h-12 bg-input-background border border-border rounded-input px-4 text-foreground text-base focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-gentle ease-gentle"
+                    >
+                      <option value="">-- Enter pet details manually --</option>
+                      {pets.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} {p.breed ? `(${p.breed})` : ""}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedPetObject && (
+                      <div className="flex items-center gap-2 text-xs text-emerald-700 font-medium mt-1">
+                        <CheckCircle2 size={13} /> Selected pet details pre-filled from My Pets.
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {mutation.isError && errorMessageText && (
                   <Alert variant="error" title={mutation.error?.isUnauthorized ? "Sign in required" : "We couldn't submit your report"}>
                     {mutation.error?.isUnauthorized

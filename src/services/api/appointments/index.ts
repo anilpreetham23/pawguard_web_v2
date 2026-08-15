@@ -83,6 +83,13 @@ export const appointmentsService = {
       params
     );
   },
+
+  /**
+   * `GET /companion-pets/clinics/{id}` — details of a single veterinary clinic.
+   */
+  getClinic(id: string): Promise<VetClinicResponse> {
+    return apiGet<VetClinicResponse>(API_ROUTES.companionPets.clinic(id));
+  },
 };
 
 export type {

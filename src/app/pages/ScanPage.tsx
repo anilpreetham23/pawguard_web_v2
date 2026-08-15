@@ -109,6 +109,9 @@ export default function ScanPage() {
     onSuccess: (pet) => {
       setState({ status: "success", pet });
       resetSightingForm();
+      if (pet.status?.toLowerCase() === "lost" && pet.lost_location) {
+        setLocationAddress(pet.lost_location);
+      }
     },
     onError: (_err, token) => setState({ status: "error", token }),
   });
@@ -133,13 +136,38 @@ export default function ScanPage() {
 
   const submitToken = useCallback(
     async (token: string) => {
-      const clean = token.trim();
+      let clean = token.trim();
       if (clean.length === 0) {
         setScanNotice(
           "Please enter the safety-tag token from the back of the tag."
         );
         return;
       }
+
+      // If a full URL is scanned or pasted (e.g. https://pawguard.org/scan?token=raw_token or /scan/raw_token),
+      // extract the actual raw token value.
+      if (clean.startsWith("http://") || clean.startsWith("https://")) {
+        try {
+          const parsedUrl = new URL(clean);
+          const tokenParam =
+            parsedUrl.searchParams.get("token") ||
+            parsedUrl.searchParams.get("raw_token");
+          if (tokenParam) {
+            clean = tokenParam.trim();
+          } else {
+            const parts = parsedUrl.pathname.split("/").filter(Boolean);
+            if (parts.length > 0) {
+              const lastPart = parts[parts.length - 1];
+              if (lastPart && lastPart !== "scan" && lastPart !== "scan-pet") {
+                clean = lastPart.trim();
+              }
+            }
+          }
+        } catch {
+          // keep original clean string if URL parsing fails
+        }
+      }
+
       setScanNotice(null);
       setState({ status: "loading", token: clean });
       scan.reset();
@@ -148,6 +176,9 @@ export default function ScanPage() {
       try {
         const pet = await safetyTagService.scanToken(clean);
         setState({ status: "success", pet });
+        if (pet.status?.toLowerCase() === "lost" && pet.lost_location) {
+          setLocationAddress(pet.lost_location);
+        }
       } catch {
         if (isUuid(clean)) {
           try {
@@ -298,8 +329,11 @@ export default function ScanPage() {
 
     if (state.status === "success") {
       const pet = state.pet;
+      const rawSpecies = pet.species ? String(pet.species).toLowerCase() : "";
       const speciesLabel =
-        SPECIES_LABEL[pet.species.toLowerCase()] ?? pet.species;
+        rawSpecies && SPECIES_LABEL[rawSpecies]
+          ? SPECIES_LABEL[rawSpecies]
+          : pet.species || "Pet";
       const isLost = pet.status?.toLowerCase() === "lost";
 
       return (
@@ -312,7 +346,7 @@ export default function ScanPage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={pet.photo_url}
-                    alt={`${pet.name}, a ${speciesLabel.toLowerCase()}`}
+                    alt={`${pet.name}${speciesLabel ? `, a ${speciesLabel.toLowerCase()}` : ""}`}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -579,8 +613,13 @@ export default function ScanPage() {
     }
 
     const dog = state.dog;
+    const rawStatus = dog.current_status
+      ? String(dog.current_status).toLowerCase()
+      : "";
     const speciesLabel =
-      SPECIES_LABEL[dog.current_status.toLowerCase()] ?? dog.current_status;
+      rawStatus && SPECIES_LABEL[rawStatus]
+        ? SPECIES_LABEL[rawStatus]
+        : dog.current_status || "Rescue Dog";
 
     return (
       <Reveal>
@@ -590,7 +629,7 @@ export default function ScanPage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={dog.photo_gallery_urls[0]}
-                alt={`${dog.name}, a ${speciesLabel.toLowerCase()}`}
+                alt={`${dog.name}${speciesLabel ? `, a ${speciesLabel.toLowerCase()}` : ""}`}
                 className="w-full h-full object-cover"
               />
             ) : (

@@ -92,6 +92,8 @@ export const API_ROUTES = {
   companionPets: {
     base: "/companion-pets",
     pet: (id: string) => `/companion-pets/${id}`,
+    fromAdoption: (applicationId: string) =>
+      `/companion-pets/from-adoption/${applicationId}`,
     appointments: "/companion-pets/appointments",
     appointment: (id: string) => `/companion-pets/appointments/${id}`,
     confirmAppointment: (id: string) =>

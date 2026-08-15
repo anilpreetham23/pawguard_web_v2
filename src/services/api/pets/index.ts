@@ -41,6 +41,17 @@ export const companionPetsService = {
   createPet(data: CompanionPetCreate): Promise<CompanionPetResponse> {
     return apiPost<CompanionPetResponse>(API_ROUTES.companionPets.base, data);
   },
+
+  /**
+   * `POST /companion-pets/from-adoption/{application_id}` — create/link a pet
+   * profile directly from an approved adoption application.
+   */
+  createPetFromAdoption(applicationId: string): Promise<CompanionPetResponse> {
+    return apiPost<CompanionPetResponse>(
+      API_ROUTES.companionPets.fromAdoption(applicationId),
+      {}
+    );
+  },
 };
 
 export type {

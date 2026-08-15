@@ -33,3 +33,28 @@ export function useVetClinics(enabled = true): VetClinicsResult {
     refetch,
   };
 }
+
+export interface VetClinicResult {
+  clinic: VetClinicResponse | null;
+  isLoading: boolean;
+  isError: boolean;
+  error: unknown;
+  refetch: () => void;
+}
+
+/** Details for a single veterinary clinic (`GET /companion-pets/clinics/{clinicId}`). */
+export function useVetClinic(clinicId: string | null, enabled = true): VetClinicResult {
+  const { data, isLoading, isError, error, refetch } = useApiQuery({
+    queryKey: [...QUERY_KEYS.companionPets.clinics, clinicId ?? ""] as const,
+    queryFn: () => appointmentsService.getClinic(clinicId!),
+    enabled: Boolean(enabled && clinicId),
+  });
+
+  return {
+    clinic: data ?? null,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  };
+}
