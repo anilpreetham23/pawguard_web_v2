@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import SectionHeading from "../components/SectionHeading";
@@ -107,6 +107,17 @@ export default function LostFoundPage() {
 
   const hasFilters = debouncedQuery.length > 0 || status !== "" || species !== "";
 
+  const queryParams = useMemo(
+    () => ({
+      page,
+      page_size: PAGE_SIZE,
+      ...(debouncedQuery ? { search: debouncedQuery } : {}),
+      ...(status ? { status } : {}),
+      ...(species ? { species } : {}),
+    }),
+    [page, debouncedQuery, status, species]
+  );
+
   const {
     cases,
     total,
@@ -116,13 +127,7 @@ export default function LostFoundPage() {
     isError,
     error,
     refetch,
-  } = useLostFoundReports(kind, {
-    page,
-    page_size: PAGE_SIZE,
-    ...(debouncedQuery ? { search: debouncedQuery } : {}),
-    ...(status ? { status } : {}),
-    ...(species ? { species } : {}),
-  });
+  } = useLostFoundReports(kind, queryParams);
 
   return (
     <PageShell>
@@ -230,7 +235,7 @@ export default function LostFoundPage() {
               </div>
 
               {isLoading ? (
-                <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+                <StaggerGrid key={`skeleton-${kind}-${page}-${debouncedQuery}-${status}-${species}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
                   {[0, 1, 2, 3, 4, 5].map((i) => (
                     <StaggerItem key={i}>
                       <CardSkeleton />
@@ -252,7 +257,7 @@ export default function LostFoundPage() {
                   action={hasFilters ? { label: "Clear Filters", onClick() { setQuery(""); setStatus(""); setSpecies(""); } } : undefined}
                 />
               ) : (
-                <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+                <StaggerGrid key={`${kind}-${page}-${debouncedQuery}-${status}-${species}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
                   {cases.map((caseItem) => (
                     <StaggerItem key={caseItem.id}>
                       <LostFoundCard caseItem={caseItem} />
