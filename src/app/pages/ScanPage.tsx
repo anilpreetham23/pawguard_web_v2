@@ -281,7 +281,7 @@ export default function ScanPage() {
       setSightingLoading(true);
 
       const payload: PetSightingCreate = {
-        pet_id: pet.pet_id || pet.dog_id || pet.id || undefined,
+        pet_id: pet.pet_id || undefined,
         lost_report_id: pet.lost_report_id || undefined,
         finder_name: finderName.trim(),
         finder_phone: finderPhone.trim(),
