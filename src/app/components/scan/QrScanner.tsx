@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import { Camera, CameraOff } from "lucide-react";
+import { Camera, CameraOff, RefreshCw } from "lucide-react";
 import { Button, Alert } from "../pawguard";
 import { cn } from "../ui/utils";
 
@@ -12,10 +12,11 @@ interface QrScannerProps {
 }
 
 /**
- * Lightweight browser QR scanner backed by `html5-qrcode`.
- * - Camera only starts after the user clicks "Scan with camera".
- * - Permission denial surfaces as a friendly error with guidance.
- * - Camera is stopped and resources released on unmount (no memory leaks).
+ * Robust browser QR scanner backed by `html5-qrcode`.
+ * - `Html5Qrcode` is the sole owner of the camera stream (no competing pre-flight streams).
+ * - `isActive` is set to `true` first so the container element is mounted in the DOM and has measurable
+ *   dimensions (`clientWidth` / `clientHeight`) before `Html5Qrcode.start()` runs.
+ * - If starting fails, resources are cleaned up immediately and a friendly retry UI is shown.
  */
 export default function QrScanner({ onDetected }: QrScannerProps) {
   const elementIdRef = useRef<string>(
@@ -23,121 +24,191 @@ export default function QrScanner({ onDetected }: QrScannerProps) {
       ? `qr-video-${crypto.randomUUID()}`
       : `qr-video-${Math.random().toString(36).slice(2)}`
   );
+
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const isStartingRef = useRef(false);
+  const cancelRequestedRef = useRef(false);
+
   const [isActive, setIsActive] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [scanNotice, setScanNotice] = useState<string | null>(null);
+
   const onDetectedRef = useRef(onDetected);
   onDetectedRef.current = onDetected;
 
   const stopCamera = useCallback(async () => {
+    cancelRequestedRef.current = true;
     const scanner = scannerRef.current;
     scannerRef.current = null;
-    if (scanner && scanner.isScanning) {
+
+    if (scanner) {
       try {
-        await scanner.stop();
+        if (scanner.isScanning) {
+          await scanner.stop();
+        }
+        scanner.clear();
       } catch {
-        // Camera already released by the browser — nothing to do.
+        // Stream already released or element cleared by browser
       }
     }
+
+    isStartingRef.current = false;
     setIsActive(false);
     setIsStarting(false);
+    setScanNotice(null);
   }, []);
 
-  // Release camera + DOM on unmount to avoid leaks / background recording.
+  // Teardown camera stream on unmount to avoid background recording or memory leaks.
   useEffect(() => {
     return () => {
       void stopCamera();
     };
   }, [stopCamera]);
 
-  // Start/stop the actual scanner once the video element is mounted.
-  useEffect(() => {
-    if (!isActive) return;
-    let cancelled = false;
+  const requestScan = useCallback(async () => {
+    if (isStartingRef.current) return;
 
-    async function run() {
-      const element = document.getElementById(elementIdRef.current);
-      if (!element) return;
-
-      const scanner = new Html5Qrcode(elementIdRef.current, { verbose: false });
-      scannerRef.current = scanner;
-
-      try {
-        setScanNotice("Requesting camera access…");
-        await scanner.start(
-          { facingMode: "environment" },
-          {
-            fps: 10,
-            qrbox: (viewfinderWidth, viewfinderHeight) => {
-              const side = Math.min(
-                250,
-                viewfinderWidth * 0.8,
-                viewfinderHeight * 0.8
-              );
-              return { width: side, height: side };
-            },
-          },
-          (decodedText) => {
-            setScanNotice("Code recognized — checking safety tag…");
-            void stopCamera();
-            onDetectedRef.current(decodedText.trim());
-          },
-          () => {
-            // Per-frame "no code detected" — ignore.
-          }
-        );
-        if (!cancelled) {
-          setScanNotice(null);
-          setIsStarting(false);
-        }
-      } catch (error) {
-        if (cancelled) return;
-        const message =
-          typeof error === "object" && error !== null && "message" in error
-            ? String((error as { message: unknown }).message ?? "")
-            : "";
-        setPermissionError(formatCameraError(message));
-        setScanNotice(null);
-        setIsStarting(false);
-        setIsActive(false);
-      }
-    }
+    // Reset state & flags
+    setPermissionError(null);
+    cancelRequestedRef.current = false;
+    isStartingRef.current = true;
 
     setIsStarting(true);
-    setPermissionError(null);
-    void run();
+    setIsActive(true); // Mount the viewfinder container DOM element
+    setScanNotice("Requesting camera access…");
 
-    return () => {
-      cancelled = true;
-      void stopCamera();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive]);
+    // Wait 2 animation frames so the container div is rendered in the DOM with non-zero dimensions
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => resolve());
+      });
+    });
 
-  function requestScan() {
-    setPermissionError(null);
-    setScanNotice(null);
-    setIsActive(true);
-  }
+    if (cancelRequestedRef.current) {
+      isStartingRef.current = false;
+      setIsActive(false);
+      setIsStarting(false);
+      setScanNotice(null);
+      return;
+    }
+
+    const container = document.getElementById(elementIdRef.current);
+    if (!container) {
+      setPermissionError("Camera view container not found. Please try again.");
+      isStartingRef.current = false;
+      setIsActive(false);
+      setIsStarting(false);
+      setScanNotice(null);
+      return;
+    }
+
+    // Safely clear any previous scanner instance
+    if (scannerRef.current) {
+      try {
+        if (scannerRef.current.isScanning) {
+          await scannerRef.current.stop();
+        }
+        scannerRef.current.clear();
+      } catch {
+        // Ignore previous cleanup errors
+      }
+      scannerRef.current = null;
+    }
+
+    const scanner = new Html5Qrcode(elementIdRef.current, { verbose: false });
+    scannerRef.current = scanner;
+
+    setScanNotice("Starting camera preview…");
+
+    try {
+      await scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: (viewfinderWidth, viewfinderHeight) => {
+            const side = Math.min(
+              260,
+              Math.floor(viewfinderWidth * 0.8),
+              Math.floor(viewfinderHeight * 0.8)
+            );
+            return { width: side, height: side };
+          },
+        },
+        (decodedText) => {
+          setScanNotice("Code recognized — checking safety tag…");
+          void stopCamera();
+          onDetectedRef.current(decodedText.trim());
+        },
+        () => {
+          // Per-frame scanning tick
+        }
+      );
+
+      // Check if cancelled while start() was in flight (e.g. user clicked Stop or unmounted)
+      if (cancelRequestedRef.current) {
+        try {
+          if (scanner.isScanning) {
+            await scanner.stop();
+          }
+          scanner.clear();
+        } catch {
+          // Ignore
+        }
+        scannerRef.current = null;
+        isStartingRef.current = false;
+        setIsActive(false);
+        setIsStarting(false);
+        setScanNotice(null);
+        return;
+      }
+
+      // Camera stream successfully acquired and rendering!
+      setScanNotice(null);
+      setIsStarting(false);
+      isStartingRef.current = false;
+    } catch (error) {
+      const msg =
+        typeof error === "object" && error !== null && "message" in error
+          ? String((error as { message: unknown }).message ?? "")
+          : String(error);
+
+      // Clean up failed scanner instance
+      try {
+        if (scanner.isScanning) {
+          await scanner.stop();
+        }
+        scanner.clear();
+      } catch {
+        // Ignore
+      }
+      scannerRef.current = null;
+
+      isStartingRef.current = false;
+      setIsStarting(false);
+      setIsActive(false);
+      setScanNotice(null);
+      setPermissionError(formatCameraError(msg));
+    }
+  }, [stopCamera]);
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Viewfinder Container — mounted when active or starting */}
       <div
         id={elementIdRef.current}
         className={cn(
-          "w-full max-w-[420px] aspect-square rounded-card overflow-hidden border border-border bg-card relative",
-          isActive ? "block" : "hidden"
+          "w-full max-w-[420px] aspect-square rounded-card overflow-hidden border border-border bg-card relative min-h-[250px]",
+          isActive || isStarting ? "block" : "hidden"
         )}
         aria-label="Camera QR scanner viewfinder"
       />
 
-      {isActive ? (
+      {isActive || isStarting ? (
         <div className="flex flex-col gap-3">
           <button
             type="button"
-            onClick={() => stopCamera()}
+            onClick={() => void stopCamera()}
             className="inline-flex items-center gap-2 self-start text-destructive text-xs font-semibold uppercase tracking-wider font-condensed hover:opacity-80 transition-opacity"
           >
             <CameraOff size={14} />
@@ -146,16 +217,35 @@ export default function QrScanner({ onDetected }: QrScannerProps) {
           {isStarting && scanNotice && <Alert variant="info">{scanNotice}</Alert>}
         </div>
       ) : (
-        <Button
-          type="button"
-          variant="outline"
-          size="md"
-          onClick={requestScan}
-          className="self-start"
-        >
-          <Camera size={16} />
-          Scan with camera
-        </Button>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-3 items-center">
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => void requestScan()}
+              className="self-start"
+            >
+              <Camera size={16} />
+              {permissionError ? "Try Camera Again" : "Scan with camera"}
+            </Button>
+            {permissionError && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="md"
+                onClick={() => void requestScan()}
+                className="text-xs text-primary"
+              >
+                <RefreshCw size={14} className="mr-1.5" />
+                Retry Camera
+              </Button>
+            )}
+          </div>
+          <p className="text-2xs text-muted-foreground">
+            Camera access is required to scan a Safety Tag directly from your browser.
+          </p>
+        </div>
       )}
 
       {permissionError && <Alert variant="error">{permissionError}</Alert>}
@@ -164,14 +254,15 @@ export default function QrScanner({ onDetected }: QrScannerProps) {
 }
 
 function formatCameraError(message: string): string {
-  if (/permission|NotAllowedError|denied/i.test(message)) {
-    return "Camera permission was denied. You can still enter the safety-tag token manually below.";
+  if (/permission|NotAllowedError|denied|PermissionDenied/i.test(message)) {
+    return "Camera permission was denied. Please allow camera access in your browser settings and click 'Try Camera Again', or enter the token manually below.";
   }
-  if (/NotReadableError|in use/i.test(message)) {
-    return "Your camera is already in use by another app. Close it and try again, or enter the token manually below.";
+  if (/NotReadableError|in use|Could not start video source/i.test(message)) {
+    return "Your camera is currently in use by another application or browser tab. Close it and click 'Try Camera Again', or enter the token manually below.";
   }
-  if (/NotFoundError|no camera/i.test(message)) {
-    return "No camera was found on this device. You can still enter the safety-tag token manually below.";
+  if (/NotFoundError|no camera|DevicesNotFoundError/i.test(message)) {
+    return "No camera was found on this device. You can enter the safety-tag token manually below.";
   }
-  return "We couldn't start the camera. Please check your browser supports camera scanning, or enter the token manually below.";
+  return "Unable to start camera stream. Please check browser permissions and click 'Try Camera Again', or enter the token manually below.";
 }
+
