@@ -14,9 +14,10 @@ interface QrScannerProps {
 /**
  * Robust browser QR scanner backed by `html5-qrcode`.
  * - `Html5Qrcode` is the sole owner of the camera stream (no competing pre-flight streams).
- * - `isActive` is set to `true` first so the container element is mounted in the DOM and has measurable
- *   dimensions (`clientWidth` / `clientHeight`) before `Html5Qrcode.start()` runs.
- * - If starting fails, resources are cleaned up immediately and a friendly retry UI is shown.
+ * - Viewfinder container is mounted & bound via a stable React `containerRef`.
+ * - Layout timing is synchronized with double `requestAnimationFrame` ticks so element bounds
+ *   (`clientWidth` / `clientHeight`) are computed before `Html5Qrcode.start()` runs.
+ * - Teardown executes `scanner.stop()` + `scanner.clear()` to prevent stream locks and memory leaks.
  */
 export default function QrScanner({ onDetected }: QrScannerProps) {
   const elementIdRef = useRef<string>(
@@ -25,6 +26,7 @@ export default function QrScanner({ onDetected }: QrScannerProps) {
       : `qr-video-${Math.random().toString(36).slice(2)}`
   );
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isStartingRef = useRef(false);
   const cancelRequestedRef = useRef(false);
@@ -78,7 +80,7 @@ export default function QrScanner({ onDetected }: QrScannerProps) {
     setIsActive(true); // Mount the viewfinder container DOM element
     setScanNotice("Requesting camera access…");
 
-    // Wait 2 animation frames so the container div is rendered in the DOM with non-zero dimensions
+    // Wait 2 animation frames so React commits the container div in the DOM with valid dimensions
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => resolve());
@@ -93,9 +95,12 @@ export default function QrScanner({ onDetected }: QrScannerProps) {
       return;
     }
 
-    const container = document.getElementById(elementIdRef.current);
+    // Verify container via stable React DOM ref
+    const container = containerRef.current;
+    const targetId = container?.id || elementIdRef.current;
+
     if (!container) {
-      setPermissionError("Camera view container not found. Please try again.");
+      setPermissionError("Camera view container not ready. Please try again.");
       isStartingRef.current = false;
       setIsActive(false);
       setIsStarting(false);
@@ -116,7 +121,7 @@ export default function QrScanner({ onDetected }: QrScannerProps) {
       scannerRef.current = null;
     }
 
-    const scanner = new Html5Qrcode(elementIdRef.current, { verbose: false });
+    const scanner = new Html5Qrcode(targetId, { verbose: false });
     scannerRef.current = scanner;
 
     setScanNotice("Starting camera preview…");
@@ -194,8 +199,9 @@ export default function QrScanner({ onDetected }: QrScannerProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Viewfinder Container — mounted when active or starting */}
+      {/* Viewfinder Container — attached via React DOM ref containerRef */}
       <div
+        ref={containerRef}
         id={elementIdRef.current}
         className={cn(
           "w-full max-w-[420px] aspect-square rounded-card overflow-hidden border border-border bg-card relative min-h-[250px]",
@@ -264,5 +270,4 @@ function formatCameraError(message: string): string {
     return "No camera was found on this device. You can enter the safety-tag token manually below.";
   }
   return "Unable to start camera stream. Please check browser permissions and click 'Try Camera Again', or enter the token manually below.";
-}
-
+}
