@@ -165,7 +165,7 @@ export default function AccountPage() {
       <PageShell>
         <main id="main-content" className="flex-1">
           <PageHeader eyebrow="Account" title="My Account" subtitle="Your PawGuard profile and saved dogs." />
-          <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
             <div className="flex flex-col gap-6">
               <div className="h-56 rounded-card bg-muted animate-pulse" />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -184,7 +184,7 @@ export default function AccountPage() {
       <PageShell>
         <main id="main-content" className="flex-1">
           <PageHeader eyebrow="Account" title="My Account" subtitle="Sign in to view your profile, activity, and saved dogs." />
-          <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
             <Reveal>
               <Card>
                 <EmptyState
@@ -215,7 +215,7 @@ export default function AccountPage() {
           subtitle="Your PawGuard profile, activity, and the dogs you've saved."
         />
 
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg flex flex-col gap-10">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg flex flex-col gap-10">
           {/* ── Profile card ─────────────────────────────────────────────────── */}
           <Reveal>
             <Card>

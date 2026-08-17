@@ -188,7 +188,7 @@ export default function MyApplicationsPage() {
       <PageShell>
         <main id="main-content" className="flex-1">
           <PageHeader eyebrow="Adoption" title="My Applications" subtitle="Track the status of your adoption applications." />
-          <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
             <div className="flex flex-col gap-4">
               {[0, 1, 2].map((i) => <div key={i} className="h-48 rounded-card bg-muted animate-pulse" />)}
             </div>
@@ -203,7 +203,7 @@ export default function MyApplicationsPage() {
       <PageShell>
         <main id="main-content" className="flex-1">
           <PageHeader eyebrow="Adoption" title="My Applications" subtitle="Sign in to track the status of your adoption applications." />
-          <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
             <Reveal>
               <Card>
                 <EmptyState
@@ -229,7 +229,7 @@ export default function MyApplicationsPage() {
           subtitle="Follow each application through screening, interview, home check, and approval."
         />
 
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
           <Reveal>
             <div className="flex items-center justify-between mb-6">
               <p className="text-muted-foreground text-sm">

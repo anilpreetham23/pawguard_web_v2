@@ -90,7 +90,7 @@ export default function AdoptionPage() {
           subtitle="Every dog in our care has been assessed, vaccinated, and prepared for their permanent home."
         />
 
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
           {/* Process overview — shown before filters to set expectations */}
           <Reveal>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-grid-md lg:gap-grid-lg mb-12 pb-12 border-b border-border">

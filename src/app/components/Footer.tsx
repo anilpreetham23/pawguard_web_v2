@@ -259,7 +259,7 @@ export default function Footer() {
                       isLoading={subLoading}
                       isSuccess={false}
                       context="newsletter"
-                      className="shrink-0"
+                      className="shrink-0 w-full sm:w-auto"
                     >
                       Subscribe
                     </Button>

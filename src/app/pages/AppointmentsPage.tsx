@@ -95,7 +95,7 @@ export default function AppointmentsPage() {
     return (
       <PageShell>
         <main id="main-content" className="flex-1">
-          <div className="max-w-[860px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
+          <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
             <Skeleton className="h-8 w-1/2 mb-10" />
             <div className="flex flex-col gap-5">
               <AppointmentSkeleton />
@@ -112,7 +112,7 @@ export default function AppointmentsPage() {
     return (
       <PageShell>
         <main id="main-content" className="flex-1">
-          <div className="max-w-[760px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
+          <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
             <Reveal>
               <SectionHeading eyebrow="My Appointments">Your Scheduled Visits</SectionHeading>
               <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[560px]">
@@ -161,7 +161,7 @@ export default function AppointmentsPage() {
           }
         />
 
-        <div className="max-w-[860px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
           {cancelMutation.isError && cancelErrorText && (
             <Alert variant="error" title="We couldn't cancel the appointment" className="mb-6">
               {cancelErrorText}{" "}

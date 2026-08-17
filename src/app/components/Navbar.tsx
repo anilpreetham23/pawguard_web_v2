@@ -178,7 +178,7 @@ export default function Navbar() {
             }}
           >
             {/* ── Layer 3: Navigation content ─────────────────────────── */}
-            <div className="max-w-[1280px] mx-auto px-6 lg:px-8 h-[var(--navbar-height)] grid grid-cols-[1fr_auto_1fr] items-center">
+            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 h-[var(--navbar-height)] flex md:grid md:grid-cols-[1fr_auto_1fr] items-center justify-between gap-4">
 
               {/* Logo — left column */}
               <Link
@@ -264,7 +264,7 @@ export default function Navbar() {
               {/* Mobile hamburger — visible only on mobile */}
               <button
                 ref={toggleRef}
-                className="md:hidden p-2 rounded-btn hover:bg-secondary transition-all duration-fast ease-gentle min-h-[44px] min-w-[44px] flex items-center justify-center relative z-10"
+                className="md:hidden ml-auto md:ml-0 p-2 rounded-btn hover:bg-secondary transition-all duration-fast ease-gentle min-h-[44px] min-w-[44px] flex items-center justify-center relative z-10"
                 style={{ color: "var(--foreground)" }}
                 onClick={() => setMenuOpen(!menuOpen)}
                 aria-label={menuOpen ? "Close menu" : "Open menu"}

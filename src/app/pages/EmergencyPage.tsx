@@ -237,7 +237,7 @@ export default function EmergencyPage() {
   return (
     <PageShell>
       <main id="main-content" className="flex-1">
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+1rem)] lg:pt-[calc(var(--header-height)+2rem)] pb-20 lg:pb-28">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+1rem)] lg:pt-[calc(var(--header-height)+2rem)] pb-20 lg:pb-28">
           {!pageReady ? (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-[var(--space-12)] lg:gap-[var(--space-16)]">
               <div className="lg:col-span-8 flex flex-col gap-12">

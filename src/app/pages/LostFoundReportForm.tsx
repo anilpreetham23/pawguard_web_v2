@@ -212,7 +212,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
   if (submittedReport) {
     return (
       <PageShell>
-        <main id="main-content" className="flex-1 flex items-start justify-center px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
+        <main id="main-content" className="flex-1 flex items-start justify-center px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
           <div className="max-w-[560px] w-full">
             <Reveal>
               <SuccessState
@@ -238,7 +238,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
   return (
     <PageShell>
       <main id="main-content" className="flex-1">
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
           <Link
             href="/lost-found"
             className="inline-flex items-center gap-2 text-muted-foreground text-sm hover:text-primary transition-colors duration-fast group"
@@ -248,7 +248,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
           </Link>
         </div>
 
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-8 lg:py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           <Reveal>
             <div className="max-w-[760px]">
               <SectionHeading eyebrow="Lost & Found">{labels.form}</SectionHeading>

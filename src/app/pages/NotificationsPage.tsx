@@ -75,7 +75,7 @@ export default function NotificationsPage() {
       <PageShell>
         <main id="main-content" className="flex-1">
           <PageHeader eyebrow="Notifications" title="Your Alerts" subtitle="Loading your notifications…" />
-          <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
             <ListSkeleton />
           </div>
         </main>
@@ -88,7 +88,7 @@ export default function NotificationsPage() {
       <PageShell>
         <main id="main-content" className="flex-1">
           <PageHeader eyebrow="Notifications" title="Your Alerts" subtitle="Sign in to see adoption, rescue, appointment, and donation updates." />
-          <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
             <Reveal>
               <Card>
                 <EmptyState
@@ -114,7 +114,7 @@ export default function NotificationsPage() {
           subtitle={unreadCount > 0 ? `You have ${unreadCount} unread update${unreadCount === 1 ? "" : "s"}.` : "You're all caught up."}
         />
 
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
           <Reveal>
             <div className="flex items-center justify-between mb-6">
               <p className="text-muted-foreground text-sm">

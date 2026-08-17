@@ -269,7 +269,7 @@ export default function MyPetsPage() {
       <PageShell>
         <main id="main-content" className="flex-1">
           <PageHeader eyebrow="My Pets" title="My Pets" subtitle="Your adopted pets." />
-          <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg flex flex-col gap-10">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg flex flex-col gap-10">
             <div className="h-8 w-44 bg-muted rounded animate-pulse" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
               {[0, 1, 2].map((i) => <Skeleton key={i} className="h-56" />)}
@@ -285,7 +285,7 @@ export default function MyPetsPage() {
       <PageShell>
         <main id="main-content" className="flex-1">
           <PageHeader eyebrow="My Pets" title="My Pets" subtitle="Sign in to see your adopted pets." />
-          <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
             <Reveal>
               <Card>
                 <EmptyState
@@ -314,7 +314,7 @@ export default function MyPetsPage() {
           subtitle="Your adopted pets and the pet profiles linked to your account."
         />
 
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg flex flex-col gap-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg flex flex-col gap-12">
           {loading ? (
             <div className="flex flex-col gap-10">
               <p className="text-sm font-semibold text-muted-foreground" role="status">

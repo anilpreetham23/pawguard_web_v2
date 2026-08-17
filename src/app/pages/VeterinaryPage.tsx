@@ -377,7 +377,7 @@ export default function VeterinaryPage() {
           subtitle="A verified network of partner clinics dedicated to keeping your companions healthy — including round-the-clock emergency care."
         />
 
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
             <aside className="lg:w-[240px] shrink-0">
               <Card className="sticky top-[88px]">

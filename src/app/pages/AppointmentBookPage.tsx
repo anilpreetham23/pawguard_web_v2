@@ -164,7 +164,7 @@ function AppointmentBookForm() {
 
   if (!isAuthReady) {
     return (
-      <div className="max-w-[760px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
+      <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
         <Skeleton className="h-10 w-2/3 mb-4" />
         <Skeleton className="h-4 w-1/2 mb-10" />
         <Card className="flex flex-col gap-4">
@@ -179,7 +179,7 @@ function AppointmentBookForm() {
 
   if (!isAuthenticated) {
     return (
-      <div className="max-w-[760px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
+      <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
         <Reveal>
           <SectionHeading eyebrow="Veterinary Care">Book an Appointment</SectionHeading>
           <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[560px]">
@@ -207,7 +207,7 @@ function AppointmentBookForm() {
 
   if (submitted) {
     return (
-      <div className="max-w-[560px] w-full mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
+      <div className="max-w-[560px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
         <Reveal>
           <div className="flex flex-col gap-5">
             <div
@@ -264,7 +264,7 @@ function AppointmentBookForm() {
 
   if (!petsLoading && !petsError && pets.length === 0) {
     return (
-      <div className="max-w-[760px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
+      <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
         <Reveal>
           <SectionHeading eyebrow="Veterinary Care">Book an Appointment</SectionHeading>
           <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[560px]">
@@ -287,7 +287,7 @@ function AppointmentBookForm() {
 
   return (
     <main id="main-content" className="flex-1">
-      <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
         <Link
           href="/veterinary"
           className="inline-flex items-center gap-2 text-muted-foreground text-sm hover:text-primary transition-colors duration-fast group"
@@ -297,7 +297,7 @@ function AppointmentBookForm() {
         </Link>
       </div>
 
-      <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-8 lg:py-12">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         <Reveal>
           <div className="max-w-[760px]">
             <SectionHeading eyebrow="Veterinary Care">Book an Appointment</SectionHeading>

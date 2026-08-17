@@ -633,15 +633,15 @@ export default function ScanPage() {
                     <ShieldCheck size={18} className="shrink-0 text-primary" />
                     Verified PawGuard Safety Tag (Pet ID: {(pet.pet_id || pet.dog_id || pet.id || "").slice(0, 8)}…)
                   </div>
-                  <div className="flex flex-wrap gap-3 items-center">
+                  <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                     <a
                       href="tel:+919876543210"
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-button bg-destructive text-destructive-foreground font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-button bg-destructive text-destructive-foreground font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm w-full sm:w-auto text-center"
                     >
                       <Phone size={16} />
                       Emergency Hotline: Call PawGuard
                     </a>
-                    <Button type="button" variant="outline" size="md" onClick={reset}>
+                    <Button type="button" variant="outline" size="md" onClick={reset} className="w-full sm:w-auto">
                       <RotateCcw size={15} />
                       Scan Another Tag
                     </Button>

@@ -92,8 +92,8 @@ function EmergencyCard({ compact }: { compact: boolean }) {
           </span>
           <span
             className={cn(
-              "font-bold tracking-tight tabular-nums leading-tight transition-[font-size] duration-[400ms] ease-[cubic-bezier(0.65,0,0.35,1)]",
-              compact ? "text-[10px]" : "text-[10px] sm:text-xs lg:text-sm",
+              "font-bold tracking-tight tabular-nums leading-tight transition-[font-size] duration-[400ms] ease-[cubic-bezier(0.65,0,0.35,1)] truncate",
+              compact ? "text-[9px] sm:text-[10px]" : "text-[9px] sm:text-xs lg:text-sm",
             )}
           >
             {EMERGENCY.hotline.display}

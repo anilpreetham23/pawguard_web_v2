@@ -125,7 +125,7 @@ function LivePetDetailPage({ id }: { id: string }) {
   if (isLoading) {
     return (
       <PageShell>
-        <main id="main-content" className="flex-1 max-w-[1280px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
+        <main id="main-content" className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
           <Skeleton className="h-4 w-32 mb-8" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
             <Skeleton className="aspect-[4/5] rounded-img" />
@@ -197,7 +197,7 @@ function LivePetDetailPage({ id }: { id: string }) {
   return (
     <PageShell>
       <main id="main-content" className="flex-1">
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
           <Link
             href="/adopt"
             className="inline-flex items-center gap-2 text-muted-foreground text-sm hover:text-primary transition-colors duration-fast group"
@@ -207,7 +207,7 @@ function LivePetDetailPage({ id }: { id: string }) {
           </Link>
         </div>
 
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-8 lg:py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           <Reveal>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-stretch">
               <div className="relative">
@@ -496,7 +496,7 @@ export default function AnimalDetailPage({ slug }: { slug?: string }) {
     <PageShell>
       <main id="main-content" className="flex-1">
         {/* ── Breadcrumb + back ─────────────────────────────────────────── */}
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
           <Link
             href="/adopt"
             className="inline-flex items-center gap-2 text-muted-foreground text-sm hover:text-primary transition-colors duration-fast group"
@@ -507,7 +507,7 @@ export default function AnimalDetailPage({ slug }: { slug?: string }) {
         </div>
 
         {/* ── Hero ──────────────────────────────────────────────────────── */}
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-8 lg:py-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           <Reveal>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-stretch">
               {/* Image */}

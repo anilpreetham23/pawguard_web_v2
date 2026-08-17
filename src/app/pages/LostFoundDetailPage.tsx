@@ -148,7 +148,7 @@ function BroadcastPanel({ caseItem }: { caseItem: LostFoundCase }) {
 
   return (
     <Reveal>
-      <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-card border border-border rounded-card p-6 lg:p-8 flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
           <div className="flex-1 flex flex-col gap-1.5">
             <h2 className="text-foreground font-bold text-lg">Broadcast a missing-pet alert</h2>
@@ -207,7 +207,7 @@ function CaseContent({ caseItem }: { caseItem: LostFoundCase }) {
     typeof caseItem.latitude === "number" && typeof caseItem.longitude === "number";
 
   return (
-    <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
+    <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
       <Link
         href="/lost-found"
         className="inline-flex items-center gap-2 text-muted-foreground text-sm hover:text-primary transition-colors duration-fast group"
@@ -317,7 +317,7 @@ function CaseContent({ caseItem }: { caseItem: LostFoundCase }) {
 
 function CaseSkeleton() {
   return (
-    <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
+    <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
       <Skeleton className="h-4 w-32 mb-8" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-stretch">
         <Skeleton className="aspect-[4/5] rounded-img" />
@@ -398,7 +398,7 @@ export default function LostFoundDetailPage({ id }: { id: string }) {
 
         {related.length > 0 && (
           <Reveal>
-            <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pb-section-lg">
+            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pb-section-lg">
               <div className="border-t border-border pt-12">
                 <div className="flex flex-col gap-2">
                   <SectionHeading eyebrow="More Reports">
@@ -426,7 +426,7 @@ export default function LostFoundDetailPage({ id }: { id: string }) {
         </Reveal>
 
         <Reveal>
-          <div className="max-w-[1280px] mx-auto px-6 lg:px-8 pb-section-lg text-center">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pb-section-lg text-center">
             <div className="bg-card border border-border rounded-card p-10 flex flex-col items-center gap-4">
               <h2 className="font-serif font-bold text-2xl lg:text-3xl text-foreground">
                 Recognize this {SPECIES_LABEL[caseItem.animalType]?.toLowerCase() ?? "animal"}?

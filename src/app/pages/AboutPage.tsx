@@ -129,12 +129,12 @@ export default function AboutPage() {
                   { pct: "12%", label: "Administrative overhead", color: "bg-muted-foreground" },
                   { pct: "10%", label: "Reserve & development", color: "bg-border" },
                 ].map((r) => (
-                  <div key={r.label} className="flex items-center gap-4">
-                    <span className="text-primary font-bold text-lg w-[56px] shrink-0">{r.pct}</span>
-                    <div className="flex-1 h-2.5 bg-secondary rounded-full overflow-hidden">
+                  <div key={r.label} className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-4">
+                    <span className="text-primary font-bold text-lg w-[48px] sm:w-[56px] shrink-0">{r.pct}</span>
+                    <div className="flex-1 h-2.5 bg-secondary rounded-full overflow-hidden min-w-[80px]">
                       <div className={`h-full rounded-full ${r.color}`} style={{ width: r.pct }} />
                     </div>
-                    <span className="text-muted-foreground text-sm shrink-0">{r.label}</span>
+                    <span className="text-muted-foreground text-xs sm:text-sm">{r.label}</span>
                   </div>
                 ))}
               </div>
