@@ -377,7 +377,7 @@ export default function VeterinaryPage() {
           subtitle="A verified network of partner clinics dedicated to keeping your companions healthy — including round-the-clock emergency care."
         />
 
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
+        <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md lg:py-section-lg">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
             <aside className="lg:w-[240px] shrink-0">
               <Card className="sticky top-[88px]">
@@ -481,7 +481,7 @@ export default function VeterinaryPage() {
                   }
                 />
               ) : (
-                <StaggerGrid key={`${page}-${query}-${emergencyOnly}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+                <StaggerGrid key={`${page}-${query}-${emergencyOnly}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-grid-md lg:gap-6">
                   {pagePartners.map((partner) => (
                     <StaggerItem key={partner.id}>
                       <PartnerCard

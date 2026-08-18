@@ -147,7 +147,7 @@ export default function LostFoundPage() {
           </div>
         </PageHeader>
 
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
+        <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md lg:py-section-lg">
           {/* Kind toggle */}
           <Reveal>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-grid-md mb-12">
@@ -257,7 +257,7 @@ export default function LostFoundPage() {
                   action={hasFilters ? { label: "Clear Filters", onClick() { setQuery(""); setStatus(""); setSpecies(""); } } : undefined}
                 />
               ) : (
-                <StaggerGrid key={`${kind}-${page}-${debouncedQuery}-${status}-${species}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+                <StaggerGrid key={`${kind}-${page}-${debouncedQuery}-${status}-${species}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-grid-md lg:gap-6">
                   {cases.map((caseItem) => (
                     <StaggerItem key={caseItem.id}>
                       <LostFoundCard caseItem={caseItem} />

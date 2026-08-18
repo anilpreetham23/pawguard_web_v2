@@ -114,7 +114,7 @@ export default function Footer() {
         </svg>
       </div>
 
-      <div className="relative z-10 max-w-[1280px] mx-auto px-6 lg:px-8">
+      <div className="relative z-10 max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-6 lg:px-8 xl:px-12">
         <motion.div
           initial={motionTier === "full" ? { opacity: 0 } : { opacity: 1 }}
           whileInView={{ opacity: 1 }}

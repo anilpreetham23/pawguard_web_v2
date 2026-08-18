@@ -114,7 +114,7 @@ export default function NotificationsPage() {
           subtitle={unreadCount > 0 ? `You have ${unreadCount} unread update${unreadCount === 1 ? "" : "s"}.` : "You're all caught up."}
         />
 
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
+        <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md lg:py-section-lg">
           <Reveal>
             <div className="flex items-center justify-between mb-6">
               <p className="text-muted-foreground text-sm">

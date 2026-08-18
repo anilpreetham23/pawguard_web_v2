@@ -175,7 +175,7 @@ function VideoSection() {
     <section ref={sectionRef} data-theme="dark" className="bg-section-dark w-full relative overflow-hidden">
       <Atmosphere tint="reality" variant="both" intensity={0.5} />
       {/* Heading row — constrained */}
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-section-md lg:pt-section-lg pb-[var(--space-10)]">
+      <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-section-md lg:pt-section-lg pb-[var(--space-10)]">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
           <SectionHeading eyebrow="In the Field" eyebrowClassName="text-white/80" className="max-w-[500px]">
             <span className="text-background">See PawGuard in Action</span>
@@ -210,7 +210,7 @@ function ImpactSection() {
 
   return (
     <section ref={sectionRef} className="bg-white py-section-md lg:py-section-lg px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      <div className="max-w-[1280px] mx-auto relative">
+      <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto relative">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
           <div className="flex flex-col gap-2">
             <p className="text-primary text-xs font-semibold tracking-widest uppercase font-condensed">Our Impact</p>

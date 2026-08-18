@@ -90,7 +90,7 @@ export default function AdoptionPage() {
           subtitle="Every dog in our care has been assessed, vaccinated, and prepared for their permanent home."
         />
 
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
+        <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md lg:py-section-lg">
           {/* Process overview — shown before filters to set expectations */}
           <Reveal>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-grid-md lg:gap-grid-lg mb-12 pb-12 border-b border-border">
@@ -213,7 +213,7 @@ export default function AdoptionPage() {
               </div>
 
               {isLoading ? (
-                <StaggerGrid key={`skeleton-${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-grid-md">
+                <StaggerGrid key={`skeleton-${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-grid-md lg:gap-6">
                   {[0, 1, 2, 3, 4, 5].map((i) => (
                     <StaggerItem key={i}>
                       <CardSkeleton />
@@ -231,7 +231,7 @@ export default function AdoptionPage() {
                   action={hasFilters ? { label: "Clear Filters", onClick() { setSelectedAge([]); setSelectedSize([]); } } : undefined}
                 />
               ) : (
-                <StaggerGrid key={`${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-grid-md">
+                <StaggerGrid key={`${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-grid-md lg:gap-6">
                   {pagePets.map((pet) => (
                     <StaggerItem key={pet.id}>
                       <AdoptionCard

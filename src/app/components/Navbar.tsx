@@ -178,7 +178,7 @@ export default function Navbar() {
             }}
           >
             {/* ── Layer 3: Navigation content ─────────────────────────── */}
-            <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 h-[var(--navbar-height)] flex md:grid md:grid-cols-[1fr_auto_1fr] items-center justify-between gap-4">
+            <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 h-[var(--navbar-height)] flex md:grid md:grid-cols-[1fr_auto_1fr] items-center justify-between gap-4">
 
               {/* Logo — left column */}
               <Link

@@ -30,7 +30,7 @@ export default function PageHeader({
         isDark ? "bg-section-dark noise-overlay" : "bg-background"
       } border-b border-border pt-[calc(var(--header-height)+1rem)] lg:pt-[calc(var(--header-height)+2rem)] pb-section-md lg:pb-section-lg px-6 lg:px-8 ${className}`}
     >
-      <div className={`max-w-[1280px] mx-auto ${right ? "grid grid-cols-1 lg:grid-cols-2 gap-[var(--space-12)] lg:gap-[var(--space-20)] items-center" : ""}`}>
+      <div className={`max-w-[1440px] 2xl:max-w-[1536px] mx-auto ${right ? "grid grid-cols-1 lg:grid-cols-2 gap-[var(--space-12)] lg:gap-[var(--space-20)] items-center" : ""}`}>
         <div className={`flex flex-col gap-6 ${borderClass}`}>
           <p
             className={`text-xs font-semibold tracking-widest uppercase ${

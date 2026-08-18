@@ -73,7 +73,7 @@ export default function ContactPage() {
         /></DispatchReveal>
 
         <DispatchReveal><div className="bg-destructive px-4 sm:px-6 lg:px-8 py-4">
-          <div className="max-w-[1280px] mx-auto flex flex-wrap items-center justify-between gap-4">
+          <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Phone size={16} className="text-white shrink-0" />
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
@@ -87,7 +87,7 @@ export default function ContactPage() {
           </div>
         </div></DispatchReveal>
 
-        <Reveal><div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-section-md lg:pt-section-lg pb-8 grid grid-cols-1 lg:grid-cols-12 gap-[var(--space-12)] lg:gap-[var(--space-16)]">
+        <Reveal><div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-section-md lg:pt-section-lg pb-8 grid grid-cols-1 lg:grid-cols-12 gap-[var(--space-12)] lg:gap-[var(--space-16)]">
           <div className="lg:col-span-7 flex flex-col gap-12">
             <SectionHeading eyebrow="FAQ">
               Frequently Asked Questions
@@ -203,7 +203,7 @@ export default function ContactPage() {
           </div>
         </div></Reveal>
 
-        <Reveal><div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20 lg:pb-28 border-t border-border">
+        <Reveal><div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-8 pb-20 lg:pb-28 border-t border-border">
           <div className="flex flex-col gap-4">
             <h3 className="text-foreground font-bold text-base">Direct Contacts</h3>
             <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-grid-md" staggerDelay={0.05}>

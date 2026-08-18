@@ -46,7 +46,7 @@ export default function SuccessStoriesPage() {
         />
 
         <Reveal><Section bg="card">
-          <div className="max-w-[1280px] mx-auto">
+          <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-[var(--space-12)] lg:gap-[var(--space-16)]">
               <div className="lg:col-span-7 relative aspect-[4/3] lg:aspect-[7/5] bg-secondary rounded-img overflow-hidden shadow-lg group">
                 <img
@@ -105,7 +105,7 @@ export default function SuccessStoriesPage() {
         <Reveal><Section bg="default">
           <div className="flex flex-col gap-12">
             <h2 className="text-foreground font-serif font-bold text-2xl lg:text-3xl leading-tight tracking-tight">More Happy Tails</h2>
-            <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+            <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-grid-md lg:gap-6">
               {STORIES.map((s) => (
                 <StaggerItem key={s.animal}>
                   <StoryCard {...s} />
@@ -128,7 +128,7 @@ export default function SuccessStoriesPage() {
         </Section></Reveal>
 
         <Reveal><Section bg="default">
-          <div className="max-w-[1280px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-6">
             <div className="flex flex-col gap-2">
               <h2 className="text-foreground font-serif font-bold text-xl lg:text-2xl">Ready to write your own story?</h2>
               <p className="text-muted-foreground text-base">Browse dogs currently available for adoption.</p>

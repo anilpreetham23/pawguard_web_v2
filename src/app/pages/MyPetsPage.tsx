@@ -314,7 +314,7 @@ export default function MyPetsPage() {
           subtitle="Your adopted pets and the pet profiles linked to your account."
         />
 
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg flex flex-col gap-12">
+        <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md lg:py-section-lg flex flex-col gap-12">
           {loading ? (
             <div className="flex flex-col gap-10">
               <p className="text-sm font-semibold text-muted-foreground" role="status">
