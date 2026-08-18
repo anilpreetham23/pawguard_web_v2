@@ -117,6 +117,10 @@ export function dogProfileToPet(dog: DogProfileResponse): Pet {
     ? 0
     : Math.max(0, Math.floor((Date.now() - created) / 86_400_000));
 
+  const imageUrls = dog.image_urls?.filter(Boolean) ?? undefined;
+  const photoGalleryUrls = dog.photo_gallery_urls?.filter(Boolean) ?? undefined;
+  const primaryImage = imageUrls?.[0] || photoGalleryUrls?.[0] || undefined;
+
   return {
     id: dog.id,
     name: dog.name,
@@ -145,6 +149,9 @@ export function dogProfileToPet(dog: DogProfileResponse): Pet {
     },
     tone: deriveTone(dog.name),
     emoji: deriveEmoji(dog.name),
+    img: primaryImage,
+    image_urls: imageUrls,
+    photo_gallery_urls: photoGalleryUrls,
     addedDaysAgo,
   };
 }

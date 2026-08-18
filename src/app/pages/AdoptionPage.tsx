@@ -247,6 +247,9 @@ export default function AdoptionPage() {
                         slug={pet.id}
                         emoji={pet.emoji}
                         tone={pet.tone}
+                        img={pet.img}
+                        image_urls={pet.image_urls}
+                        photo_gallery_urls={pet.photo_gallery_urls}
                       />
                     </StaggerItem>
                   ))}

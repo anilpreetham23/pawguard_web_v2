@@ -114,15 +114,19 @@ export default function AdoptionCard({
   desc = "", temperament, vaccinated,
   urgent, newArrival, slug,
   emoji, tone,
+  image_urls, photo_gallery_urls,
 }: {
   name: string; breed: string; age: string; gender: string; img?: string;
   desc?: string; temperament?: string; vaccinated?: boolean;
   urgent?: boolean; newArrival?: boolean; slug?: string;
   emoji?: string; tone?: string;
+  image_urls?: string[]; photo_gallery_urls?: string[];
 }) {
   const cardRef  = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
   const [btnHovered, setBtnHovered] = useState(false);
+
+  const mainImage = img || image_urls?.[0] || photo_gallery_urls?.[0];
 
   const { isFavorited, toggleFavorite } = useFavorites();
   const saved = slug ? isFavorited(slug) : false;
@@ -226,9 +230,9 @@ export default function AdoptionCard({
         >
           {/* ── Image / placeholder art ──────────────────────────────────── */}
           <div className="relative aspect-[4/3] overflow-hidden">
-            {img ? (
+            {mainImage ? (
               <InteractiveImage
-                src={img}
+                src={mainImage}
                 alt={`${name} — ${breed}, ${age}, ${gender}`}
                 variant="featured"
                 className="absolute inset-0 w-full h-full"

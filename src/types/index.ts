@@ -59,6 +59,9 @@ export interface Pet {
   shelter: Shelter;
   tone: string;
   emoji: string;
+  img?: string;
+  image_urls?: string[];
+  photo_gallery_urls?: string[];
   photosCount?: number;
   /** Days since the profile was added (display helper for "x days ago"). */
   addedDaysAgo?: number;

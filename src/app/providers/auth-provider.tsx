@@ -60,6 +60,8 @@ interface AuthContextValue {
   verifyMfa: (code: string) => Promise<void>;
   /** Create an account and sign the user in automatically. */
   signUp: (input: RegisterRequest) => Promise<void>;
+  /** Complete OAuth provider authentication (e.g. Google). */
+  signInWithOAuth: (provider: string, providerToken: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -178,6 +180,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.me });
   }, []);
 
+  const signInWithOAuth = useCallback(
+    async (provider: string, providerToken: string) => {
+      const session = await authService.oauthLogin({
+        provider,
+        provider_token: providerToken,
+        device: { device_type: "web" },
+      });
+      applySession(session);
+      clearUserScopedCache();
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.me });
+    },
+    [],
+  );
+
   const signOut = useCallback(async () => {
     try {
       await authService.logout();
@@ -202,6 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       verifyMfa,
       signUp,
+      signInWithOAuth,
       signOut,
       refreshProfile,
     }),
@@ -215,6 +232,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       verifyMfa,
       signUp,
+      signInWithOAuth,
       signOut,
       refreshProfile,
     ],

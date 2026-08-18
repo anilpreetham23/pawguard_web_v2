@@ -294,6 +294,8 @@ export interface DogProfileResponse {
   kennel_id: string | null;
   is_adoptable: boolean;
   is_quarantine_passed: boolean;
+  image_urls?: string[] | null;
+  photo_gallery_urls?: string[] | null;
   created_at: string;
   updated_at: string;
 }
