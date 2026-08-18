@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "My Adoption Applications",
   description:
     "Track the status of your adoption applications — screening, interview, home check, and approval.",
+  robots: { index: false, follow: false },
 };
 
 export default function Page() {

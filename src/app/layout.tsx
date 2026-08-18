@@ -35,6 +35,7 @@ const jetbrainsMono = JetBrains_Mono({
 /* ── Global metadata ─────────────────────────────────────────────── */
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://pawguard-public-web.vercel.app"),
   title: {
     default: "PawGuard — You see a dog in need. We dispatch help within minutes.",
     template: "%s — PawGuard",
@@ -48,13 +49,44 @@ export const metadata: Metadata = {
     "dog shelter",
     "donate dog rescue",
     "volunteer dog rescue",
+    "safety tag scan",
   ],
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "PawGuard — You see a dog in need. We dispatch help within minutes.",
+    title: "PawGuard — Emergency Dog Rescue & Companion Care Network",
     description:
-      "Emergency dog rescue network. Report emergencies, adopt, volunteer, or donate.",
-    type: "website",
+      "You see a dog in danger. We dispatch help within 12 minutes. Report emergencies, adopt a companion, or support rescue operations.",
+    url: "https://pawguard-public-web.vercel.app",
     siteName: "PawGuard",
+    locale: "en_IN",
+    type: "website",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1200&h=630&fit=crop&auto=format",
+        width: 1200,
+        height: 630,
+        alt: "PawGuard Emergency Dog Rescue Network",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PawGuard — Emergency Dog Rescue & Companion Care",
+    description: "Report emergencies, adopt a companion, or support rescue operations in your community.",
+    images: ["https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1200&h=630&fit=crop&auto=format"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
   manifest: "/manifest.json",
   icons: {
@@ -82,6 +114,20 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "PawGuard",
+    "url": "https://pawguard-public-web.vercel.app",
+    "description": "Coordinating emergency rescue, adoption, and veterinary care for dogs across the region.",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+91-9876543210",
+      "contactType": "emergency",
+      "availableLanguage": ["en", "hi"]
+    }
+  };
+
   return (
     <html
       lang="en"
@@ -95,6 +141,10 @@ export default function RootLayout({
           href="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop&auto=format"
           as="image"
           fetchPriority="high"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
       <body>
