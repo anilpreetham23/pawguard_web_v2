@@ -268,11 +268,11 @@ export default function AdoptionCard({
           </div>
 
           {/* ── Content ───────────────────────────────────────────────────── */}
-          <div className="p-5 flex flex-col gap-2 flex-1">
+          <div className="p-3 sm:p-5 flex flex-col gap-1.5 sm:gap-2 flex-1 min-w-0">
             <HoverCard>
               <HoverCardTrigger asChild>
-                <div className="flex items-center justify-between gap-2 cursor-help">
-                  <h3 className="text-foreground font-bold text-lg group-hover:text-primary transition-colors duration-ui">
+                <div className="flex items-center justify-between gap-1.5 sm:gap-2 cursor-help min-w-0">
+                  <h3 className="text-foreground font-bold text-base sm:text-lg group-hover:text-primary transition-colors duration-ui truncate">
                     {name}
                   </h3>
                   <HeartButton
@@ -305,12 +305,12 @@ export default function AdoptionCard({
               </HoverCardContent>
             </HoverCard>
 
-            <p className="text-muted-foreground text-sm">{breed} &middot; {age}</p>
+            <p className="text-muted-foreground text-xs sm:text-sm truncate">{breed} &middot; {age}</p>
 
             {/* Button */}
-            <div className="mt-auto pt-3">
+            <div className="mt-auto pt-2 sm:pt-3">
               <motion.span
-                className="relative inline-flex w-full items-center justify-center gap-2 overflow-hidden border border-primary text-primary text-xs font-semibold tracking-wider uppercase font-condensed px-4 py-2.5 rounded-btn group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-btn-glow-primary transition-colors duration-ui"
+                className="relative inline-flex w-full items-center justify-center gap-1.5 sm:gap-2 overflow-hidden border border-primary text-primary text-[10px] sm:text-xs font-semibold tracking-wider uppercase font-condensed px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-btn group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-btn-glow-primary transition-colors duration-ui"
                 onMouseEnter={() => setBtnHovered(true)}
                 onMouseLeave={() => setBtnHovered(false)}
               >

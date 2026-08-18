@@ -223,8 +223,16 @@ export default function TopEmergencyBar({ scrolled }: TopEmergencyBarProps) {
       role="region"
       aria-label="Emergency hotline, rescue statistics, and donation"
     >
+      <style jsx global>{`
+        @keyframes top-bar-marquee {
+          0% { transform: translateX(0%); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
+
+      {/* Desktop 3-column layout */}
       <motion.div
-        className="mx-auto grid h-full max-w-[1280px] grid-cols-3"
+        className="hidden sm:grid mx-auto h-full max-w-[1280px] grid-cols-3"
         initial={reduced ? false : "hidden"}
         animate={reduced ? undefined : "visible"}
         variants={{
@@ -238,6 +246,32 @@ export default function TopEmergencyBar({ scrolled }: TopEmergencyBarProps) {
         <StatisticsCard compact={compact} />
         <EmergencyCard compact={compact} />
       </motion.div>
+
+      {/* Mobile continuous marquee */}
+      <div className="sm:hidden flex items-center h-full w-full overflow-hidden relative">
+        <div
+          className="flex items-center h-full shrink-0"
+          style={{
+            animation: reduced ? "none" : "top-bar-marquee 16s linear infinite",
+            display: "flex",
+            width: "max-content",
+          }}
+        >
+          {/* Loop Set 1 */}
+          <div className="flex items-center h-full shrink-0">
+            <DonationCard compact={compact} />
+            <StatisticsCard compact={compact} />
+            <EmergencyCard compact={compact} />
+          </div>
+          {/* Loop Set 2 (Duplicate for seamless loop) */}
+          <div className="flex items-center h-full shrink-0" aria-hidden="true">
+            <DonationCard compact={compact} />
+            <StatisticsCard compact={compact} />
+            <EmergencyCard compact={compact} />
+          </div>
+        </div>
+      </div>
+
       <span className="sr-only">{SITE_STATS.rescuedDogs} dogs rescued</span>
     </motion.div>
   );

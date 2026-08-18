@@ -114,8 +114,9 @@ export default function AdoptionPage() {
             </div>
           </Reveal>
 
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-            <aside className="lg:w-[240px] shrink-0">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-12">
+            {/* Desktop Filter Sidebar */}
+            <aside className="hidden lg:block lg:w-[240px] shrink-0">
               <Card className="sticky top-[88px]">
                 <div className="flex items-center justify-between">
                   <h3 className="text-foreground font-semibold text-xs tracking-wider uppercase">Filters</h3>
@@ -146,24 +147,73 @@ export default function AdoptionPage() {
             </aside>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-6">
-                <p className="text-muted-foreground text-sm">
-                  <span className="font-semibold text-foreground">{isLoading ? "…" : filtered.length}</span> dogs available
-                </p>
+              {/* Compact Mobile Filters [ Age ▼ ] [ Size ▼ ] [ Sort ▼ ] */}
+              <div className="lg:hidden flex flex-wrap items-center gap-2 mb-4">
+                <select
+                  value={selectedAge[0] || ""}
+                  onChange={(e) => setSelectedAge(e.target.value ? [e.target.value] : [])}
+                  aria-label="Filter by age"
+                  className="flex-1 min-w-[90px] bg-background border border-border rounded-btn px-2.5 py-2 text-xs font-medium text-foreground focus:outline-none focus:border-primary transition-all"
+                >
+                  <option value="">Age: All</option>
+                  {AGE_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>Age: {opt}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={selectedSize[0] || ""}
+                  onChange={(e) => setSelectedSize(e.target.value ? [e.target.value] : [])}
+                  aria-label="Filter by size"
+                  className="flex-1 min-w-[90px] bg-background border border-border rounded-btn px-2.5 py-2 text-xs font-medium text-foreground focus:outline-none focus:border-primary transition-all"
+                >
+                  <option value="">Size: All</option>
+                  {SIZE_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>Size: {opt}</option>
+                  ))}
+                </select>
+
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   aria-label="Sort dogs by"
-                  className="bg-background border border-border rounded-btn px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+                  className="flex-1 min-w-[100px] bg-background border border-border rounded-btn px-2.5 py-2 text-xs font-medium text-foreground focus:outline-none focus:border-primary transition-all"
                 >
-                  <option value="default">Default</option>
-                  <option value="name">Name A-Z</option>
-                  <option value="age">Age (Youngest)</option>
+                  <option value="default">Sort: Default</option>
+                  <option value="name">Sort: Name A-Z</option>
+                  <option value="age">Sort: Age</option>
                 </select>
+
+                {hasFilters && (
+                  <button
+                    onClick={() => { setSelectedAge([]); setSelectedSize([]); }}
+                    className="text-destructive text-xs font-semibold px-2 py-1 hover:underline shrink-0"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between mb-4 lg:mb-6">
+                <p className="text-muted-foreground text-xs sm:text-sm">
+                  <span className="font-semibold text-foreground">{isLoading ? "…" : filtered.length}</span> dogs available
+                </p>
+                <div className="hidden lg:block">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    aria-label="Sort dogs by"
+                    className="bg-background border border-border rounded-btn px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+                  >
+                    <option value="default">Default</option>
+                    <option value="name">Name A-Z</option>
+                    <option value="age">Age (Youngest)</option>
+                  </select>
+                </div>
               </div>
 
               {isLoading ? (
-                <StaggerGrid key={`skeleton-${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+                <StaggerGrid key={`skeleton-${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-grid-md">
                   {[0, 1, 2, 3, 4, 5].map((i) => (
                     <StaggerItem key={i}>
                       <CardSkeleton />
@@ -181,7 +231,7 @@ export default function AdoptionPage() {
                   action={hasFilters ? { label: "Clear Filters", onClick() { setSelectedAge([]); setSelectedSize([]); } } : undefined}
                 />
               ) : (
-                <StaggerGrid key={`${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+                <StaggerGrid key={`${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-grid-md">
                   {pagePets.map((pet) => (
                     <StaggerItem key={pet.id}>
                       <AdoptionCard
