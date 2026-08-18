@@ -108,44 +108,46 @@ function StatisticsCard({ compact }: { compact: boolean }) {
   const display = useCountUpOnMount(SITE_STATS.rescuedDogs);
 
   return (
-    <motion.div
-      variants={cardStagger}
-      className="relative flex h-full items-center justify-center gap-1 sm:gap-1.5 bg-rescue text-white px-1.5 sm:px-3 min-w-0 transition-[background-color] duration-fast"
-      aria-hidden="true"
-    >
-      <Dog
-        aria-hidden="true"
-        className={cn(
-          "shrink-0 hidden sm:block text-white/90",
-          "transition-all duration-[400ms] ease-[cubic-bezier(0.65,0,0.35,1)]",
-          compact ? "w-[11px] h-[11px]" : "w-[13px] h-[13px]",
-        )}
-      />
-      <span className="flex items-baseline gap-1 min-w-0">
-        <span
+    <motion.div variants={cardStagger} className="relative h-full min-w-0">
+      <Link
+        href="/lost-found"
+        className="group relative flex h-full items-center justify-center gap-1 sm:gap-1.5 bg-rescue text-white px-1.5 sm:px-3 min-w-0 transition-[background-color] duration-fast hover:brightness-110 focus-visible:brightness-110"
+        aria-label="View rescued and found animals"
+      >
+        <Dog
+          aria-hidden="true"
           className={cn(
-            "font-mono font-bold tabular-nums leading-none",
-            "transition-[font-size] duration-[400ms] ease-[cubic-bezier(0.65,0,0.35,1)]",
-            compact ? "text-xs" : "text-xs sm:text-sm",
+            "shrink-0 hidden sm:block text-white/90",
+            "transition-all duration-[400ms] ease-[cubic-bezier(0.65,0,0.35,1)]",
+            compact ? "w-[11px] h-[11px]" : "w-[13px] h-[13px]",
           )}
-        >
-          {display}
+        />
+        <span className="flex items-baseline gap-1 min-w-0">
+          <span
+            className={cn(
+              "font-mono font-bold tabular-nums leading-none",
+              "transition-[font-size] duration-[400ms] ease-[cubic-bezier(0.65,0,0.35,1)]",
+              compact ? "text-xs" : "text-xs sm:text-sm",
+            )}
+          >
+            {display}
+          </span>
+          <span
+            className={cn(
+              "hidden md:inline font-medium text-white/70 leading-none truncate text-[9px]",
+              "transition-[max-width,opacity] duration-[400ms] ease-[cubic-bezier(0.65,0,0.35,1)]",
+              compact ? "max-w-0 opacity-0" : "max-w-28 opacity-100",
+            )}
+          >
+            Dogs Rescued
+          </span>
         </span>
         <span
-          className={cn(
-            "hidden md:inline font-medium text-white/70 leading-none truncate text-[9px]",
-            "transition-[max-width,opacity] duration-[400ms] ease-[cubic-bezier(0.65,0,0.35,1)]",
-            compact ? "max-w-0 opacity-0" : "max-w-28 opacity-100",
-          )}
-        >
-          Dogs Rescued
-        </span>
-      </span>
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 w-5"
-        style={{ background: "linear-gradient(to right, transparent, var(--rescue))" }}
-      />
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 w-5"
+          style={{ background: "linear-gradient(to right, transparent, var(--rescue))" }}
+        />
+      </Link>
     </motion.div>
   );
 }
