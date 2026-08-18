@@ -174,9 +174,14 @@ export default function VolunteerPage() {
   function validateStep() {
     const e: Record<string, string> = {};
     if (formStep === "basic") {
-      if (!form.name.trim()) e.name = "Name is required";
-      if (!form.email.trim()) e.email = "Email is required";
-      if (!form.phone.trim()) e.phone = "Phone is required";
+      if (!form.name.trim()) e.name = "Full Name is required";
+      if (!form.email.trim()) {
+        e.email = "Email is required";
+      } else if (!/\S+@\S+\.\S+/.test(form.email.trim())) {
+        e.email = "Please enter a valid email address";
+      }
+    } else if (formStep === "details") {
+      if (!form.phone.trim()) e.phone = "Phone number is required";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -605,10 +610,13 @@ export default function VolunteerPage() {
                           label="Phone"
                           type="tel"
                           placeholder="+91 98765 43210"
+                          ref={setRef("phone")}
                           value={form.phone}
-                          onChange={(e) =>
-                            setForm({ ...form, phone: e.target.value })
-                          }
+                          onChange={(e) => {
+                            setForm({ ...form, phone: e.target.value });
+                            if (errors.phone) setErrors({ ...errors, phone: "" });
+                          }}
+                          error={errors.phone}
                           autoComplete="tel"
                           inputMode="tel"
                         />
