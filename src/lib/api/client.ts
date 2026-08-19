@@ -125,7 +125,6 @@ httpClient.interceptors.response.use(
               reject(normalizeError(error));
               return;
             }
-            original.headers.set("Authorization", `Bearer ${token}`);
             resolve(httpClient(original));
           });
         });
@@ -138,7 +137,6 @@ httpClient.interceptors.response.use(
         if (!token) {
           throw error;
         }
-        original.headers.set("Authorization", `Bearer ${token}`);
         return await httpClient(original);
       } catch (refreshError) {
         flushQueue(null);
