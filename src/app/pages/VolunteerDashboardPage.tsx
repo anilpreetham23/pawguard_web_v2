@@ -42,8 +42,14 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
 };
 
 export default function VolunteerDashboardPage() {
-  const { isAuthenticated, openAuthDialog } = useAuth();
-  const { summary, isLoading: isSummaryLoading } = useDashboardSummary();
+  const { isAuthenticated, status: authStatus, openAuthDialog } = useAuth();
+  const {
+    summary,
+    isLoading: isSummaryLoading,
+    isError: isSummaryError,
+    error: summaryError,
+    refetch: refetchSummary,
+  } = useDashboardSummary();
 
   const volunteerProfile = summary?.volunteer_profile
     ? (summary.volunteer_profile as unknown as VolunteerProfileResponse)
@@ -95,8 +101,23 @@ export default function VolunteerDashboardPage() {
     }
   }
 
-  // 1. Unauthenticated state
-  if (!isAuthenticated) {
+  // 1. Auth loading state
+  if (authStatus === "loading") {
+    return (
+      <PageShell>
+        <main id="main-content" className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-12">
+          <Skeleton className="h-10 w-64 mb-6" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-48 rounded-card lg:col-span-2" />
+            <Skeleton className="h-48 rounded-card" />
+          </div>
+        </main>
+      </PageShell>
+    );
+  }
+
+  // 2. Unauthenticated state
+  if (!isAuthenticated || authStatus === "unauthenticated") {
     return (
       <PageShell>
         <main id="main-content" className="flex-1">
@@ -123,7 +144,7 @@ export default function VolunteerDashboardPage() {
     );
   }
 
-  // 2. Loading state
+  // 3. Dashboard summary query loading state
   if (isSummaryLoading) {
     return (
       <PageShell>
@@ -133,6 +154,25 @@ export default function VolunteerDashboardPage() {
             <Skeleton className="h-48 rounded-card lg:col-span-2" />
             <Skeleton className="h-48 rounded-card" />
           </div>
+        </main>
+      </PageShell>
+    );
+  }
+
+  // 4. API Error state
+  if (isSummaryError) {
+    return (
+      <PageShell>
+        <main id="main-content" className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-12">
+          <Alert variant="error" title="Unable to load your volunteer dashboard">
+            {getErrorMessage(summaryError)}{" "}
+            <button
+              onClick={() => refetchSummary()}
+              className="font-semibold text-destructive underline underline-offset-2 hover:opacity-80 transition-opacity"
+            >
+              Retry
+            </button>
+          </Alert>
         </main>
       </PageShell>
     );

@@ -30,7 +30,7 @@ export function useDashboardSummary(): DashboardSummaryResult {
 
   return {
     summary: query.data ?? null,
-    isLoading: query.isLoading,
+    isLoading: enabled ? query.isLoading : false,
     isError: query.isError,
     error: query.error,
     refetch: () => {
