@@ -48,6 +48,16 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  /* ── API Reverse Proxy Rewrites ──────────────────────────────────── */
+  async rewrites() {
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: "https://pawguard-backend-mqri.onrender.com/api/v1/:path*",
+      },
+    ];
+  },
+
   /* ── Webpack customisation (handles raw video + Lottie JSON) ──────── */
   webpack(config) {
     // Video files → asset/resource (returns a URL)
