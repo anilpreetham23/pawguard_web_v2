@@ -48,6 +48,7 @@ type RetryableConfig = InternalAxiosRequestConfig & {
 const httpClient = axios.create({
   baseURL: apiConfig.baseURL,
   timeout: apiConfig.timeout,
+  withCredentials: true,
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",

@@ -13,6 +13,7 @@ import SectionHeading from "../components/SectionHeading";
 import PageHeader from "../components/PageHeader";
 import { useFocusOnError } from "../hooks/useFocusOnError";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
+import { useVolunteerStatus } from "../hooks/useVolunteerStatus";
 import {
   PageShell,
   Section,
@@ -53,6 +54,11 @@ const VOLUNTEER_STATUS_META: Record<
     label: "Inactive",
     hint: "Your volunteer profile is inactive. Re-apply to get involved again.",
     badge: "bg-muted text-muted-foreground border border-border",
+  },
+  rejected: {
+    label: "Declined",
+    hint: "Your volunteer application was not approved at this time.",
+    badge: "bg-destructive/10 border border-destructive/25 text-destructive",
   },
 };
 
@@ -140,8 +146,27 @@ const STEPS = [
 export default function VolunteerPage() {
   const { isAuthenticated, openAuthDialog } = useAuth();
   const { summary: dashboard } = useDashboardSummary();
+  const { volunteerStatus } = useVolunteerStatus();
+
   const volunteerProfile = (dashboard?.volunteer_profile ??
+    volunteerStatus?.profile ??
     null) as VolunteerProfileResponse | null;
+  const applicationInfo = volunteerStatus?.application;
+
+  const vLifecycleStatus =
+    volunteerStatus?.status ??
+    (volunteerProfile
+      ? volunteerProfile.status === "active"
+        ? "ACTIVE"
+        : volunteerProfile.status === "rejected"
+        ? "REJECTED"
+        : volunteerProfile.status === "inactive"
+        ? "INACTIVE"
+        : "PENDING"
+      : "NOT_APPLIED");
+
+  const canApply = volunteerStatus ? volunteerStatus.can_apply : !volunteerProfile;
+  const canReapply = volunteerStatus ? volunteerStatus.can_reapply : false;
   const volunteerMeta = volunteerProfile
     ? VOLUNTEER_STATUS_META[volunteerProfile.status]
     : null;
@@ -251,16 +276,24 @@ export default function VolunteerPage() {
           }
         >
           <div className="flex items-center gap-4 flex-wrap">
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={() => {
-                const el = document.getElementById("apply");
-                if (el) scrollTo(el);
-              }}
-            >
-              Apply to Volunteer
-            </Button>
+            {!canApply ? (
+              <Link href="/volunteer/dashboard">
+                <Button variant="primary" size="lg">
+                  Go to Volunteer Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={() => {
+                  const el = document.getElementById("apply");
+                  if (el) scrollTo(el);
+                }}
+              >
+                Apply to Volunteer
+              </Button>
+            )}
             <Link href="/volunteer/dashboard">
               <Button variant="secondary" size="lg">
                 Volunteer Dashboard
@@ -433,7 +466,7 @@ export default function VolunteerPage() {
               <SectionHeading eyebrow="Apply Now" align="center">
                 Volunteer Application
               </SectionHeading>
-              {isAuthenticated && volunteerProfile && volunteerMeta ? (
+              {isAuthenticated && (!canApply || !canReapply) && vLifecycleStatus !== "NOT_APPLIED" ? (
                 <div
                   className="bg-background border border-border rounded-modal p-8 flex flex-col gap-5 shadow-sm"
                   role="status"
@@ -445,65 +478,79 @@ export default function VolunteerPage() {
                     </span>
                     <div className="flex flex-col gap-1">
                       <h3 className="text-foreground font-bold text-xl">
-                        Volunteer status
+                        {vLifecycleStatus === "PENDING"
+                          ? "Application Submitted & Under Review"
+                          : vLifecycleStatus === "ACTIVE"
+                          ? "Active Volunteer Profile"
+                          : vLifecycleStatus === "REJECTED"
+                          ? "Volunteer Application Status"
+                          : "Inactive Volunteer Profile"}
                       </h3>
                       <span
-                        className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold tracking-wider uppercase ${volunteerMeta.badge}`}
+                        className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold tracking-wider uppercase ${
+                          vLifecycleStatus === "PENDING"
+                            ? "bg-amber-500/10 border border-amber-500/25 text-amber-700"
+                            : vLifecycleStatus === "ACTIVE"
+                            ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-700"
+                            : vLifecycleStatus === "REJECTED"
+                            ? "bg-destructive/10 border border-destructive/25 text-destructive"
+                            : "bg-muted text-muted-foreground border border-border"
+                        }`}
                       >
-                        {volunteerMeta.label}
+                        {vLifecycleStatus}
                       </span>
                     </div>
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    {volunteerMeta.hint}
+                    {vLifecycleStatus === "PENDING"
+                      ? "Your application has been received and is currently under review by our shelter coordinator. Duplicate applications are not accepted."
+                      : vLifecycleStatus === "ACTIVE"
+                      ? "You are an active PawGuard volunteer. Access your dashboard to view assigned shifts, log hours, and manage your profile."
+                      : vLifecycleStatus === "REJECTED"
+                      ? applicationInfo?.rejection_reason || "Thank you for applying. Our shelter team is unable to approve your application at this time."
+                      : "Your profile is currently inactive. Please contact shelter support for reactivation."}
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    {volunteerProfile.availability && (
-                      <div className="flex items-start gap-2 text-muted-foreground">
-                        <Clock size={15} className="mt-0.5 shrink-0" />
-                        <div>
-                          <p className="text-foreground font-semibold text-xs uppercase tracking-wider">
-                            Availability
-                          </p>
-                          <p>{volunteerProfile.availability}</p>
-                        </div>
-                      </div>
-                    )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm border-t border-border pt-4">
                     <div className="flex items-start gap-2 text-muted-foreground">
                       <CalendarDays size={15} className="mt-0.5 shrink-0" />
                       <div>
                         <p className="text-foreground font-semibold text-xs uppercase tracking-wider">
-                          Applied
+                          Submitted Date
                         </p>
                         <p>
-                          {new Date(
-                            volunteerProfile.created_at,
-                          ).toLocaleDateString(undefined, {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {applicationInfo?.submitted_at
+                            ? new Date(applicationInfo.submitted_at).toLocaleDateString()
+                            : volunteerProfile?.created_at
+                            ? new Date(volunteerProfile.created_at).toLocaleDateString()
+                            : "Recorded"}
                         </p>
                       </div>
                     </div>
-                    {volunteerProfile.skills && (
-                      <div className="sm:col-span-2 flex flex-col gap-1.5">
-                        <p className="text-foreground font-semibold text-xs uppercase tracking-wider">
-                          Skills &amp; interests
-                        </p>
-                        <p className="text-muted-foreground">
-                          {volunteerProfile.skills}
-                        </p>
+                    {applicationInfo?.id && (
+                      <div className="flex items-start gap-2 text-muted-foreground">
+                        <Clock size={15} className="mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-foreground font-semibold text-xs uppercase tracking-wider">
+                            Application Ref ID
+                          </p>
+                          <p className="font-mono text-xs text-foreground">{applicationInfo.id}</p>
+                        </div>
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-3 border-t border-border pt-4">
                     <Link
-                      href="/account"
+                      href="/volunteer/dashboard"
                       className="inline-flex items-center gap-2 bg-primary text-primary-foreground text-xs font-semibold tracking-wider uppercase px-5 py-2.5 rounded-btn hover:bg-primary-hover transition-all duration-fast"
                     >
-                      View your account
+                      Go to Volunteer Dashboard
                       <ArrowRight size={13} />
+                    </Link>
+                    <Link
+                      href="/account"
+                      className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground text-xs font-semibold tracking-wider uppercase px-5 py-2.5 rounded-btn hover:bg-secondary/80 transition-all duration-fast font-condensed"
+                    >
+                      View Account Overview
                     </Link>
                   </div>
                 </div>

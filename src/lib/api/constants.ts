@@ -163,6 +163,7 @@ export const API_ROUTES = {
       `/volunteers/${profileId}/certificate`,
     volunteerServiceSummary: (profileId: string) =>
       `/volunteers/${profileId}/service-summary`,
+    volunteerStatus: "/volunteers/me/status",
     legal: "/portal/legal",
     legalDoc: (slug: string) => `/portal/legal/${slug}`,
     urgentAlerts: "/portal/urgent-alerts",
@@ -275,6 +276,7 @@ export const QUERY_KEYS = {
     urgentAlerts: ["community", "urgent-alerts"] as const,
     transparency: ["community", "transparency"] as const,
     meDashboard: ["community", "me-dashboard"] as const,
+    volunteerStatus: ["community", "volunteers", "me-status"] as const,
   },
 
   contact: {

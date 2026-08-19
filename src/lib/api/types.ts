@@ -991,7 +991,12 @@ export interface VolunteerProfileCreate {
 }
 
 /** Volunteer profile lifecycle state (`VolunteerStatus` enum). */
-export type VolunteerStatus = "applied" | "onboarded" | "active" | "inactive";
+export type VolunteerStatus =
+  | "applied"
+  | "onboarded"
+  | "active"
+  | "inactive"
+  | "rejected";
 
 /**
  * `POST /volunteers/apply` / `GET /volunteers` payload
@@ -1451,6 +1456,34 @@ export interface GrievanceResponse {
   escalated_to_admin_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Volunteer Authoritative Status                                             */
+/* -------------------------------------------------------------------------- */
+
+export type VolunteerLifecycleStatus =
+  | "NOT_APPLIED"
+  | "PENDING"
+  | "ACTIVE"
+  | "REJECTED"
+  | "INACTIVE";
+
+export interface VolunteerApplicationInfo {
+  id: string;
+  status: string;
+  submitted_at: string;
+  reviewed_at?: string | null;
+  rejection_reason?: string | null;
+  role_applied?: string | null;
+}
+
+export interface VolunteerMeStatusResponse {
+  status: VolunteerLifecycleStatus;
+  application: VolunteerApplicationInfo | null;
+  profile: VolunteerProfileResponse | null;
+  can_apply: boolean;
+  can_reapply: boolean;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -15,33 +15,32 @@ import {
 const { accessToken: ACCESS_KEY, refreshToken: REFRESH_KEY } =
   AUTH_TOKEN_STORAGE_KEYS;
 
-/** Persist access/refresh tokens returned by login/refresh. */
-export function setAuthTokens(tokens: AuthTokens): void {
-  if (tokens.accessToken) setStoredToken(ACCESS_KEY, tokens.accessToken);
-  if (tokens.refreshToken) setStoredToken(REFRESH_KEY, tokens.refreshToken);
+/** Persist access/refresh tokens (no-op: tokens managed via HttpOnly cookies). */
+export function setAuthTokens(_tokens: AuthTokens): void {
+  clearAuthTokens();
 }
 
-/** Persist just the access token (used after a refresh). */
-export function setAccessToken(token: string): void {
-  setStoredToken(ACCESS_KEY, token);
+/** Persist just the access token (no-op). */
+export function setAccessToken(_token: string): void {
+  // Managed by HttpOnly cookie
 }
 
-/** Persist just the refresh token. */
-export function setRefreshToken(token: string): void {
-  setStoredToken(REFRESH_KEY, token);
+/** Persist just the refresh token (no-op). */
+export function setRefreshToken(_token: string): void {
+  // Managed by HttpOnly cookie
 }
 
-/** Current access token, or `null` when signed out. */
+/** Current access token (null: managed by HttpOnly cookies). */
 export function getAccessToken(): string | null {
-  return getStoredToken(ACCESS_KEY);
+  return null;
 }
 
-/** Current refresh token, or `null` when signed out / token not issued. */
+/** Current refresh token (null: managed by HttpOnly cookies). */
 export function getRefreshToken(): string | null {
-  return getStoredToken(REFRESH_KEY);
+  return null;
 }
 
-/** Remove all stored auth tokens. */
+/** Remove all legacy stored auth tokens. */
 export function clearAuthTokens(): void {
   removeStoredToken(ACCESS_KEY);
   removeStoredToken(REFRESH_KEY);

@@ -18,13 +18,12 @@ export interface LogoutOptions {
 
 /** Sign out locally (and optionally revoke the server session). */
 export async function logout(options: LogoutOptions = {}): Promise<void> {
-  const accessToken = getAccessToken();
   const notifyServer = options.notifyServer !== false;
 
   // Always clear local state first so the UI signs out even if the API call fails.
   clearAuthTokens();
 
-  if (notifyServer && accessToken) {
+  if (notifyServer) {
     try {
       await axios.post(
         API_ROUTES.auth.logout,
@@ -32,10 +31,10 @@ export async function logout(options: LogoutOptions = {}): Promise<void> {
         {
           baseURL: apiConfig.baseURL,
           timeout: apiConfig.timeout,
+          withCredentials: true,
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
           },
         }
       );

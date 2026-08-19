@@ -165,6 +165,9 @@ export type {
   VolunteerServiceSummary,
   VolunteerShiftResponse,
   VolunteerStatus,
+  VolunteerApplicationInfo,
+  VolunteerLifecycleStatus,
+  VolunteerMeStatusResponse,
 } from "./types";
 export {
   buildQueryString,

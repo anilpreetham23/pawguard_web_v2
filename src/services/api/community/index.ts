@@ -31,6 +31,7 @@ import type {
   VolunteerProfileResponse,
   VolunteerServiceSummary,
   VolunteerShiftResponse,
+  VolunteerMeStatusResponse,
 } from "@/lib/api";
 import type { BlogPost } from "@/types";
 import { blogPostResponseToBlogPost } from "./mapper";
@@ -76,6 +77,13 @@ export const communityService = {
   /** `GET /portal/stats` — hero impact statistics. */
   getStats(): Promise<PublicHeroStats> {
     return apiGet<PublicHeroStats>(API_ROUTES.community.stats);
+  },
+
+  /** `GET /volunteers/me/status` — authoritative volunteer lifecycle status. */
+  getVolunteerStatus(): Promise<VolunteerMeStatusResponse> {
+    return apiGet<VolunteerMeStatusResponse>(
+      API_ROUTES.community.volunteerStatus
+    );
   },
 
   /** `POST /volunteers/apply` — submit an auth-gated volunteer application. */
