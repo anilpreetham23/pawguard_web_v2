@@ -180,6 +180,13 @@ export function normalizeError(error: unknown): ApiError {
     });
   }
 
+  if (typeof error === "string") {
+    return new ApiError({
+      kind: "unknown",
+      message: error,
+    });
+  }
+
   if (error instanceof Error) {
     return new ApiError({
       kind: "unknown",

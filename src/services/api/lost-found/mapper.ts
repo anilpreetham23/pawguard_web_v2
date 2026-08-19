@@ -157,6 +157,15 @@ function buildDescription(
 export function lostReportToCase(report: LostReportResponse): LostFoundCase {
   const fallbacks = deriveFallbacks();
   const { date, time } = splitDateTime(report.lost_at);
+  const photoUrl =
+    report.photo_url ||
+    (report as Record<string, any>).image_url ||
+    (report as Record<string, any>).photo ||
+    (report as Record<string, any>).image ||
+    (report as Record<string, any>).image_urls?.[0] ||
+    (report as Record<string, any>).photo_gallery_urls?.[0] ||
+    null;
+
   return {
     id: report.id,
     caseNumber: `LST-${shortId(report.id)}`,
@@ -190,8 +199,8 @@ export function lostReportToCase(report: LostReportResponse): LostFoundCase {
     timeline: buildTimeline("lost", report.created_at, report.lost_at, report.status),
     tone: deriveTone(report.id),
     emoji: deriveEmoji(report.species),
-    photosCount: report.photo_url ? 1 : 0,
-    photoUrl: report.photo_url,
+    photosCount: photoUrl ? 1 : 0,
+    photoUrl,
     latitude: report.latitude,
     longitude: report.longitude,
     microchipId: report.microchip_id,
@@ -202,6 +211,15 @@ export function lostReportToCase(report: LostReportResponse): LostFoundCase {
 export function foundReportToCase(report: FoundReportResponse): LostFoundCase {
   const fallbacks = deriveFallbacks();
   const { date, time } = splitDateTime(report.found_at);
+  const photoUrl =
+    report.photo_url ||
+    (report as Record<string, any>).image_url ||
+    (report as Record<string, any>).photo ||
+    (report as Record<string, any>).image ||
+    (report as Record<string, any>).image_urls?.[0] ||
+    (report as Record<string, any>).photo_gallery_urls?.[0] ||
+    null;
+
   return {
     id: report.id,
     caseNumber: `FND-${shortId(report.id)}`,
@@ -240,8 +258,8 @@ export function foundReportToCase(report: FoundReportResponse): LostFoundCase {
     ),
     tone: deriveTone(report.id),
     emoji: deriveEmoji(report.species),
-    photosCount: report.photo_url ? 1 : 0,
-    photoUrl: report.photo_url,
+    photosCount: photoUrl ? 1 : 0,
+    photoUrl,
     latitude: report.latitude,
     longitude: report.longitude,
   };

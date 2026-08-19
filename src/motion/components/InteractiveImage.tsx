@@ -265,6 +265,14 @@ export function InteractiveImage({
     onImageLoad?.();
   }, [onImageLoad]);
 
+  const handleError = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+      setLoaded(true);
+      (imgProps as any).onError?.(e);
+    },
+    [imgProps],
+  );
+
   // Zoom scale per variant
   const zoomScale =
     variant === "hero" ? 1.04 : variant === "partner" ? 1.05 : 1.08;
@@ -339,6 +347,7 @@ export function InteractiveImage({
         loading={loading}
         decoding={decoding}
         onLoad={handleLoad}
+        onError={handleError}
         className={cn(
           "w-full h-full object-cover will-change-transform",
           imgClassName,

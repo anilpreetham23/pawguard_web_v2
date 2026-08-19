@@ -20,6 +20,7 @@ const NAV_LINKS = [
   { label: "Veterinary", to: "/veterinary" },
   { label: "Lost & Found", to: "/lost-found" },
   { label: "Volunteer", to: "/volunteer" },
+  { label: "Guides",    to: "/education" },
   { label: "About",     to: "/about" },
   { label: "Stories",   to: "/stories" },
   { label: "Contact",   to: "/contact" },

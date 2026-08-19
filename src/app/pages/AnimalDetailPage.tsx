@@ -166,6 +166,18 @@ function LivePetDetailPage({ id }: { id: string }) {
     );
   }
 
+  const allImages = Array.from(
+    new Set(
+      [
+        ...(pet.image_urls ?? []),
+        ...(pet.photo_gallery_urls ?? []),
+        pet.img,
+      ].filter((url): url is string => Boolean(url && url.trim()))
+    )
+  );
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const activeImage = allImages[selectedImageIndex] || allImages[0];
+
   const isAvailable = pet.adoptionBadge !== "adopted";
   const factChips: Array<{ icon: typeof Scale; label: string; value: string }> = [
     { icon: CalendarDays, label: "Age", value: pet.age },
@@ -210,19 +222,53 @@ function LivePetDetailPage({ id }: { id: string }) {
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           <Reveal>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-stretch">
-              <div className="relative">
-                <div
-                  className={cn(
-                    "aspect-[4/5] rounded-img shadow-lg overflow-hidden relative bg-gradient-to-br",
-                    PET_TONE_GRADIENTS[pet.tone] ?? PET_TONE_GRADIENTS.amber,
-                  )}
-                >
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-[9rem] leading-none drop-shadow-sm select-none">
-                      {pet.emoji}
-                    </span>
+              <div className="flex flex-col gap-3">
+                {activeImage ? (
+                  <InteractiveImage
+                    src={activeImage}
+                    alt={`${pet.name} — ${pet.breed}`}
+                    variant="hero"
+                    aspectRatio="4/5"
+                    className="rounded-img shadow-lg"
+                  />
+                ) : (
+                  <div
+                    className={cn(
+                      "aspect-[4/5] rounded-img shadow-lg overflow-hidden relative bg-gradient-to-br",
+                      PET_TONE_GRADIENTS[pet.tone] ?? PET_TONE_GRADIENTS.amber,
+                    )}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-[9rem] leading-none drop-shadow-sm select-none">
+                        {pet.emoji}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {allImages.length > 1 && (
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                    {allImages.map((imgUrl, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedImageIndex(idx)}
+                        className={cn(
+                          "relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all shrink-0",
+                          selectedImageIndex === idx
+                            ? "border-primary shadow-sm scale-105"
+                            : "border-transparent opacity-70 hover:opacity-100",
+                        )}
+                      >
+                        <img
+                          src={imgUrl}
+                          alt={`${pet.name} photo ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col justify-center gap-8">

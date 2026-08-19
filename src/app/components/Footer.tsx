@@ -20,14 +20,17 @@ const SERVICES = [
   { label: "Scan Safety Tag", to: "/scan" },
   { label: "Volunteer", to: "/volunteer" },
   { label: "Donate", to: "/donate" },
+  { label: "Education & Guides", to: "/education" },
 ];
 
 const COMPANY = [
   { label: "About Us", to: "/about" },
   { label: "Success Stories", to: "/stories" },
   { label: "Contact", to: "/contact" },
-  { label: "Privacy Policy", to: "/contact" },
-  { label: "Terms of Use", to: "/contact" },
+  { label: "Privacy Policy", to: "/privacy" },
+  { label: "Terms of Service", to: "/terms" },
+  { label: "Adoption Agreement", to: "/adoption-agreement" },
+  { label: "Data Usage", to: "/data-usage" },
 ];
 
 const CONTACTS = [

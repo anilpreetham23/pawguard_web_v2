@@ -117,8 +117,17 @@ export function dogProfileToPet(dog: DogProfileResponse): Pet {
     ? 0
     : Math.max(0, Math.floor((Date.now() - created) / 86_400_000));
 
-  const imageUrls = dog.image_urls?.filter(Boolean) ?? undefined;
-  const photoGalleryUrls = dog.photo_gallery_urls?.filter(Boolean) ?? undefined;
+  const rawImages = [
+    ...(dog.image_urls ?? []),
+    ...(dog.photo_gallery_urls ?? []),
+    ...(dog.photos ?? []),
+    dog.image_url,
+    dog.photo_url,
+    dog.photo,
+  ].filter((u): u is string => Boolean(u && typeof u === "string" && u.trim()));
+
+  const imageUrls = rawImages.length > 0 ? Array.from(new Set(rawImages)) : undefined;
+  const photoGalleryUrls = dog.photo_gallery_urls?.filter(Boolean) ?? imageUrls;
   const primaryImage = imageUrls?.[0] || photoGalleryUrls?.[0] || undefined;
 
   return {

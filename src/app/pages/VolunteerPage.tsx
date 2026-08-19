@@ -250,7 +250,7 @@ export default function VolunteerPage() {
             </div>
           }
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <Button
               variant="primary"
               size="lg"
@@ -261,6 +261,11 @@ export default function VolunteerPage() {
             >
               Apply to Volunteer
             </Button>
+            <Link href="/volunteer/dashboard">
+              <Button variant="secondary" size="lg">
+                Volunteer Dashboard
+              </Button>
+            </Link>
             <Button
               variant="outline"
               size="lg"

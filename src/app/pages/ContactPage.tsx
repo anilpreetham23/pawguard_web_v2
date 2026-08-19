@@ -173,12 +173,14 @@ export default function ContactPage() {
                     className="w-full h-12 bg-input-background border border-border rounded-input px-4 text-foreground text-base focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
                   >
                     <option value="">Select inquiry type</option>
+                    <option value="General Enquiry">General Enquiry</option>
+                    <option value="Feedback">Feedback</option>
+                    <option value="Complaint / Grievance">Complaint / Grievance</option>
                     <option>Adoption Inquiry</option>
                     <option>Volunteer Application</option>
                     <option>Donation / Fundraising</option>
                     <option>Partnership / Corporate</option>
                     <option>Media &amp; Press</option>
-                    <option>General Question</option>
                     <option>Share My Story</option>
                   </select>
                 </div>

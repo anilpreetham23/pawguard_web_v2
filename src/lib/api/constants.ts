@@ -270,6 +270,8 @@ export const QUERY_KEYS = {
     successStory: (id: string) => ["community", "success-stories", id] as const,
     legal: ["community", "legal"] as const,
     legalDoc: (slug: string) => ["community", "legal", slug] as const,
+    volunteerServiceSummary: (id: string) => ["community", "volunteers", id, "service-summary"] as const,
+    volunteerCertificate: (id: string) => ["community", "volunteers", id, "certificate"] as const,
     urgentAlerts: ["community", "urgent-alerts"] as const,
     transparency: ["community", "transparency"] as const,
     meDashboard: ["community", "me-dashboard"] as const,

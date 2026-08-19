@@ -126,7 +126,9 @@ export default function AdoptionCard({
   const [hovered, setHovered] = useState(false);
   const [btnHovered, setBtnHovered] = useState(false);
 
+  const [imageFailed, setImageFailed] = useState(false);
   const mainImage = img || image_urls?.[0] || photo_gallery_urls?.[0];
+  const showImage = Boolean(mainImage) && !imageFailed;
 
   const { isFavorited, toggleFavorite } = useFavorites();
   const saved = slug ? isFavorited(slug) : false;
@@ -230,14 +232,15 @@ export default function AdoptionCard({
         >
           {/* ── Image / placeholder art ──────────────────────────────────── */}
           <div className="relative aspect-[4/3] overflow-hidden">
-            {mainImage ? (
+            {showImage ? (
               <InteractiveImage
-                src={mainImage}
+                src={mainImage!}
                 alt={`${name} — ${breed}, ${age}, ${gender}`}
                 variant="featured"
                 className="absolute inset-0 w-full h-full"
                 noParallax
                 noFloat
+                onError={() => setImageFailed(true)}
               />
             ) : (
               <PetPlaceholder emoji={emoji} tone={tone} />

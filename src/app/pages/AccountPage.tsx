@@ -13,6 +13,8 @@ import {
   HeartHandshake,
   Siren,
   PiggyBank,
+  Calendar,
+  Users,
 } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import { PageShell, Card, Reveal, Skeleton, EmptyState, Alert } from "../components/pawguard";
@@ -305,7 +307,7 @@ export default function AccountPage() {
                 </button>
               </Alert>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 <DashboardCard
                   icon={<PawPrint size={18} />}
                   label="My Pets"
@@ -314,29 +316,53 @@ export default function AccountPage() {
                   hint="Companion &amp; adopted pets"
                 />
                 <DashboardCard
-                  icon={<PawPrint size={18} />}
+                  icon={<FileText size={18} />}
                   label="Adoption applications"
                   count={applicationsCount}
                   to="/applications"
                   hint="Track your applications"
                 />
                 <DashboardCard
-                  icon={<HeartHandshake size={18} />}
-                  label="Rescue cases"
-                  count={rescueCount}
-                  hint="Cases you've reported"
+                  icon={<Calendar size={18} />}
+                  label="Vet Appointments"
+                  count={(summary as any)?.appointments?.length ?? 0}
+                  to="/appointments"
+                  hint="Bookings &amp; consultations"
                 />
                 <DashboardCard
-                  icon={<PiggyBank size={18} />}
-                  label="Donations"
-                  count={donationsCount}
-                  hint="Contributions made"
+                  icon={<Users size={18} />}
+                  label="Volunteer Dashboard"
+                  count={summary?.volunteer_profile ? 1 : 0}
+                  to="/volunteer/dashboard"
+                  hint={summary?.volunteer_profile ? "View shifts &amp; status" : "Apply to volunteer"}
                 />
                 <DashboardCard
                   icon={<Siren size={18} />}
                   label="Lost &amp; found reports"
                   count={lostFoundCount}
-                  hint="Reports you've submitted"
+                  to="/lost-found"
+                  hint="Reports &amp; sightings"
+                />
+                <DashboardCard
+                  icon={<HeartHandshake size={18} />}
+                  label="Rescue cases"
+                  count={rescueCount}
+                  to="/emergency"
+                  hint="Cases &amp; emergency dispatch"
+                />
+                <DashboardCard
+                  icon={<PiggyBank size={18} />}
+                  label="Donations"
+                  count={donationsCount}
+                  to="/donate"
+                  hint="Contributions made"
+                />
+                <DashboardCard
+                  icon={<Bell size={18} />}
+                  label="Reminders &amp; Alerts"
+                  count={(summary as any)?.reminders?.length ?? 0}
+                  to="/reminders"
+                  hint="Care &amp; medical alerts"
                 />
               </div>
             )}

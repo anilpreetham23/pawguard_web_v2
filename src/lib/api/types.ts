@@ -296,6 +296,10 @@ export interface DogProfileResponse {
   is_quarantine_passed: boolean;
   image_urls?: string[] | null;
   photo_gallery_urls?: string[] | null;
+  image_url?: string | null;
+  photo_url?: string | null;
+  photo?: string | null;
+  photos?: string[] | null;
   created_at: string;
   updated_at: string;
 }
