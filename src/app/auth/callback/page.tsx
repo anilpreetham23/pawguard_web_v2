@@ -9,7 +9,7 @@ import { useAuth } from "@/app/providers/auth-provider";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
-  const { refreshProfile } = useAuth();
+  const { signInWithOAuth } = useAuth();
   const [status, setStatus] = useState<"processing" | "success" | "error">("processing");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
@@ -55,22 +55,12 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        const res = await authService.oauthLogin({
-          provider: "google",
-          provider_token: providerToken,
-          device: { device_type: "web" },
-        });
+        await signInWithOAuth("google", providerToken);
 
-        auth.setAuthTokens({
-          accessToken: res.access_token,
-          refreshToken: res.refresh_token,
-        });
-
-        await refreshProfile();
         setStatus("success");
         setTimeout(() => {
           router.push("/account");
-        }, 500);
+        }, 300);
       } catch (err) {
         setStatus("error");
         setErrorMessage(getErrorMessage(err));
@@ -78,7 +68,7 @@ export default function AuthCallbackPage() {
     }
 
     handleCallback();
-  }, [refreshProfile, router]);
+  }, [signInWithOAuth, router]);
 
   return (
     <PageShell>

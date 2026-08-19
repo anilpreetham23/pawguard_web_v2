@@ -191,8 +191,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshProfile = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.me });
-  }, []);
+    await meQuery.refetch();
+  }, [meQuery]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
