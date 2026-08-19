@@ -48,7 +48,6 @@ type RetryableConfig = InternalAxiosRequestConfig & {
 const httpClient = axios.create({
   baseURL: apiConfig.baseURL,
   timeout: apiConfig.timeout,
-  withCredentials: true,
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -125,6 +124,7 @@ httpClient.interceptors.response.use(
               reject(normalizeError(error));
               return;
             }
+            original.headers.set("Authorization", `Bearer ${token}`);
             resolve(httpClient(original));
           });
         });
@@ -137,6 +137,7 @@ httpClient.interceptors.response.use(
         if (!token) {
           throw error;
         }
+        original.headers.set("Authorization", `Bearer ${token}`);
         return await httpClient(original);
       } catch (refreshError) {
         flushQueue(null);

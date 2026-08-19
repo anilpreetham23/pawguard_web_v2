@@ -10,8 +10,7 @@
  * and must not be overwritten).
  */
 
-const DEFAULT_REMOTE_BACKEND_URL = "https://pawguard-backend-mqri.onrender.com/api/v1";
-const DEFAULT_PROXY_BASE_URL = "/api/v1";
+const DEFAULT_API_BASE_URL = "https://pawguard-backend-mqri.onrender.com/api/v1";
 const DEFAULT_SITE_URL = "https://pawguard.example.com";
 
 /** Trim trailing slashes so `baseURL + path` concatenation is predictable. */
@@ -26,20 +25,13 @@ const ensureApiVersionPrefix = (url: string): string => {
   return `${url}/api/v1`;
 };
 
-const getEffectiveBaseUrl = (): string => {
-  // In client-side browser environment, ALWAYS route through same-origin relative proxy path /api/v1
-  // to ensure HttpOnly cookies are set & sent in a first-party same-origin context.
-  if (typeof window !== "undefined") {
-    return DEFAULT_PROXY_BASE_URL;
-  }
-  // Server-side (SSR / build time): use process.env override if present, else fallback to remote backend URL
-  const serverUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? DEFAULT_REMOTE_BACKEND_URL;
-  return ensureApiVersionPrefix(normalizeBaseUrl(serverUrl));
-};
-
 export const env = {
   /** Base URL of the PawGuard backend, always ending in `/api/v1`. */
-  apiBaseUrl: getEffectiveBaseUrl(),
+  apiBaseUrl: ensureApiVersionPrefix(
+    normalizeBaseUrl(
+      process.env.NEXT_PUBLIC_API_BASE_URL ?? DEFAULT_API_BASE_URL
+    )
+  ),
   /** Canonical public site URL used for SEO/sitemap/robots. */
   siteUrl: normalizeBaseUrl(
     process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL

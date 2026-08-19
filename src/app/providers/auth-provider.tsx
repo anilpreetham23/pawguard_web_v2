@@ -13,7 +13,6 @@ import { authService, type RegisterRequest } from "@/services/api/auth";
 import {
   ApiError,
   auth,
-  normalizeError,
   QUERY_KEYS,
   useApiQuery,
   type AuthUser,
@@ -96,22 +95,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // pre_auth_token captured when sign-in hits an MFA challenge.
   const [preAuthToken, setPreAuthToken] = useState<string | null>(null);
 
-  const isClientReady = typeof window !== "undefined";
+  const hasToken =
+    typeof window !== "undefined" && auth.isAuthenticated() && !!auth.getAccessToken();
 
   const meQuery = useApiQuery<AuthUser, AuthUser>({
     queryKey: QUERY_KEYS.auth.me,
     queryFn: () => authService.getMe(),
-    enabled: isClientReady,
+    enabled: hasToken,
     staleTime: 30 * 1000,
     retry: false,
   });
 
   const user = meQuery.data ?? null;
-  const status: "loading" | "authenticated" | "unauthenticated" = meQuery.isLoading
-    ? "loading"
-    : user
-    ? "authenticated"
-    : "unauthenticated";
+  const status: "loading" | "authenticated" | "unauthenticated" = !hasToken
+    ? "unauthenticated"
+    : meQuery.isLoading
+      ? "loading"
+      : user
+        ? "authenticated"
+        : "unauthenticated";
+
+  // When hydration reveals a dead session, drop the stale tokens.
+  useEffect(() => {
+    if (hasToken && !meQuery.isLoading && !meQuery.data && meQuery.isError && !meQuery.isRefetching) {
+      auth.clearAuthTokens();
+    }
+  }, [hasToken, meQuery.isLoading, meQuery.data, meQuery.isError, meQuery.isRefetching]);
 
   const openAuthDialog = useCallback((mode: AuthDialogMode = "sign-in") => {
     setDialogMode(mode);
@@ -128,7 +137,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         device: { device_type: "web" },
       });
-      if ("access_token" in result || ("success" in (result as any) && (result as any).success)) {
+      if ("access_token" in result) {
+        applySession(result as LoginResponse);
         clearUserScopedCache();
         await meQuery.refetch();
       } else {
@@ -150,11 +160,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           message: "Start sign-in again to continue with two-step verification.",
         });
       }
-      await authService.verifyMfa({
+      const session = await authService.verifyMfa({
         pre_auth_token: preAuthToken,
         code,
         device: { device_type: "web" },
       });
+      applySession(session);
       setPreAuthToken(null);
       clearUserScopedCache();
       await meQuery.refetch();
@@ -162,19 +173,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [preAuthToken, meQuery],
   );
 
-  const signUp = useCallback(async (input: RegisterRequest) => {
-    await authService.register(input);
-    clearUserScopedCache();
-    await meQuery.refetch();
-  }, [meQuery]);
+  const signUp = useCallback(
+    async (input: RegisterRequest) => {
+      await authService.register(input);
+      clearUserScopedCache();
+      await meQuery.refetch();
+    },
+    [meQuery],
+  );
 
   const signInWithOAuth = useCallback(
     async (provider: string, providerToken: string) => {
-      await authService.oauthLogin({
+      const session = await authService.oauthLogin({
         provider,
         provider_token: providerToken,
         device: { device_type: "web" },
       });
+      applySession(session);
       clearUserScopedCache();
       await meQuery.refetch();
     },
@@ -186,7 +201,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await authService.logout();
     } finally {
       clearUserScopedCache();
-      queryClient.setQueryData(QUERY_KEYS.auth.me, null);
     }
   }, []);
 
