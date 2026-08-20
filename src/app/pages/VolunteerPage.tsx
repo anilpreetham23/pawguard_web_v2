@@ -283,22 +283,24 @@ export default function VolunteerPage() {
                 </Button>
               </Link>
             ) : (
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={() => {
-                  const el = document.getElementById("apply");
-                  if (el) scrollTo(el);
-                }}
-              >
-                Apply to Volunteer
-              </Button>
+              <>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={() => {
+                    const el = document.getElementById("apply");
+                    if (el) scrollTo(el);
+                  }}
+                >
+                  Apply to Volunteer
+                </Button>
+                <Link href="/volunteer/dashboard">
+                  <Button variant="secondary" size="lg">
+                    Volunteer Dashboard
+                  </Button>
+                </Link>
+              </>
             )}
-            <Link href="/volunteer/dashboard">
-              <Button variant="secondary" size="lg">
-                Volunteer Dashboard
-              </Button>
-            </Link>
             <Button
               variant="outline"
               size="lg"

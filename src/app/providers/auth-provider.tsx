@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -196,13 +197,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [meQuery],
   );
 
+  const router = useRouter();
+  const pathname = usePathname();
+
   const signOut = useCallback(async () => {
     try {
       await authService.logout();
     } finally {
+      queryClient.setQueryData(QUERY_KEYS.auth.me, null);
+      queryClient.removeQueries({ queryKey: QUERY_KEYS.auth.me });
       clearUserScopedCache();
+
+      const PROTECTED_ROUTES = [
+        "/account",
+        "/applications",
+        "/appointments",
+        "/notifications",
+        "/reminders",
+        "/volunteer/dashboard",
+      ];
+      const isProtectedRoute = PROTECTED_ROUTES.some(
+        (route) => pathname === route || pathname.startsWith(`${route}/`)
+      );
+
+      if (isProtectedRoute) {
+        router.push("/");
+      }
     }
-  }, []);
+  }, [pathname, router]);
 
   const refreshProfile = useCallback(async () => {
     await meQuery.refetch();

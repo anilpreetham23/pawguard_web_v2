@@ -20,7 +20,6 @@ const NAV_LINKS = [
   { label: "Veterinary", to: "/veterinary" },
   { label: "Lost & Found", to: "/lost-found" },
   { label: "Volunteer", to: "/volunteer" },
-  { label: "Guides",    to: "/education" },
   { label: "About",     to: "/about" },
   { label: "Stories",   to: "/stories" },
   { label: "Contact",   to: "/contact" },
@@ -200,7 +199,7 @@ export default function Navbar() {
               </Link>
 
               {/* Desktop nav links — center column, mathematically centered */}
-              <nav aria-label="Main navigation" className="hidden md:flex items-center gap-1">
+              <nav aria-label="Main navigation" className="hidden md:flex items-center gap-0.5 lg:gap-1">
                 {NAV_LINKS.map(({ label, to }) => {
                   const active = pathname === to;
                   return (
@@ -209,7 +208,7 @@ export default function Navbar() {
                       href={to}
                       data-analytics-nav={label.toLowerCase()}
                       className={cn(
-                        "group relative px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-[200ms] ease-gentle",
+                        "group relative px-2.5 lg:px-3 xl:px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-[200ms] ease-gentle whitespace-nowrap",
                         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring/60",
                       )}
                       style={{

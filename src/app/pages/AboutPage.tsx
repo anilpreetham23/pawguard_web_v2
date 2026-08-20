@@ -190,6 +190,9 @@ export default function AboutPage() {
               <Button variant="primary" size="md" asLink={{ href: "/volunteer" }}>
                 Volunteer
               </Button>
+              <Button variant="secondary" size="md" asLink={{ href: "/education" }}>
+                Dog Care Guides
+              </Button>
               <Button variant="outline" size="md" asLink={{ href: "/donate" }}>
                 Donate <ArrowRight size={14} />
               </Button>
