@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Shield, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle2, Shield, RefreshCw, ChevronLeft, ChevronRight, Search, X, ChevronDown, Filter } from "lucide-react";
 import SectionHeading from "../components/SectionHeading";
 import PageHeader from "../components/PageHeader";
 import AdoptionCard from "../components/AdoptionCard";
-import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, EmptyState, Skeleton, Alert } from "../components/pawguard";
+import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, EmptyState, Skeleton, Alert, Input } from "../components/pawguard";
 import { useAdoptionPets } from "../hooks/useAdoptionPets";
 import { getErrorMessage } from "@/lib/api";
 
@@ -51,6 +51,7 @@ function CardSkeleton() {
 export default function AdoptionPage() {
   const { data: pets = [], isLoading, isError, error, refetch } = useAdoptionPets();
 
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedAge, setSelectedAge] = useState<string[]>([]);
   const [selectedSize, setSelectedSize] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("default");
@@ -60,9 +61,24 @@ export default function AdoptionPage() {
     setter(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
   }
 
+  function clearAllFilters() {
+    setSearchQuery("");
+    setSelectedAge([]);
+    setSelectedSize([]);
+    setSortBy("default");
+  }
+
   const filtered = pets.filter((pet) => {
     if (selectedAge.length && !selectedAge.includes(AGE_LABEL[pet.ageGroup])) return false;
     if (selectedSize.length && !selectedSize.includes(SIZE_LABEL[pet.size])) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchName = pet.name.toLowerCase().includes(q);
+      const matchBreed = pet.breed.toLowerCase().includes(q);
+      const matchColor = pet.color.toLowerCase().includes(q);
+      const matchDesc = pet.description.toLowerCase().includes(q);
+      if (!matchName && !matchBreed && !matchColor && !matchDesc) return false;
+    }
     return true;
   }).sort((a, b) => {
     if (sortBy === "name") return a.name.localeCompare(b.name);
@@ -70,12 +86,12 @@ export default function AdoptionPage() {
     return 0;
   });
 
-  const hasFilters = selectedAge.length > 0 || selectedSize.length > 0;
+  const hasFilters = selectedAge.length > 0 || selectedSize.length > 0 || searchQuery.trim().length > 0 || sortBy !== "default";
 
   // Reset to first page whenever any filter, search, or sort changes
   useEffect(() => {
     setPage(1);
-  }, [selectedAge, selectedSize, sortBy]);
+  }, [selectedAge, selectedSize, sortBy, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -114,103 +130,109 @@ export default function AdoptionPage() {
             </div>
           </Reveal>
 
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-12">
-            {/* Desktop Filter Sidebar */}
-            <aside className="hidden lg:block lg:w-[240px] shrink-0">
-              <Card className="sticky top-[88px]">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-foreground font-semibold text-xs tracking-wider uppercase">Filters</h3>
+          {/* Clean Public-Service Filter Toolbar */}
+          <Reveal>
+            <div className="bg-card border border-border rounded-card p-4 sm:p-6 mb-8 shadow-sm">
+              <div className="flex flex-col gap-4">
+                {/* Search Bar Row */}
+                <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                  <div className="relative flex-1 min-w-0">
+                    <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    <input
+                      type="search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search by name, breed, or color…"
+                      aria-label="Search available dogs by name, breed, or color"
+                      className="w-full bg-background border border-border rounded-btn pl-10 pr-9 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        aria-label="Clear search text"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 transition-colors"
+                      >
+                        <X size={15} />
+                      </button>
+                    )}
+                  </div>
                   {hasFilters && (
                     <button
-                      onClick={() => { setSelectedAge([]); setSelectedSize([]); }}
-                      className="text-destructive text-xs font-semibold hover:underline"
+                      type="button"
+                      onClick={clearAllFilters}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-destructive hover:underline self-end md:self-auto py-2 px-1"
                     >
-                      Clear all
+                      <X size={13} /> Clear filters
                     </button>
                   )}
                 </div>
 
-                <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
-                  <legend className="text-muted-foreground text-xs font-semibold tracking-wider uppercase mb-0">Age</legend>
-                  {AGE_OPTIONS.map((opt) => (
-                    <FilterCheckbox key={opt} label={opt} checked={selectedAge.includes(opt)} onChange={() => toggle(selectedAge, opt, setSelectedAge)} />
-                  ))}
-                </fieldset>
-                <div className="h-px bg-border" />
-                <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
-                  <legend className="text-muted-foreground text-xs font-semibold tracking-wider uppercase mb-0">Size</legend>
-                  {SIZE_OPTIONS.map((opt) => (
-                    <FilterCheckbox key={opt} label={opt} checked={selectedSize.includes(opt)} onChange={() => toggle(selectedSize, opt, setSelectedSize)} />
-                  ))}
-                </fieldset>
-              </Card>
-            </aside>
+                {/* Filter Dropdowns Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border/60">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground font-condensed">Age</label>
+                    <div className="relative">
+                      <select
+                        value={selectedAge[0] || ""}
+                        onChange={(e) => setSelectedAge(e.target.value ? [e.target.value] : [])}
+                        aria-label="Filter by age group"
+                        className="w-full appearance-none bg-background border border-border rounded-btn pl-3 pr-8 py-2 text-xs font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard cursor-pointer"
+                      >
+                        <option value="">All Ages</option>
+                        {AGE_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    </div>
+                  </div>
 
-            <div className="flex-1 min-w-0">
-              {/* Compact Mobile Filters [ Age ▼ ] [ Size ▼ ] [ Sort ▼ ] */}
-              <div className="lg:hidden flex flex-wrap items-center gap-2 mb-4">
-                <select
-                  value={selectedAge[0] || ""}
-                  onChange={(e) => setSelectedAge(e.target.value ? [e.target.value] : [])}
-                  aria-label="Filter by age"
-                  className="flex-1 min-w-[90px] bg-background border border-border rounded-btn px-2.5 py-2 text-xs font-medium text-foreground focus:outline-none focus:border-primary transition-all"
-                >
-                  <option value="">Age: All</option>
-                  {AGE_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>Age: {opt}</option>
-                  ))}
-                </select>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground font-condensed">Size</label>
+                    <div className="relative">
+                      <select
+                        value={selectedSize[0] || ""}
+                        onChange={(e) => setSelectedSize(e.target.value ? [e.target.value] : [])}
+                        aria-label="Filter by size"
+                        className="w-full appearance-none bg-background border border-border rounded-btn pl-3 pr-8 py-2 text-xs font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard cursor-pointer"
+                      >
+                        <option value="">All Sizes</option>
+                        {SIZE_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    </div>
+                  </div>
 
-                <select
-                  value={selectedSize[0] || ""}
-                  onChange={(e) => setSelectedSize(e.target.value ? [e.target.value] : [])}
-                  aria-label="Filter by size"
-                  className="flex-1 min-w-[90px] bg-background border border-border rounded-btn px-2.5 py-2 text-xs font-medium text-foreground focus:outline-none focus:border-primary transition-all"
-                >
-                  <option value="">Size: All</option>
-                  {SIZE_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>Size: {opt}</option>
-                  ))}
-                </select>
-
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  aria-label="Sort dogs by"
-                  className="flex-1 min-w-[100px] bg-background border border-border rounded-btn px-2.5 py-2 text-xs font-medium text-foreground focus:outline-none focus:border-primary transition-all"
-                >
-                  <option value="default">Sort: Default</option>
-                  <option value="name">Sort: Name A-Z</option>
-                  <option value="age">Sort: Age</option>
-                </select>
-
-                {hasFilters && (
-                  <button
-                    onClick={() => { setSelectedAge([]); setSelectedSize([]); }}
-                    className="text-destructive text-xs font-semibold px-2 py-1 hover:underline shrink-0"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between mb-4 lg:mb-6">
-                <p className="text-muted-foreground text-xs sm:text-sm">
-                  <span className="font-semibold text-foreground">{isLoading ? "…" : filtered.length}</span> dogs available
-                </p>
-                <div className="hidden lg:block">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    aria-label="Sort dogs by"
-                    className="bg-background border border-border rounded-btn px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
-                  >
-                    <option value="default">Default</option>
-                    <option value="name">Name A-Z</option>
-                    <option value="age">Age (Youngest)</option>
-                  </select>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground font-condensed">Sort By</label>
+                    <div className="relative">
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        aria-label="Sort dogs by"
+                        className="w-full appearance-none bg-background border border-border rounded-btn pl-3 pr-8 py-2 text-xs font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard cursor-pointer"
+                      >
+                        <option value="default">Default</option>
+                        <option value="name">Name (A-Z)</option>
+                        <option value="age">Age (Youngest)</option>
+                      </select>
+                      <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    </div>
+                  </div>
                 </div>
               </div>
+            </div>
+          </Reveal>
+
+          {/* Results Summary & Dog Grid */}
+          <div className="flex items-center justify-between mb-4 lg:mb-6">
+            <p className="text-muted-foreground text-xs sm:text-sm">
+              <span className="font-semibold text-foreground">{isLoading ? "…" : filtered.length}</span> {filtered.length === 1 ? "companion available" : "companions available"}
+            </p>
+          </div>
 
               {isLoading ? (
                 <StaggerGrid key={`skeleton-${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-grid-md lg:gap-6">
@@ -279,8 +301,6 @@ export default function AdoptionPage() {
                   </button>
                 </div>
               )}
-            </div>
-          </div>
         </div>
         <Reveal><Section bg="card">
           <div className="max-w-[800px] mx-auto flex flex-col gap-12">

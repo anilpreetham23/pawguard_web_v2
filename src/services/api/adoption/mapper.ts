@@ -132,6 +132,7 @@ export function dogProfileToPet(dog: DogProfileResponse): Pet {
 
   return {
     id: dog.id,
+    slug: dog.id,
     name: dog.name,
     category: "dog",
     breed: dog.breed || "Mixed",

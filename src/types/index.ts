@@ -39,6 +39,7 @@ export interface Shelter {
 
 export interface Pet {
   id: string;
+  slug?: string;
   name: string;
   category: PetCategory;
   breed: string;

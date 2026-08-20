@@ -121,6 +121,7 @@ function LivePetDetailPage({ id }: { id: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   if (isLoading) {
     return (
@@ -175,7 +176,6 @@ function LivePetDetailPage({ id }: { id: string }) {
       ].filter((url): url is string => Boolean(url && url.trim()))
     )
   );
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const activeImage = allImages[selectedImageIndex] || allImages[0];
 
   const isAvailable = pet.adoptionBadge !== "adopted";

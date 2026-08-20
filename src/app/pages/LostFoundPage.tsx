@@ -1,22 +1,31 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { Search, X, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import SectionHeading from "../components/SectionHeading";
 import LostFoundCard from "../components/LostFoundCard";
-import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, EmptyState, Skeleton, Alert, Input, Button } from "../components/pawguard";
+import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, EmptyState, Skeleton, Alert, Button } from "../components/pawguard";
 import { useLostFoundReports } from "../hooks/useLostFound";
 import { getErrorMessage } from "@/lib/api";
-import type { Species, LostFoundReportStatus } from "@/lib/api";
+import type { LostFoundReportStatus } from "@/lib/api";
 import { cn } from "../components/ui/utils";
 import type { LostFoundKind } from "@/types";
 
 const PAGE_SIZE = 9;
 
 const KIND_OPTIONS: { value: LostFoundKind; label: string; hint: string }[] = [
-  { value: "lost", label: "Lost Pets", hint: "Missing companions reported by their families." },
-  { value: "found", label: "Found Animals", hint: "Unidentified animals found and sheltering with reporters." },
+  {
+    value: "lost",
+    label: "Lost Pets",
+    hint: "Reported missing by their owners. Check here if you've spotted a roaming animal.",
+  },
+  {
+    value: "found",
+    label: "Found Animals",
+    hint: "Spotted or taken in by community members. Check here if you're searching for your missing companion.",
+  },
 ];
 
 const STATUS_OPTIONS: { value: LostFoundReportStatus; label: string }[] = [
@@ -25,54 +34,18 @@ const STATUS_OPTIONS: { value: LostFoundReportStatus; label: string }[] = [
   { value: "expired", label: "Expired" },
 ];
 
-const SPECIES_OPTIONS: { value: Species; label: string }[] = [
-  { value: "dog", label: "Dogs" },
-  { value: "cat", label: "Cats" },
-  { value: "bird", label: "Birds" },
-  { value: "rabbit", label: "Rabbits" },
-  { value: "other", label: "Other" },
-];
-
 const EMPTY_MESSAGES: Record<LostFoundKind, { title: string; description: string }> = {
   lost: {
-    title: "No lost-pet reports right now",
-    description: "New missing-pet reports appear here as families file them. Check back soon, or widen your filters.",
+    title: "No lost pets reported yet",
+    description:
+      "When an owner files a lost-pet alert, it will appear here immediately for community sightings.",
   },
   found: {
-    title: "No found-animal reports right now",
-    description: "Reports of found animals land here as neighbours shelter them. Check back soon, or widen your filters.",
+    title: "No found animals reported yet",
+    description:
+      "If you've spotted or taken in a roaming animal, report it above so the owner can reach you.",
   },
 };
-
-function FilterToggle({ label, selected, onSelect }: { label: string; selected: boolean; onSelect: () => void }) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selected}
-      onClick={onSelect}
-      className={cn(
-        "flex items-center justify-between gap-3 cursor-pointer group min-h-[44px] py-1 text-left w-full",
-      )}
-    >
-      <span className={cn(
-        "text-sm transition-colors duration-fast",
-        selected ? "text-foreground font-semibold" : "text-muted-foreground group-hover:text-foreground",
-      )}>
-        {label}
-      </span>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "shrink-0 w-5 h-5 rounded-full border transition-all duration-fast",
-          selected ? "border-primary bg-primary/10" : "border-border bg-transparent group-hover:border-primary/40",
-        )}
-      >
-        {selected && <span className="block w-2 h-2 rounded-full bg-primary mx-auto mt-[5px]" />}
-      </span>
-    </button>
-  );
-}
 
 function CardSkeleton() {
   return (
@@ -93,7 +66,6 @@ export default function LostFoundPage() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [status, setStatus] = useState<LostFoundReportStatus | "">("");
-  const [species, setSpecies] = useState<Species | "">("");
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -103,9 +75,14 @@ export default function LostFoundPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [kind, debouncedQuery, status, species]);
+  }, [kind, debouncedQuery, status]);
 
-  const hasFilters = debouncedQuery.length > 0 || status !== "" || species !== "";
+  const hasFilters = debouncedQuery.length > 0 || status !== "";
+
+  function clearAllFilters() {
+    setQuery("");
+    setStatus("");
+  }
 
   const queryParams = useMemo(
     () => ({
@@ -113,9 +90,8 @@ export default function LostFoundPage() {
       page_size: PAGE_SIZE,
       ...(debouncedQuery ? { search: debouncedQuery } : {}),
       ...(status ? { status } : {}),
-      ...(species ? { species } : {}),
     }),
-    [page, debouncedQuery, status, species]
+    [page, debouncedQuery, status]
   );
 
   const {
@@ -150,14 +126,14 @@ export default function LostFoundPage() {
         <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md lg:py-section-lg">
           {/* Kind toggle */}
           <Reveal>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-grid-md mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-grid-md mb-8">
               {KIND_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => setKind(opt.value)}
                   aria-pressed={kind === opt.value}
                   className={cn(
-                    "text-left border rounded-card px-6 py-5 transition-all duration-gentle ease-gentle",
+                    "text-left border rounded-card px-6 py-5 transition-all duration-gentle ease-gentle cursor-pointer",
                     kind === opt.value
                       ? "border-primary bg-primary/5 shadow-glow-soft"
                       : "border-border bg-card hover:border-primary/40 hover:bg-primary/2",
@@ -175,96 +151,107 @@ export default function LostFoundPage() {
             </div>
           </Reveal>
 
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-            <aside className="lg:w-[240px] shrink-0">
-              <Card className="sticky top-[88px]">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-foreground font-semibold text-xs tracking-wider uppercase">Filters</h3>
-                  {hasFilters && (
-                    <button
-                      onClick={() => { setQuery(""); setStatus(""); setSpecies(""); }}
-                      className="text-destructive text-xs font-semibold hover:underline"
-                    >
-                      Clear all
-                    </button>
-                  )}
+          {/* Clean Public-Service Filter Toolbar */}
+          <Reveal>
+            <div className="bg-card border border-border rounded-card p-4 sm:p-6 mb-8 shadow-sm">
+              <div className="flex flex-col md:flex-row items-stretch md:items-end justify-between gap-4">
+                {/* Search Bar Row */}
+                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                  <label className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground font-condensed">Search</label>
+                  <div className="relative w-full">
+                    <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    <input
+                      type="search"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder={kind === "lost" ? "Search lost reports by name, breed, location…" : "Search found reports by breed, location…"}
+                      aria-label={kind === "lost" ? "Search lost reports" : "Search found reports"}
+                      className="w-full bg-background border border-border rounded-btn pl-10 pr-9 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+                    />
+                    {query && (
+                      <button
+                        type="button"
+                        onClick={() => setQuery("")}
+                        aria-label="Clear search text"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 transition-colors"
+                      >
+                        <X size={15} />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                <Input
-                  id="lost-found-search"
-                  label="Search"
-                  type="search"
-                  placeholder="Name, breed, location…"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
+                {/* Status Filter Dropdown */}
+                <div className="w-full md:w-56 flex flex-col gap-1">
+                  <label className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground font-condensed">Status</label>
+                  <div className="relative">
+                    <select
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value as LostFoundReportStatus | "")}
+                      aria-label="Filter by report status"
+                      className="w-full appearance-none bg-background border border-border rounded-btn pl-3 pr-8 py-2.5 text-xs font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard cursor-pointer"
+                    >
+                      <option value="">All Statuses</option>
+                      {STATUS_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                    <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                  </div>
+                </div>
 
-                <div className="h-px bg-border" />
-                <fieldset className="flex flex-col gap-3 border-0 p-0 m-0" role="radiogroup">
-                  <legend className="text-muted-foreground text-xs font-semibold tracking-wider uppercase mb-0">Status</legend>
-                  {STATUS_OPTIONS.map((opt) => (
-                    <FilterToggle
-                      key={opt.value}
-                      label={opt.label}
-                      selected={status === opt.value}
-                      onSelect={() => setStatus(status === opt.value ? "" : opt.value)}
-                    />
-                  ))}
-                </fieldset>
-                <div className="h-px bg-border" />
-                <fieldset className="flex flex-col gap-3 border-0 p-0 m-0" role="radiogroup">
-                  <legend className="text-muted-foreground text-xs font-semibold tracking-wider uppercase mb-0">Species</legend>
-                  {SPECIES_OPTIONS.map((opt) => (
-                    <FilterToggle
-                      key={opt.value}
-                      label={opt.label}
-                      selected={species === opt.value}
-                      onSelect={() => setSpecies(species === opt.value ? "" : opt.value)}
-                    />
-                  ))}
-                </fieldset>
-              </Card>
-            </aside>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-6">
-                <p className="text-muted-foreground text-sm">
-                  <span className="font-semibold text-foreground">{isLoading ? "…" : total}</span>{" "}
-                  {kind === "lost" ? "lost-pet report" : "found-animal report"}{total === 1 ? "" : "s"}
-                </p>
-              </div>
-
-              {isLoading ? (
-                <StaggerGrid key={`skeleton-${kind}-${page}-${debouncedQuery}-${status}-${species}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
-                  {[0, 1, 2, 3, 4, 5].map((i) => (
-                    <StaggerItem key={i}>
-                      <CardSkeleton />
-                    </StaggerItem>
-                  ))}
-                </StaggerGrid>
-              ) : isError ? (
-                <Alert variant="error" title={`Couldn't load ${kind === "lost" ? "lost-pet" : "found-animal"} reports`}>
-                  {getErrorMessage(error)}{" "}
-                  <button onClick={() => refetch()} className="font-semibold text-destructive underline underline-offset-2 hover:opacity-80 transition-opacity">
-                    Retry
+                {hasFilters && (
+                  <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-destructive hover:underline pb-2.5 px-1 shrink-0"
+                  >
+                    <X size={13} /> Clear filters
                   </button>
-                </Alert>
-              ) : cases.length === 0 ? (
-                <EmptyState
-                  icon="search"
-                  title={hasFilters ? "No matches for your filters" : EMPTY_MESSAGES[kind].title}
-                  description={hasFilters ? "Try adjusting your search, status, or species filters to see more reports." : EMPTY_MESSAGES[kind].description}
-                  action={hasFilters ? { label: "Clear Filters", onClick() { setQuery(""); setStatus(""); setSpecies(""); } } : undefined}
-                />
-              ) : (
-                <StaggerGrid key={`${kind}-${page}-${debouncedQuery}-${status}-${species}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-grid-md lg:gap-6">
-                  {cases.map((caseItem) => (
-                    <StaggerItem key={caseItem.id}>
-                      <LostFoundCard caseItem={caseItem} />
-                    </StaggerItem>
-                  ))}
-                </StaggerGrid>
-              )}
+                )}
+              </div>
+            </div>
+          </Reveal>
+
+          {/* Results Summary */}
+          <div className="flex items-center justify-between mb-4 lg:mb-6">
+            <p className="text-muted-foreground text-xs sm:text-sm">
+              <span className="font-semibold text-foreground">{isLoading ? "…" : total}</span>{" "}
+              {kind === "lost" ? (total === 1 ? "lost-pet report" : "lost-pet reports") : (total === 1 ? "found-animal report" : "found-animal reports")}
+            </p>
+          </div>
+
+          {isLoading ? (
+            <StaggerGrid key={`skeleton-${kind}-${page}-${debouncedQuery}-${status}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <StaggerItem key={i}>
+                  <CardSkeleton />
+                </StaggerItem>
+              ))}
+            </StaggerGrid>
+          ) : isError ? (
+            <Alert variant="error" title={`Couldn't load ${kind === "lost" ? "lost-pet" : "found-animal"} reports`}>
+              {getErrorMessage(error)}{" "}
+              <button onClick={() => refetch()} className="font-semibold text-destructive underline underline-offset-2 hover:opacity-80 transition-opacity">
+                Retry
+              </button>
+            </Alert>
+          ) : cases.length === 0 ? (
+            <EmptyState
+              icon="search"
+              title={hasFilters ? "No matches for your filters" : EMPTY_MESSAGES[kind].title}
+              description={hasFilters ? "Try adjusting your search or status filters to see more reports." : EMPTY_MESSAGES[kind].description}
+              action={hasFilters ? { label: "Clear Filters", onClick() { setQuery(""); setStatus(""); } } : undefined}
+            />
+          ) : (
+            <StaggerGrid key={`${kind}-${page}-${debouncedQuery}-${status}`} className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-grid-md lg:gap-6">
+              {cases.map((caseItem) => (
+                <StaggerItem key={caseItem.id}>
+                  <LostFoundCard caseItem={caseItem} />
+                </StaggerItem>
+              ))}
+            </StaggerGrid>
+          )}
 
               {!isLoading && !isError && cases.length > 0 && totalPages > 1 && (
                 <div className="flex items-center justify-between mt-10 gap-4">
@@ -289,8 +276,6 @@ export default function LostFoundPage() {
                   </button>
                 </div>
               )}
-            </div>
-          </div>
         </div>
 
         <Reveal>
