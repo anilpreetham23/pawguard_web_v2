@@ -181,10 +181,16 @@ export const API_ROUTES = {
 
   foster: {
     apply: "/fosters/apply",
+    me: "/fosters/me",
+    myPlacements: "/fosters/me/placements",
     placementProgress: (placementId: string) =>
       `/fosters/placements/${placementId}/progress`,
     placementSupplies: (placementId: string) =>
       `/fosters/placements/${placementId}/supplies`,
+    requestSupplies: (placementId: string) =>
+      `/fosters/placements/${placementId}/supplies/request`,
+    convertToAdopt: (placementId: string) =>
+      `/fosters/placements/${placementId}/convert-to-adopt`,
   },
 
   settings: {
@@ -288,6 +294,8 @@ export const QUERY_KEYS = {
 
   foster: {
     profiles: ["foster", "profiles"] as const,
+    me: ["foster", "me"] as const,
+    myPlacements: ["foster", "me", "placements"] as const,
     placementProgress: (placementId: string) =>
       ["foster", "placements", placementId, "progress"] as const,
     placementSupplies: (placementId: string) =>

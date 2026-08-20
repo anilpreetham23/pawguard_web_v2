@@ -1377,6 +1377,46 @@ export interface FosterProfileResponse {
   user?: UserProfile | null;
 }
 
+/** Lifecycle state of a foster placement (`FosterPlacementStatus` enum). */
+export type FosterPlacementStatus =
+  | "active"
+  | "completed"
+  | "terminated"
+  | "converted_to_adopt";
+
+/** `GET /fosters/me/placements` item payload (`FosterPlacementResponse`). */
+export interface FosterPlacementResponse {
+  id: string;
+  foster_id: string;
+  dog_id: string;
+  status: FosterPlacementStatus;
+  start_date: string;
+  end_date: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  dog?: DogProfileResponse | null;
+}
+
+/** `POST /fosters/placements/{id}/progress` request body (`FosterProgressLogCreate`). */
+export interface FosterProgressLogCreate {
+  weight_kg?: number | null;
+  behavior_notes?: string | null;
+  feeding_notes?: string | null;
+  medication_notes?: string | null;
+  exercise_minutes?: number | null;
+  photo_urls?: string[] | null;
+  mood_rating?: number | null;
+  notes?: string | null;
+}
+
+/** `POST /fosters/placements/{id}/supplies/request` request body (`SupplyRequestCreate`). */
+export interface SupplyRequestCreate {
+  item_type: SupplyItemType;
+  quantity: number;
+  description?: string | null;
+}
+
 /** Item category in a foster supply dispatch (`SupplyItemType` enum). */
 export type SupplyItemType =
   | "food"

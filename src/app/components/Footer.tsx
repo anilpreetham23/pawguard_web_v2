@@ -17,6 +17,7 @@ const SOCIALS = [
 const SERVICES = [
   { label: "Emergency Rescue", to: "/emergency" },
   { label: "Dog Adoption", to: "/adopt" },
+  { label: "Foster Program", to: "/foster" },
   { label: "Scan Safety Tag", to: "/scan" },
   { label: "Volunteer", to: "/volunteer" },
   { label: "Donate", to: "/donate" },
