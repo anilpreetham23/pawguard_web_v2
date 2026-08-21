@@ -10,7 +10,10 @@
  * and must not be overwritten).
  */
 
-const DEFAULT_API_BASE_URL = "https://pawguard-backend-mqri.onrender.com/api/v1";
+const DEFAULT_API_BASE_URL =
+  typeof window !== "undefined"
+    ? "/api/v1"
+    : "https://pawguard-backend-mqri.onrender.com/api/v1";
 const DEFAULT_SITE_URL = "https://pawguard.example.com";
 
 /** Trim trailing slashes so `baseURL + path` concatenation is predictable. */

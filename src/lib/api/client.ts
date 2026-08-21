@@ -95,7 +95,7 @@ httpClient.interceptors.request.use((config) => {
   const retryable = config as RetryableConfig;
   if (retryable.auth !== false) {
     const token = getAccessToken();
-    if (token) {
+    if (token && token.trim() !== "") {
       config.headers.set("Authorization", `Bearer ${token}`);
     }
   }

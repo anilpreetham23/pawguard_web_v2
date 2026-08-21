@@ -24,6 +24,16 @@ const nextConfig: NextConfig = {
     "react-type-animation",
   ],
 
+  /* ── API Rewrites (Same-origin HttpOnly Cookie Proxy) ─────────────── */
+  async rewrites() {
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: "https://pawguard-backend-mqri.onrender.com/api/v1/:path*",
+      },
+    ];
+  },
+
   /* ── Security & cache headers (migrated from vercel.json) ─────────── */
   async headers() {
     return [

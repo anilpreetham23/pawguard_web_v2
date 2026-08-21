@@ -122,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback(
     async (email: string, password: string) => {
+      auth.clearAuthTokens();
       const result = await authService.login({
         email,
         password,
@@ -165,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = useCallback(
     async (input: RegisterRequest) => {
+      auth.clearAuthTokens();
       await authService.register(input);
       clearUserScopedCache();
       await meQuery.refetch();
