@@ -271,7 +271,7 @@ export default function FosterDashboardPage() {
             title="Foster Dashboard"
             subtitle="Loading your foster profile information..."
           />
-          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md flex flex-col gap-6">
+          <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md flex flex-col gap-6">
             <div className="h-28 bg-muted/40 animate-pulse rounded-card" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="h-32 bg-muted/40 animate-pulse rounded-card" />
@@ -295,7 +295,7 @@ export default function FosterDashboardPage() {
             title="Foster Dashboard"
             subtitle="Welcome to the PawGuard Foster Care Portal."
           />
-          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md">
+          <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md">
             <Reveal>
               <Card className="p-8">
                 <EmptyState
@@ -348,7 +348,7 @@ export default function FosterDashboardPage() {
           </div>
         </PageHeader>
 
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md flex flex-col gap-10">
+        <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md flex flex-col gap-10">
           {/* ── STATUS CARD BANNER ─────────────────────────────────────────── */}
           <Reveal>
             <Card className="p-6">

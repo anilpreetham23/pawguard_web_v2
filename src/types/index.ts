@@ -221,6 +221,8 @@ export interface LostFoundCase {
   longitude?: number | null;
   /** Backend microchip identifier for lost-pet reports (may be null). */
   microchipId?: string | null;
+  /** Backend user identifier of the owner/reporter (for owner-only actions like broadcast). */
+  userId?: string;
 }
 
 // ---- Community ----

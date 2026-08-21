@@ -106,6 +106,8 @@ export type {
   LoginRequest,
   LoginResponse,
   LoginResult,
+  LostFoundPhotoUploadRequest,
+  LostFoundPhotoUploadResponse,
   LostFoundQueryParams,
   LostFoundReportStatus,
   LostReportCreate,

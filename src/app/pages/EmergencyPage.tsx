@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useFocusOnError } from "../hooks/useFocusOnError";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { Button, Input, Textarea, Card, Skeleton, RescueTimelineGSAP, DispatchReveal, PageShell } from "../components/pawguard";
+import { PhotoUploadInput } from "../components/PhotoUploadInput";
 import { rescueService } from "@/services/api/rescue";
 import { getErrorMessage } from "@/lib/api";
 import type { RescuePhysicalCondition, RescueSeverity } from "@/lib/api";
@@ -127,6 +128,7 @@ export default function EmergencyPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string>("");
   const { setRef } = useFocusOnError(errors);
   const [fileName, setFileName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -161,6 +163,7 @@ export default function EmergencyPage() {
         if (data.contact) setContact(data.contact);
         if (data.lat) setLat(data.lat);
         if (data.lng) setLng(data.lng);
+        if (data.photoUrl) setPhotoUrl(data.photoUrl);
       } catch {}
     }
   }, []);
@@ -168,13 +171,13 @@ export default function EmergencyPage() {
   useEffect(() => {
     localStorage.setItem(
       "pawguard-emergency-draft",
-      JSON.stringify({ severity, physicalCondition, reporterName, location, description, contact, step, lat, lng }),
+      JSON.stringify({ severity, physicalCondition, reporterName, location, description, contact, step, lat, lng, photoUrl }),
     );
     if (!draftNotified.current && (location || description || contact)) {
       draftNotified.current = true;
       toast.info("Draft saved locally", { description: "Your progress is saved. You can close this page and come back." });
     }
-  }, [severity, physicalCondition, reporterName, location, description, contact, step, lat, lng]);
+  }, [severity, physicalCondition, reporterName, location, description, contact, step, lat, lng, photoUrl]);
 
   function validate(advancingTo: FormStep) {
     const e: Record<string, string> = {};
@@ -184,6 +187,7 @@ export default function EmergencyPage() {
       if (!contact.trim()) e.contact = "Your phone number is required so dispatch can reach you";
       if (!location.trim()) e.location = "Location is required";
       if (!description.trim()) e.description = "Description is required";
+      if (!photoUrl || !photoUrl.trim()) e.photoUrl = "Please upload a photo before submitting the report.";
     }
     // lat/lng are optional — never block submission
     setErrors(e);
@@ -563,31 +567,16 @@ export default function EmergencyPage() {
                         rows={5}
                       />
 
-                      <div className="flex flex-col gap-2">
-                        <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">Visual Evidence <span className="text-muted-foreground font-normal normal-case tracking-normal">(Optional)</span></label>
-                        <input
-                          ref={fileRef}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => setFileName(e.target.files?.[0]?.name || "")}
-                        />
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => fileRef.current?.click()}
-                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileRef.current?.click(); } }}
-                          className="bg-card border-2 border-dashed border-border h-[140px] flex flex-col items-center justify-center gap-2.5 cursor-pointer hover:border-primary hover:bg-secondary/50 hover:shadow-sm transition-all duration-ui rounded-card group focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
-                        >
-                          <Upload size={22} className="text-muted-foreground group-hover:text-primary transition-colors duration-300" />
-                          <div className="flex flex-col items-center gap-0.5">
-                            <span className="text-muted-foreground font-semibold text-xs tracking-wider uppercase font-condensed group-hover:text-foreground transition-colors duration-300">
-                              {fileName || "Click to Upload Photo"}
-                            </span>
-                            <span className="text-muted-foreground text-xs">Attach for context (JPG, PNG)</span>
-                          </div>
-                        </div>
-                      </div>
+                      <PhotoUploadInput
+                        label="Visual Evidence Photo"
+                        required
+                        value={photoUrl}
+                        onChange={(file, dataUrl) => {
+                          setPhotoUrl(dataUrl);
+                          if (errors.photoUrl) setErrors((prev) => ({ ...prev, photoUrl: "" }));
+                        }}
+                        error={errors.photoUrl}
+                      />
 
                       <div className="flex gap-3 pt-2">
                         <Button

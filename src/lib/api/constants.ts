@@ -118,6 +118,7 @@ export const API_ROUTES = {
   lostFound: {
     lost: "/lost-found/lost",
     found: "/lost-found/found",
+    photoUploadUrl: "/lost-found/photo-upload-url",
     sighting: "/lost-found/sighting",
     lostById: (id: string) => `/lost-found/lost/${id}`,
     foundById: (id: string) => `/lost-found/found/${id}`,

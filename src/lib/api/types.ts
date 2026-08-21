@@ -790,6 +790,19 @@ export type Species = "dog" | "cat" | "bird" | "rabbit" | "other";
 /** Lifecycle state of a lost/found report (`ReportStatus` enum). */
 export type LostFoundReportStatus = "active" | "resolved" | "expired";
 
+/** `POST /lost-found/photo-upload-url` request body. */
+export interface LostFoundPhotoUploadRequest {
+  filename: string;
+  mime_type: string;
+  file_size: number;
+}
+
+/** `POST /lost-found/photo-upload-url` response payload. */
+export interface LostFoundPhotoUploadResponse {
+  upload_url: string;
+  object_key: string;
+}
+
 /** `POST /lost-found/lost` request body (`LostReportCreate`). */
 export interface LostReportCreate {
   /** Defaults to `dog` when omitted. */
@@ -804,6 +817,7 @@ export interface LostReportCreate {
   /** ISO-8601 datetime when the pet was last seen. */
   lost_at: string;
   photo_url?: string | null;
+  photo_object_key?: string | null;
   companion_pet_id?: string | null;
 }
 
@@ -841,6 +855,7 @@ export interface FoundReportCreate {
   /** ISO-8601 datetime when the animal was found. */
   found_at: string;
   photo_url?: string | null;
+  photo_object_key?: string | null;
 }
 
 /**

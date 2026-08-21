@@ -252,7 +252,7 @@ export default function RemindersPage() {
     return (
       <PageShell>
         <main id="main-content" className="flex-1">
-          <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
+          <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
             <Skeleton className="h-8 w-1/2 mb-10" />
             <ReminderSkeleton />
             <ReminderSkeleton />
@@ -267,7 +267,7 @@ export default function RemindersPage() {
     return (
       <PageShell>
         <main id="main-content" className="flex-1">
-          <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
+          <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
             <Reveal>
               <SectionHeading eyebrow="Smart Reminders">
                 Never Miss Vet Care
@@ -336,7 +336,7 @@ export default function RemindersPage() {
           }
         />
 
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-section-md lg:py-section-lg">
+        <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md lg:py-section-lg">
           {(createMutation.isError || deleteMutation.isError) && (
             <Alert
               variant="error"

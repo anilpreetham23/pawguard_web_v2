@@ -114,7 +114,7 @@ function BroadcastPanel({ caseItem }: { caseItem: LostFoundCase }) {
   const broadcast = useApiMutation({
     mutationFn: () => lostFoundService.broadcastLostPetAlert(caseItem.id),
   });
-  const { isAuthenticated, openAuthDialog } = useAuth();
+  const { user, isAuthenticated, openAuthDialog } = useAuth();
   const isRateLimited = broadcast.error?.status === 429;
   const hasBroadcastedRef = useRef(false);
 
@@ -134,10 +134,41 @@ function BroadcastPanel({ caseItem }: { caseItem: LostFoundCase }) {
     isRateLimited ? null : broadcast.error,
   );
 
-  if (caseItem.kind !== "lost") return null;
+  // Broadcast is strictly an OWNER-ONLY action on LOST pet reports.
+  const isOwner = Boolean(
+    isAuthenticated &&
+    user?.id &&
+    caseItem.userId &&
+    user.id === caseItem.userId
+  );
+
+  if (caseItem.kind !== "lost" || !isOwner) return null;
 
   const isDisabled =
     broadcast.isPending || broadcast.isSuccess || isRateLimited;
+
+  // Extract remaining cooldown duration dynamically from backend HTTP 429 response when available
+  const backendCooldownSeconds = (() => {
+    if (!isRateLimited || !broadcast.error) return null;
+    const detailObj = broadcast.error.detail;
+    if (typeof detailObj === "object" && detailObj !== null) {
+      const sec = (detailObj as Record<string, any>).retry_after || (detailObj as Record<string, any>).cooldown_seconds;
+      if (typeof sec === "number") return sec;
+    }
+    const msg = typeof broadcast.error.message === "string" ? broadcast.error.message : "";
+    const match = msg.match(/(\d+)\s*(seconds?|minutes?|mins?|secs?)/i);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      const unit = match[2].toLowerCase();
+      if (unit.startsWith("min")) return num * 60;
+      return num;
+    }
+    return null;
+  })();
+
+  const cooldownMessage = backendCooldownSeconds
+    ? `You recently broadcast this missing-pet alert. Please wait ${Math.ceil(backendCooldownSeconds / 60)} minute${Math.ceil(backendCooldownSeconds / 60) === 1 ? "" : "s"} before sending another alert.`
+    : "You recently broadcast this missing-pet alert. Please wait before sending another alert.";
 
   const handleBroadcast = () => {
     if (hasBroadcastedRef.current) return;
@@ -174,8 +205,8 @@ function BroadcastPanel({ caseItem }: { caseItem: LostFoundCase }) {
           </Alert>
         )}
         {isRateLimited && (
-          <Alert variant="info" title="Alert recently broadcast">
-            This alert was recently broadcast. Please wait before trying again.
+          <Alert variant="info" title="Alert already sent">
+            {cooldownMessage}
           </Alert>
         )}
         {broadcast.isError && !isRateLimited && (

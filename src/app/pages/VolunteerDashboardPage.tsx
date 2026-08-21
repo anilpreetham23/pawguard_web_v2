@@ -218,7 +218,7 @@ export default function VolunteerDashboardPage() {
   if (authStatus === "loading") {
     return (
       <PageShell>
-        <main id="main-content" className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-12">
+        <main id="main-content" className="flex-1 max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-[calc(var(--header-height)+2rem)] pb-12">
           <Skeleton className="h-10 w-64 mb-6" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Skeleton className="h-48 rounded-card lg:col-span-2" />
@@ -261,7 +261,7 @@ export default function VolunteerDashboardPage() {
   if (isSummaryLoading && isStatusLoading) {
     return (
       <PageShell>
-        <main id="main-content" className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-12">
+        <main id="main-content" className="flex-1 max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-[calc(var(--header-height)+2rem)] pb-12">
           <Skeleton className="h-10 w-64 mb-6" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Skeleton className="h-48 rounded-card lg:col-span-2" />
@@ -277,7 +277,7 @@ export default function VolunteerDashboardPage() {
     const errorObj = summaryError || statusError;
     return (
       <PageShell>
-        <main id="main-content" className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-12">
+        <main id="main-content" className="flex-1 max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-[calc(var(--header-height)+2rem)] pb-12">
           <Alert variant="error" title="Unable to load your volunteer dashboard">
             {getErrorMessage(errorObj)}{" "}
             <button
@@ -324,7 +324,7 @@ export default function VolunteerDashboardPage() {
   return (
     <PageShell>
       <main id="main-content" className="flex-1">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-16 flex flex-col gap-8">
+        <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-[calc(var(--header-height)+2rem)] pb-16 flex flex-col gap-8">
           {/* 1. Welcome & Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
             <div className="flex flex-col gap-1">

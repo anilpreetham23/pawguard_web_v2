@@ -19,6 +19,8 @@ import { API_ROUTES, apiGet, apiGetPage, apiPost, isApiError } from "@/lib/api";
 import type {
   FoundReportCreate,
   FoundReportResponse,
+  LostFoundPhotoUploadRequest,
+  LostFoundPhotoUploadResponse,
   LostFoundQueryParams,
   LostReportCreate,
   LostReportResponse,
@@ -112,6 +114,31 @@ export const lostFoundService = {
       sort_order: "desc",
     });
     return page.items.filter((item) => item.id !== id).slice(0, limit);
+  },
+
+  /** `POST /lost-found/photo-upload-url` — request presigned upload URL and object_key. */
+  async getPhotoUploadUrl(
+    data: LostFoundPhotoUploadRequest
+  ): Promise<LostFoundPhotoUploadResponse> {
+    const res = await apiPost<any>(API_ROUTES.lostFound.photoUploadUrl, data);
+    if (res && res.data && typeof res.data.upload_url === "string") {
+      return res.data;
+    }
+    return res as LostFoundPhotoUploadResponse;
+  },
+
+  /** Upload actual image File bytes directly to presigned storage upload_url using HTTP PUT. */
+  async uploadPhotoFile(uploadUrl: string, file: File): Promise<void> {
+    const res = await fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+      },
+    });
+    if (!res.ok) {
+      throw new Error(`Photo upload failed with status ${res.status}`);
+    }
   },
 
   /** `POST /lost-found/lost` — report a lost pet. */

@@ -6,13 +6,15 @@ import { useSearchParams } from "next/navigation";
 import { ArrowLeft, LocateFixed, X, Phone, PawPrint, CheckCircle2 } from "lucide-react";
 import { PageShell, Card, Reveal, Alert, Button, Input, Textarea, SuccessState, Badge } from "../components/pawguard";
 import SectionHeading from "../components/SectionHeading";
-import { useApiMutation, useApiErrorMessage, QUERY_KEYS, toApiDateTime } from "@/lib/api";
+import { useApiMutation, useApiErrorMessage, QUERY_KEYS, toApiDateTime, getErrorMessage } from "@/lib/api";
 import { queryClient } from "@/lib/react-query";
 import { lostFoundService } from "@/services/api/lost-found";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useAuth } from "../providers/auth-provider";
 import { useMyPets } from "../hooks/useMyPets";
-import type { Species, LostReportCreate } from "@/lib/api";
+import { PhotoUploadInput } from "../components/PhotoUploadInput";
+import { LocationMapPicker } from "../components/LocationMapPicker";
+import type { Species, LostReportCreate, FoundReportCreate } from "@/lib/api";
 import type { LostFoundKind } from "@/types";
 
 const SPECIES_OPTIONS: { value: Species; label: string }[] = [
@@ -71,8 +73,13 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
+  const [photoObjectKey, setPhotoObjectKey] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [uploadState, setUploadState] = useState<"idle" | "uploading" | "uploaded" | "error">("idle");
   const [eventAt, setEventAt] = useState("");
   const [dateError, setDateError] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   // Auto-select pet matching urlPetId parameter when pets load
   useEffect(() => {
@@ -102,6 +109,14 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
     }
   };
 
+  const handlePhotoChange = (file: File | null, dataUrl: string) => {
+    setSelectedPhotoFile(file);
+    setPhotoUrl(dataUrl);
+    setPhotoObjectKey(null);
+    setUploadState("idle");
+    if (photoError) setPhotoError(null);
+  };
+
   // Compute the max datetime-local value once per render
   const maxEventAt = useMemo(() => {
     const now = new Date();
@@ -122,7 +137,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
     }
   }, [gpsStatus, coords]);
 
-  function clearLocation() {
+  function handleClearLocation() {
     clearGps();
     setLatitude("");
     setLongitude("");
@@ -139,42 +154,16 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
     return {
       latitude: valid(latitude),
       longitude: valid(longitude),
-      photo: photoUrl.trim() === "" ? null : photoUrl.trim(),
     };
-  }, [latitude, longitude, photoUrl]);
-
-  const losPayload: LostReportCreate = {
-    species,
-    pet_name: petName.trim(),
-    breed: breed.trim(),
-    color: color.trim(),
-    microchip_id: microchipId.trim() === "" ? null : microchipId.trim(),
-    location_address: locationAddress.trim(),
-    latitude: cleanupCoords.latitude,
-    longitude: cleanupCoords.longitude,
-    lost_at: eventAt ? toApiDateTime(new Date(eventAt)) : "",
-    photo_url: cleanupCoords.photo,
-    companion_pet_id: companionPetId.trim() === "" ? null : companionPetId.trim(),
-  };
-
-  const foundPayload = {
-    species,
-    breed_observed: breedObserved.trim(),
-    color_observed: colorObserved.trim(),
-    location_address: locationAddress.trim(),
-    latitude: cleanupCoords.latitude,
-    longitude: cleanupCoords.longitude,
-    found_at: eventAt ? toApiDateTime(new Date(eventAt)) : "",
-    photo_url: cleanupCoords.photo,
-  };
+  }, [latitude, longitude]);
 
   const [submittedReport, setSubmittedReport] = useState<{ id: string } | null>(null);
 
-  const mutation = useApiMutation<{ id: string }, void>({
-    mutationFn: () =>
+  const mutation = useApiMutation<{ id: string }, LostReportCreate | FoundReportCreate>({
+    mutationFn: (payload) =>
       kind === "lost"
-        ? lostFoundService.reportLostPet(losPayload)
-        : lostFoundService.reportFoundPet(foundPayload),
+        ? lostFoundService.reportLostPet(payload as LostReportCreate)
+        : lostFoundService.reportFoundPet(payload as FoundReportCreate),
     onSuccess: async (report) => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lostFound.reports });
       setSubmittedReport(report);
@@ -183,18 +172,24 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
 
   const errorMessageText = useApiErrorMessage(mutation.error);
 
-  useEffect(() => {
-    if (mutation.isError && mutation.error?.isUnauthorized && isAuthenticated) {
-      mutation.mutate();
-    }
-  }, [isAuthenticated, mutation.isError]);
-
   function handleUseMyLocation() {
     requestLocation();
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!isAuthenticated) {
+      openAuthDialog("sign-in");
+      return;
+    }
+
+    if (!selectedPhotoFile && !photoObjectKey) {
+      setPhotoError("Please upload a photo before submitting the report.");
+      return;
+    }
+    setPhotoError(null);
+
     if (eventAt) {
       const picked = new Date(eventAt);
       const pickedDate = new Date(picked.getFullYear(), picked.getMonth(), picked.getDate());
@@ -206,7 +201,66 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
       }
     }
     setDateError(null);
-    mutation.mutate();
+
+    let activeObjectKey = photoObjectKey;
+
+    // Step 1: Upload photo if file is selected and not yet uploaded
+    if (selectedPhotoFile && !activeObjectKey) {
+      setIsUploadingPhoto(true);
+      setUploadState("uploading");
+      try {
+        const uploadData = await lostFoundService.getPhotoUploadUrl({
+          filename: selectedPhotoFile.name,
+          mime_type: selectedPhotoFile.type || "image/jpeg",
+          file_size: selectedPhotoFile.size,
+        });
+
+        if (!uploadData || !uploadData.upload_url || !uploadData.object_key) {
+          throw new Error("Failed to get photo upload URL from storage server.");
+        }
+
+        await lostFoundService.uploadPhotoFile(uploadData.upload_url, selectedPhotoFile);
+        activeObjectKey = uploadData.object_key;
+        setPhotoObjectKey(activeObjectKey);
+        setUploadState("uploaded");
+      } catch (err: any) {
+        console.error("Photo upload error:", err);
+        setUploadState("error");
+        setPhotoError(getErrorMessage(err) || "Photo upload failed. Please try again.");
+        setIsUploadingPhoto(false);
+        return;
+      } finally {
+        setIsUploadingPhoto(false);
+      }
+    }
+
+    // Step 2: Submit report with photo_object_key
+    if (kind === "lost") {
+      mutation.mutate({
+        species,
+        pet_name: petName.trim(),
+        breed: breed.trim(),
+        color: color.trim(),
+        microchip_id: microchipId.trim() === "" ? null : microchipId.trim(),
+        location_address: locationAddress.trim(),
+        latitude: cleanupCoords.latitude,
+        longitude: cleanupCoords.longitude,
+        lost_at: eventAt ? toApiDateTime(new Date(eventAt)) : "",
+        photo_object_key: activeObjectKey,
+        companion_pet_id: companionPetId.trim() === "" ? null : companionPetId.trim(),
+      });
+    } else {
+      mutation.mutate({
+        species,
+        breed_observed: breedObserved.trim(),
+        color_observed: colorObserved.trim(),
+        location_address: locationAddress.trim(),
+        latitude: cleanupCoords.latitude,
+        longitude: cleanupCoords.longitude,
+        found_at: eventAt ? toApiDateTime(new Date(eventAt)) : "",
+        photo_object_key: activeObjectKey,
+      });
+    }
   }
 
   if (submittedReport) {
@@ -238,7 +292,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
   return (
     <PageShell>
       <main id="main-content" className="flex-1">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
+        <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-[calc(var(--header-height)+1.5rem)]">
           <Link
             href="/lost-found"
             className="inline-flex items-center gap-2 text-muted-foreground text-sm hover:text-primary transition-colors duration-fast group"
@@ -248,11 +302,11 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
           </Link>
         </div>
 
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-8 lg:py-12">
           <Reveal>
-            <div className="max-w-[760px]">
+            <div className="max-w-[960px]">
               <SectionHeading eyebrow="Lost & Found">{labels.form}</SectionHeading>
-              <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[560px]">
+              <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[720px]">
                 {kind === "lost"
                   ? "Tell us about your missing companion and where they were last seen. Every report helps our community search together."
                   : "Describe the animal you found and where. Your report helps a family recognise their companion and reunite safely."}
@@ -261,10 +315,10 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
           </Reveal>
 
           <Reveal>
-            <Card className="mt-10 max-w-[760px]">
-              <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <Card className="mt-10 w-full max-w-[1440px] 2xl:max-w-[1536px] p-6 sm:p-8 lg:p-10">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-8 w-full">
                 {kind === "lost" && isAuthenticated && (
-                  <div className="flex flex-col gap-2 p-4 rounded-card bg-primary/5 border border-primary/20">
+                  <div className="flex flex-col gap-2 p-4 rounded-card bg-primary/5 border border-primary/20 w-full">
                     <label htmlFor="select-my-pet" className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed flex items-center gap-1.5">
                       <PawPrint size={14} className="text-primary" /> Select My Pet (Optional)
                     </label>
@@ -304,14 +358,14 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                       </button>
                     )}
                     {!mutation.error?.isUnauthorized && (
-                      <button onClick={() => mutation.mutate()} className="font-semibold text-destructive underline underline-offset-2 hover:opacity-80 transition-opacity">
+                      <button onClick={(e) => handleSubmit(e)} className="font-semibold text-destructive underline underline-offset-2 hover:opacity-80 transition-opacity">
                         Retry
                       </button>
                     )}
                   </Alert>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                   <Input
                     id={`${kind}-pet-name`}
                     label={labels.pet}
@@ -365,25 +419,6 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                     />
                   )}
 
-                  {kind === "found" && (
-                    <Textarea
-                      id="found-description"
-                      label={labels.id}
-                      placeholder="Distinctive features, collar colour, condition…"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                    />
-                  )}
-
-                  <Input
-                    id={`${kind}-address`}
-                    label="Location"
-                    placeholder={labels.place}
-                    value={locationAddress}
-                    onChange={(e) => setLocationAddress(e.target.value)}
-                    required
-                  />
-
                   <Input
                     id={`${kind}-at`}
                     label={kind === "lost" ? "Lost on (date & time)" : "Found on (date & time)"}
@@ -399,74 +434,49 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                   />
                 </div>
 
-                {/* GPS */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">Coordinates (optional)</span>
-                    {gpsStatus !== "idle" && (
-                      <button type="button" onClick={clearLocation} className="inline-flex items-center gap-1.5 text-muted-foreground text-xs hover:text-destructive transition-colors duration-fast">
-                        <X size={13} /> Clear
-                      </button>
-                    )}
-                  </div>
+                <div className="h-px bg-border my-1" />
 
-                  <Button type="button" variant="outline" size="sm" onClick={handleUseMyLocation} disabled={gpsStatus === "loading"} className="self-start">
-                    <LocateFixed size={15} />
-                    {gpsStatus === "loading" ? "Locating…" : "Use My Location"}
-                  </Button>
-
-                  {gpsStatus === "granted" && latitude && longitude && (
-                    <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 text-emerald-700 text-xs font-semibold">
-                      <LocateFixed size={13} className="shrink-0" />
-                      GPS pinned — {parseFloat(latitude).toFixed(4)}, {parseFloat(longitude).toFixed(4)}
-                    </div>
-                  )}
-
-                  {gpsHint && <p className="text-muted-foreground text-xs">{gpsHint}</p>}
-                  {errorMessage && gpsStatus !== "granted" && <p className="text-destructive text-xs">{errorMessage}</p>}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <Input
-                      id={`${kind}-lat`}
-                      label="Latitude"
-                      type="number"
-                      step="any"
-                      placeholder="e.g. 17.4326"
-                      value={latitude}
-                      onChange={(e) => setLatitude(e.target.value)}
-                    />
-                    <Input
-                      id={`${kind}-lng`}
-                      label="Longitude"
-                      type="number"
-                      step="any"
-                      placeholder="e.g. 78.4071"
-                      value={longitude}
-                      onChange={(e) => setLongitude(e.target.value)}
-                    />
-                  </div>
-                  <p className="text-muted-foreground text-xs">
-                    GPS is optional and never required. If your browser can't provide your location, type the area or coordinates manually.
-                  </p>
-                </div>
-
-                <Input
-                  id={`${kind}-photo`}
-                  label="Photo URL (optional)"
-                  type="url"
-                  placeholder="https://…"
-                  value={photoUrl}
-                  onChange={(e) => setPhotoUrl(e.target.value)}
+                <LocationMapPicker
+                  kind={kind}
+                  locationAddress={locationAddress}
+                  latitude={latitude}
+                  longitude={longitude}
+                  onChange={({ locationAddress, latitude, longitude }) => {
+                    setLocationAddress(locationAddress);
+                    setLatitude(latitude);
+                    setLongitude(longitude);
+                  }}
                 />
 
-                <div className="flex flex-col gap-3 pt-1">
-                  <Button type="submit" variant="primary" size="md" isLoading={mutation.isPending} disabled={mutation.isPending}>
+                <PhotoUploadInput
+                  label="Photo of Animal"
+                  required
+                  value={photoUrl}
+                  isUploading={isUploadingPhoto}
+                  isUploaded={uploadState === "uploaded"}
+                  onChange={handlePhotoChange}
+                  error={photoError ?? undefined}
+                />
+
+                {kind === "found" && (
+                  <Textarea
+                    id="found-description"
+                    label={labels.id}
+                    placeholder="Distinctive features, collar colour, condition…"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full min-h-[100px]"
+                  />
+                )}
+
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/60 w-full">
+                  <p className="text-muted-foreground text-xs flex items-center gap-1.5">
+                    <Phone size={14} className="shrink-0 text-primary" />
+                    Need urgent help? Contact your nearest PawGuard rescue team directly.
+                  </p>
+                  <Button type="submit" variant="primary" size="md" isLoading={mutation.isPending} disabled={mutation.isPending} className="w-full sm:w-auto px-8 shrink-0 self-end">
                     {kind === "lost" ? "Submit Lost Pet Report" : "Submit Found Animal Report"}
                   </Button>
-                  <p className="text-muted-foreground text-xs flex items-center gap-1.5">
-                    <Phone size={12} className="shrink-0" />
-                    Need urgent help? Contact your nearest PawGuard rescue team or emergency services directly.
-                  </p>
                 </div>
               </form>
             </Card>

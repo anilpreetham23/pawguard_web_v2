@@ -204,6 +204,7 @@ export function lostReportToCase(report: LostReportResponse): LostFoundCase {
     latitude: report.latitude,
     longitude: report.longitude,
     microchipId: report.microchip_id,
+    userId: report.user_id || report.user?.id,
   };
 }
 
@@ -262,6 +263,7 @@ export function foundReportToCase(report: FoundReportResponse): LostFoundCase {
     photoUrl,
     latitude: report.latitude,
     longitude: report.longitude,
+    userId: report.user_id || report.user?.id,
   };
 }
 
