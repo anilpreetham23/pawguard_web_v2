@@ -20,31 +20,36 @@ let inFlightRefresh: Promise<string | null> | null = null;
 
 async function performRefresh(): Promise<string | null> {
   const refreshToken = getRefreshToken();
-  if (!refreshToken) return null;
 
   try {
     const response = await axios.post<ApiResponse<RefreshResponse>>(
       API_ROUTES.auth.refresh,
-      { refresh_token: refreshToken },
+      refreshToken ? { refresh_token: refreshToken } : {},
       {
         baseURL: apiConfig.baseURL,
         timeout: apiConfig.timeout,
+        withCredentials: true,
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
+          "X-Client-Type": "web",
         },
       }
     );
 
     const nextAccessToken = response.data?.data?.access_token;
-    if (!nextAccessToken) return null;
+    if (nextAccessToken) {
+      setAuthTokens({
+        accessToken: nextAccessToken,
+        refreshToken: response.data?.data?.refresh_token ?? refreshToken ?? null,
+      });
+      return nextAccessToken;
+    }
 
-    // The backend rotates the refresh token too; fall back to the old one.
-    setAuthTokens({
-      accessToken: nextAccessToken,
-      refreshToken: response.data?.data?.refresh_token ?? refreshToken,
-    });
-    return nextAccessToken;
+    if (response.data?.success) {
+      return "cookie-refreshed";
+    }
+    return null;
   } catch {
     // Refresh failed — the session is no longer valid.
     clearAuthTokens();

@@ -69,11 +69,13 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 function applySession(session: LoginResponse): void {
-  auth.setAuthTokens({
-    accessToken: session.access_token,
-    refreshToken: session.refresh_token ?? null,
-    expiresIn: session.expires_in,
-  });
+  if (session.access_token) {
+    auth.setAuthTokens({
+      accessToken: session.access_token,
+      refreshToken: session.refresh_token ?? null,
+      expiresIn: session.expires_in,
+    });
+  }
 }
 
 /**
@@ -96,32 +98,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // pre_auth_token captured when sign-in hits an MFA challenge.
   const [preAuthToken, setPreAuthToken] = useState<string | null>(null);
 
-  const hasToken =
-    typeof window !== "undefined" && auth.isAuthenticated() && !!auth.getAccessToken();
-
   const meQuery = useApiQuery<AuthUser, AuthUser>({
     queryKey: QUERY_KEYS.auth.me,
     queryFn: () => authService.getMe(),
-    enabled: hasToken,
     staleTime: 30 * 1000,
     retry: false,
   });
 
   const user = meQuery.data ?? null;
-  const status: "loading" | "authenticated" | "unauthenticated" = !hasToken
-    ? "unauthenticated"
-    : meQuery.isLoading
-      ? "loading"
-      : user
-        ? "authenticated"
-        : "unauthenticated";
-
-  // When hydration reveals a dead session, drop the stale tokens.
-  useEffect(() => {
-    if (hasToken && !meQuery.isLoading && !meQuery.data && meQuery.isError && !meQuery.isRefetching) {
-      auth.clearAuthTokens();
-    }
-  }, [hasToken, meQuery.isLoading, meQuery.data, meQuery.isError, meQuery.isRefetching]);
+  const status: "loading" | "authenticated" | "unauthenticated" = meQuery.isLoading
+    ? "loading"
+    : user
+      ? "authenticated"
+      : "unauthenticated";
 
   const openAuthDialog = useCallback((mode: AuthDialogMode = "sign-in") => {
     setDialogMode(mode);

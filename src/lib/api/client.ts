@@ -45,12 +45,22 @@ type RetryableConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
 };
 
+function getCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(
+    new RegExp("(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, "\\$1") + "=([^;]*)")
+  );
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 const httpClient = axios.create({
   baseURL: apiConfig.baseURL,
   timeout: apiConfig.timeout,
+  withCredentials: true,
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
+    "X-Client-Type": "web",
   },
 });
 
@@ -67,16 +77,27 @@ function toAxiosConfig(config: ApiRequestConfig): AxiosRequestConfig {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Request interceptor — attach the JWT                                       */
+/* Request interceptor — credentials, client-type, CSRF token                 */
 /* -------------------------------------------------------------------------- */
 
 httpClient.interceptors.request.use((config) => {
-  const retryable = config as RetryableConfig;
-  if (retryable.auth === false) return config;
+  config.withCredentials = true;
+  config.headers.set("X-Client-Type", "web");
 
-  const token = getAccessToken();
-  if (token) {
-    config.headers.set("Authorization", `Bearer ${token}`);
+  const method = config.method?.toUpperCase();
+  if (method && ["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    const csrfToken = getCookie("pg_csrf_token");
+    if (csrfToken) {
+      config.headers.set("X-CSRF-Token", csrfToken);
+    }
+  }
+
+  const retryable = config as RetryableConfig;
+  if (retryable.auth !== false) {
+    const token = getAccessToken();
+    if (token) {
+      config.headers.set("Authorization", `Bearer ${token}`);
+    }
   }
   return config;
 });
@@ -120,11 +141,13 @@ httpClient.interceptors.response.use(
         // Another request is already refreshing — wait for it.
         return new Promise((resolve, reject) => {
           pendingQueue.push((token) => {
-            if (!token) {
+            if (token === null) {
               reject(normalizeError(error));
               return;
             }
-            original.headers.set("Authorization", `Bearer ${token}`);
+            if (token && token !== "cookie-refreshed") {
+              original.headers.set("Authorization", `Bearer ${token}`);
+            }
             resolve(httpClient(original));
           });
         });
@@ -137,7 +160,9 @@ httpClient.interceptors.response.use(
         if (!token) {
           throw error;
         }
-        original.headers.set("Authorization", `Bearer ${token}`);
+        if (token && token !== "cookie-refreshed") {
+          original.headers.set("Authorization", `Bearer ${token}`);
+        }
         return await httpClient(original);
       } catch (refreshError) {
         flushQueue(null);

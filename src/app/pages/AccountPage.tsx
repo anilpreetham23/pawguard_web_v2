@@ -1020,7 +1020,7 @@ export default function AccountPage() {
                         Session Protocol
                       </span>
                       <span className="text-xs font-mono text-muted-foreground">
-                        Bearer JWT Token
+                        HTTP-Only Cookie Auth
                       </span>
                     </div>
 
