@@ -10,10 +10,7 @@
  * and must not be overwritten).
  */
 
-const DEFAULT_API_BASE_URL =
-  typeof window !== "undefined"
-    ? "/api/v1"
-    : "https://pawguard-backend-mqri.onrender.com/api/v1";
+const RENDER_BACKEND_URL = "https://pawguard-backend-mqri.onrender.com/api/v1";
 const DEFAULT_SITE_URL = "https://pawguard.example.com";
 
 /** Trim trailing slashes so `baseURL + path` concatenation is predictable. */
@@ -28,13 +25,24 @@ const ensureApiVersionPrefix = (url: string): string => {
   return `${url}/api/v1`;
 };
 
+/**
+ * Resolves the API base URL based on runtime execution context:
+ * - Browser (client-side): ALWAYS returns relative `/api/v1` to ensure same-origin
+ *   requests hit the Next.js rewrite proxy, preserving HttpOnly cookie flow and
+ *   preventing cross-site 3rd-party cookie drops.
+ * - Server (SSR/SSG): Resolves to process.env.NEXT_PUBLIC_API_BASE_URL or RENDER_BACKEND_URL.
+ */
+function resolveApiBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    return "/api/v1";
+  }
+  const raw = process.env.NEXT_PUBLIC_API_BASE_URL ?? RENDER_BACKEND_URL;
+  return ensureApiVersionPrefix(normalizeBaseUrl(raw));
+}
+
 export const env = {
-  /** Base URL of the PawGuard backend, always ending in `/api/v1`. */
-  apiBaseUrl: ensureApiVersionPrefix(
-    normalizeBaseUrl(
-      process.env.NEXT_PUBLIC_API_BASE_URL ?? DEFAULT_API_BASE_URL
-    )
-  ),
+  /** Base URL of the PawGuard backend. */
+  apiBaseUrl: resolveApiBaseUrl(),
   /** Canonical public site URL used for SEO/sitemap/robots. */
   siteUrl: normalizeBaseUrl(
     process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL
@@ -42,7 +50,9 @@ export const env = {
 } as const;
 
 export const apiConfig = {
-  baseURL: env.apiBaseUrl,
+  get baseURL(): string {
+    return resolveApiBaseUrl();
+  },
   /** Default timeout for regular JSON requests (ms). */
   timeout: 15_000,
   /** Timeout for slow operations such as file uploads (ms). */

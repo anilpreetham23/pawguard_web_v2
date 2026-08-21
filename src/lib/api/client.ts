@@ -81,6 +81,7 @@ function toAxiosConfig(config: ApiRequestConfig): AxiosRequestConfig {
 /* -------------------------------------------------------------------------- */
 
 httpClient.interceptors.request.use((config) => {
+  config.baseURL = apiConfig.baseURL;
   config.withCredentials = true;
   config.headers.set("X-Client-Type", "web");
 
