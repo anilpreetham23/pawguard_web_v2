@@ -12,6 +12,7 @@ import { appointmentsService } from "@/services/api/appointments";
 import { useAuth } from "../providers/auth-provider";
 import { useMyPets } from "../hooks/useMyPets";
 import { useVetClinics } from "../hooks/useVetClinics";
+import { useVeterinaryPartners } from "../hooks/useVeterinaryPartners";
 import { getErrorMessage } from "@/lib/api";
 import type { PetAppointmentResponse } from "@/lib/api";
 
@@ -72,6 +73,7 @@ function AppointmentBookForm() {
 
   const { pets, isLoading: petsLoading, isError: petsError, error: petsErrorObj, refetch: refetchPets } = useMyPets(isAuthenticated);
   const { clinics, isLoading: clinicsLoading, isError: clinicsError, error: clinicsErrorObj, refetch: refetchClinics } = useVetClinics(true);
+  const { data: partners } = useVeterinaryPartners();
 
   const [petId, setPetId] = useState("");
   const [clinicId, setClinicId] = useState("");
@@ -93,7 +95,7 @@ function AppointmentBookForm() {
     mutationFn: () =>
       appointmentsService.bookAppointment({
         pet_id: petId,
-        clinic_id: clinicId,
+        clinic_id: clinicId || urlClinicId || "",
         vet_id: null,
         starts_at: startsAtISO,
         ends_at: endsAtISO,
@@ -118,7 +120,27 @@ function AppointmentBookForm() {
   }, [isAuthenticated, mutation.isError]);
 
   const selectedPet = useMemo(() => pets.find((p) => p.id === petId) ?? null, [pets, petId]);
-  const selectedClinic = useMemo(() => clinics.find((c) => c.id === clinicId) ?? null, [clinics, clinicId]);
+  const selectedClinic = useMemo(() => {
+    const idToFind = clinicId || urlClinicId;
+    if (!idToFind) return null;
+    const foundInClinics = clinics.find((c) => c.id === idToFind);
+    if (foundInClinics) {
+      return {
+        id: foundInClinics.id,
+        name: foundInClinics.name,
+        address: foundInClinics.address,
+      };
+    }
+    const foundInPartners = (partners ?? []).find((p) => p.id === idToFind);
+    if (foundInPartners) {
+      return {
+        id: foundInPartners.id,
+        name: foundInPartners.name,
+        address: foundInPartners.address,
+      };
+    }
+    return null;
+  }, [clinics, partners, clinicId, urlClinicId]);
 
   const startsAt = useMemo(() => {
     if (!date || !startTime) return null;
@@ -134,44 +156,42 @@ function AppointmentBookForm() {
   const startsAtISO = startsAt ? toApiDateTime(startsAt) : "";
   const endsAtISO = endsAt ? toApiDateTime(endsAt) : "";
 
+  const endTimeLabel = useMemo(() => {
+    if (!endsAt) return "—";
+    return endsAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  }, [endsAt]);
+
   const minDate = toDateInputValue(today());
 
   const clientValidationError = useMemo(() => {
     if (!petId) return "Please select a pet for this appointment.";
-    if (!clinicId) return "Please choose a veterinary clinic.";
-    if (!date) return "Please choose an appointment date.";
-    if (!startTime) return "Please choose an appointment start time.";
-    if (!startsAt) return "That date/time isn't valid.";
-    if (startsAt.getTime() <= Date.now()) {
-      return "Please choose a date and time in the future.";
+    if (!clinicId && !urlClinicId) return "Please select a clinic for this appointment.";
+    if (!date) return "Please select an appointment date.";
+    if (!startTime) return "Please select an appointment time.";
+    if (!reason.trim()) return "Please enter a reason for the visit.";
+    if (startsAt && startsAt < new Date()) {
+      return "Appointment start time must be in the future.";
     }
-    if (!reason.trim()) return "Please tell us the reason for the visit.";
     return null;
-  }, [petId, clinicId, date, startTime, startsAt, reason]);
+  }, [petId, clinicId, urlClinicId, date, startTime, reason, startsAt]);
 
-  const endTimeLabel = endsAt
-    ? endsAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
-    : "—";
-
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      if (clientValidationError) return;
-      mutation.mutate();
-    },
-    [clientValidationError, mutation],
-  );
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (clientValidationError) return;
+    mutation.mutate();
+  }
 
   if (!isAuthReady) {
     return (
       <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
         <Skeleton className="h-10 w-2/3 mb-4" />
-        <Skeleton className="h-4 w-1/2 mb-10" />
-        <Card className="flex flex-col gap-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-6 w-1/2 mb-8" />
+        <Card>
+          <div className="flex flex-col gap-6">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
         </Card>
       </div>
     );
@@ -183,20 +203,25 @@ function AppointmentBookForm() {
         <Reveal>
           <SectionHeading eyebrow="Veterinary Care">Book an Appointment</SectionHeading>
           <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[560px]">
-            Schedule a visit for your pet at one of our partner clinics.
+            {urlClinicId
+              ? "Select one of your pets and choose a date and time. The clinic will review your request before confirming."
+              : "Select one of your pets, pick a clinic, and choose a date and time. The clinic reviews your request before confirming."}
           </p>
         </Reveal>
         <Reveal>
           <Card className="mt-10">
-            <Alert variant="info" title="Sign in to book an appointment">
-              Appointment booking requires a PawGuard account so we can link the visit to your pet.
-            </Alert>
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col items-center text-center gap-5 py-6">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary text-2xl">
+                <Stethoscope size={28} />
+              </div>
+              <div className="flex flex-col gap-2 max-w-[440px]">
+                <h3 className="text-foreground font-bold text-xl">Sign in required to book an appointment</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Sign in with your PawGuard account so we can link the appointment to your registered pet and send confirmation updates.
+                </p>
+              </div>
               <Button variant="primary" size="md" onClick={() => openAuthDialog("sign-in")}>
-                Sign in to continue
-              </Button>
-              <Button variant="outline" size="md" onClick={() => openAuthDialog("sign-up")}>
-                Create an account
+                Sign In to Continue
               </Button>
             </div>
           </Card>
@@ -268,7 +293,9 @@ function AppointmentBookForm() {
         <Reveal>
           <SectionHeading eyebrow="Veterinary Care">Book an Appointment</SectionHeading>
           <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[560px]">
-            Schedule a visit for your pet at one of our partner clinics.
+            {urlClinicId
+              ? "Select one of your pets and choose a date and time. The clinic will review your request before confirming."
+              : "Select one of your pets, pick a clinic, and choose a date and time. The clinic reviews your request before confirming."}
           </p>
         </Reveal>
         <Reveal>
@@ -287,7 +314,7 @@ function AppointmentBookForm() {
 
   return (
     <main id="main-content" className="flex-1">
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+1.5rem)]">
+      <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-[calc(var(--header-height)+1.5rem)]">
         <Link
           href="/veterinary"
           className="inline-flex items-center gap-2 text-muted-foreground text-sm hover:text-primary transition-colors duration-fast group"
@@ -297,31 +324,21 @@ function AppointmentBookForm() {
         </Link>
       </div>
 
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-8 lg:py-12">
         <Reveal>
-          <div className="max-w-[760px]">
+          <div className="max-w-[960px]">
             <SectionHeading eyebrow="Veterinary Care">Book an Appointment</SectionHeading>
-            <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[560px]">
-              Select one of your pets, pick a clinic, and choose a date and time. The clinic reviews your request before confirming.
+            <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[720px]">
+              {urlClinicId
+                ? "Select one of your pets and choose a date and time. The clinic will review your request before confirming."
+                : "Select one of your pets, pick a clinic, and choose a date and time. The clinic reviews your request before confirming."}
             </p>
           </div>
         </Reveal>
 
         <Reveal>
-          <Card className="mt-10 max-w-[760px]">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-              {selectedClinic && urlClinicId && (
-                <div className="bg-primary/5 border border-primary/20 rounded-card p-4 flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-2 text-sm text-foreground font-semibold">
-                    <Building2 size={18} className="text-primary shrink-0" />
-                    <span>Clinic Pre-selected: {selectedClinic.name}</span>
-                  </div>
-                  <Badge variant="success" className="gap-1">
-                    <CheckCircle2 size={12} /> Confirmed
-                  </Badge>
-                </div>
-              )}
-
+          <Card className="mt-10 w-full max-w-[1440px] 2xl:max-w-[1536px] p-6 sm:p-8 lg:p-10">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-8 w-full">
               {mutation.isError && errorText && (
                 <Alert variant="error" title={mutation.error?.isUnauthorized ? "Sign in required" : "We couldn't book the appointment"}>
                   {mutation.error?.isUnauthorized
@@ -342,7 +359,7 @@ function AppointmentBookForm() {
                 </Alert>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start w-full">
                 <FieldSelect id="book-pet" label="Select Pet" value={petId} onChange={setPetId} disabled={petsLoading || petsError}>
                   {petsLoading ? (
                     <option value="">Loading your pets…</option>
@@ -361,21 +378,49 @@ function AppointmentBookForm() {
                   )}
                 </FieldSelect>
 
-                <FieldSelect id="book-clinic" label="Veterinary Clinic" value={clinicId} onChange={setClinicId} disabled={clinicsLoading}>
-                  {clinicsLoading ? (
-                    <option value="">Loading clinics…</option>
-                  ) : (
-                    <>
-                      <option value="">{clinics.length ? "Select a clinic" : "No clinics available"}</option>
-                      {clinics.map((clinic) => (
-                        <option key={clinic.id} value={clinic.id}>
-                          {clinic.name}
-                          {clinic.is_emergency ? " · Emergency" : ""}
-                        </option>
-                      ))}
-                    </>
-                  )}
-                </FieldSelect>
+                {urlClinicId ? (
+                  <div className="flex flex-col gap-2 w-full">
+                    <span className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
+                      Selected Clinic
+                    </span>
+                    <div className="bg-primary/5 border border-primary/20 rounded-card p-4 flex items-start justify-between gap-4 min-h-[48px]">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
+                          <Building2 size={20} />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-foreground font-bold text-base leading-snug">
+                            {selectedClinic?.name || "Loading clinic details…"}
+                          </span>
+                          {selectedClinic?.address && (
+                            <span className="text-muted-foreground text-xs leading-relaxed mt-1">
+                              {selectedClinic.address}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <Badge variant="success" className="gap-1 shrink-0 text-xs px-3 py-1 font-semibold uppercase tracking-wider">
+                        <CheckCircle2 size={12} /> Confirmed
+                      </Badge>
+                    </div>
+                  </div>
+                ) : (
+                  <FieldSelect id="book-clinic" label="Veterinary Clinic" value={clinicId} onChange={setClinicId} disabled={clinicsLoading}>
+                    {clinicsLoading ? (
+                      <option value="">Loading clinics…</option>
+                    ) : (
+                      <>
+                        <option value="">{clinics.length ? "Select a clinic" : "No clinics available"}</option>
+                        {clinics.map((clinic) => (
+                          <option key={clinic.id} value={clinic.id}>
+                            {clinic.name}
+                            {clinic.is_emergency ? " · Emergency" : ""}
+                          </option>
+                        ))}
+                      </>
+                    )}
+                  </FieldSelect>
+                )}
               </div>
 
               {petsError && !petsLoading && (
@@ -427,46 +472,48 @@ function AppointmentBookForm() {
                 </Alert>
               )}
 
-              <div className="h-px bg-border" />
+              <div className="h-px bg-border my-1" />
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <Input
-                  id="book-date"
-                  label="Date"
-                  type="date"
-                  min={minDate}
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                />
-                <Input
-                  id="book-time"
-                  label="Start time"
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  required
-                />
-                <FieldSelect
-                  id="book-duration"
-                  label="Duration"
-                  value={String(duration)}
-                  onChange={(value) => setDuration(Number(value))}
-                >
-                  {DURATION_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </FieldSelect>
+              <div className="flex flex-col gap-6 w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full">
+                  <Input
+                    id="book-date"
+                    label="Date"
+                    type="date"
+                    min={minDate}
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    required
+                  />
+                  <Input
+                    id="book-time"
+                    label="Start time"
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    required
+                  />
+                  <FieldSelect
+                    id="book-duration"
+                    label="Duration"
+                    value={String(duration)}
+                    onChange={(value) => setDuration(Number(value))}
+                  >
+                    {DURATION_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </FieldSelect>
+                </div>
+
+                {endsAt && (
+                  <p className="flex items-center gap-2 text-muted-foreground text-sm -mt-2">
+                    <Clock size={14} className="text-primary shrink-0" />
+                    Estimated end time: <span className="font-semibold text-foreground">{endTimeLabel}</span>
+                  </p>
+                )}
               </div>
-
-              {endsAt && (
-                <p className="flex items-center gap-2 text-muted-foreground text-sm">
-                  <Clock size={14} className="text-primary shrink-0" />
-                  Estimated end time: <span className="font-semibold text-foreground">{endTimeLabel}</span>
-                </p>
-              )}
 
               <Input
                 id="book-reason"
@@ -476,6 +523,7 @@ function AppointmentBookForm() {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 required
+                className="w-full"
               />
 
               <Textarea
@@ -485,28 +533,32 @@ function AppointmentBookForm() {
                 placeholder="Allergies, medications, symptoms, or anything the vet should know…"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                className="w-full min-h-[120px]"
               />
 
-              <div className="flex flex-col gap-3 pt-1">
+              <div className="flex flex-col gap-4 pt-2 border-t border-border/60">
                 {clientValidationError && (
-                  <Alert variant="warning" title="Almost there">
+                  <Alert variant="warning" title="Almost there" className="w-full">
                     {clientValidationError}
                   </Alert>
                 )}
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="md"
-                  isLoading={mutation.isPending}
-                  disabled={mutation.isPending || petsLoading || clinicsLoading || pets.length === 0 || clinics.length === 0}
-                >
-                  <Stethoscope size={15} />
-                  Book Appointment
-                </Button>
-                <p className="text-muted-foreground text-xs flex items-center gap-1.5">
-                  <CalendarDays size={12} className="shrink-0" />
-                  The clinic reviews your request and confirms the slot before the visit.
-                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+                  <p className="text-muted-foreground text-xs flex items-center gap-1.5">
+                    <CalendarDays size={14} className="shrink-0 text-primary" />
+                    The clinic reviews your request and confirms the slot before the visit.
+                  </p>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="md"
+                    isLoading={mutation.isPending}
+                    disabled={mutation.isPending || petsLoading || clinicsLoading || pets.length === 0 || clinics.length === 0}
+                    className="w-full sm:w-auto px-8 shrink-0 self-end"
+                  >
+                    <Stethoscope size={15} />
+                    Book Appointment
+                  </Button>
+                </div>
               </div>
             </form>
           </Card>

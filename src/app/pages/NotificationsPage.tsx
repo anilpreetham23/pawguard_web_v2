@@ -197,14 +197,6 @@ export default function NotificationsPage() {
                         </button>
                       </div>
                     </div>
-                    <div className="px-5 pb-4">
-                      <Link
-                        href={getNotificationDestination(n)}
-                        className="text-xs font-semibold text-primary hover:underline"
-                      >
-                        View details →
-                      </Link>
-                    </div>
                   </Card>
                 ))}
               </div>

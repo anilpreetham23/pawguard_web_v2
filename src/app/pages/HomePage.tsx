@@ -310,7 +310,7 @@ function VolunteerDonateSection() {
             <span className="font-serif font-bold text-5xl text-white">78%</span>
             <div className="flex flex-col">
               <span className="text-white font-semibold text-lg">Direct to Programs</span>
-              <span className="text-primary-foreground/80 text-sm">Of every dollar donated</span>
+              <span className="text-primary-foreground/80 text-sm">Of every rupee donated</span>
             </div>
           </div>
           <Button

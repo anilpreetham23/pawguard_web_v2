@@ -222,12 +222,12 @@ export default function Footer() {
             </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-5 lg:gap-10 py-4 lg:py-5 border-b border-white/5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-5 lg:gap-10 py-4 lg:py-5 border-b border-white/5">
             <motion.div
               {...staggerItem(0, motionTier)}
-              className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6"
+              className="lg:col-span-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6"
             >
-              <div className="sm:shrink-0">
+              <div className="sm:max-w-[220px] shrink-0">
                 <h3 className="text-white font-semibold text-xs tracking-widest uppercase mb-0.5">
                   Stay Updated
                 </h3>
@@ -235,7 +235,7 @@ export default function Footer() {
                   Rescue news, adoption updates, and volunteer opportunities.
                 </p>
               </div>
-              <div className="w-full sm:max-w-[400px]">
+              <div className="w-full sm:flex-1 sm:max-w-[380px]">
                 {subscribed ? (
                   <p className="text-white font-semibold text-sm animate-celebration-pop flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center shrink-0">
@@ -246,16 +246,18 @@ export default function Footer() {
                     You&rsquo;re subscribed. Welcome to the pack.
                   </p>
                 ) : (
-                  <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2.5">
-                    <Input
-                      type="email"
-                      required
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="bg-white/5 border-white/10 text-white placeholder:text-white/50 h-10 flex-1"
-                      aria-label="Email for newsletter"
-                    />
+                  <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full">
+                    <div className="flex-1 w-full min-w-0">
+                      <Input
+                        type="email"
+                        required
+                        placeholder="Enter your email address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="bg-white/5 border-white/10 text-white placeholder:text-white/50 h-10 w-full text-sm"
+                        aria-label="Email for newsletter"
+                      />
+                    </div>
                     <Button
                       type="submit"
                       variant="light"
@@ -263,7 +265,7 @@ export default function Footer() {
                       isLoading={subLoading}
                       isSuccess={false}
                       context="newsletter"
-                      className="shrink-0 w-full sm:w-auto"
+                      className="shrink-0 w-full sm:w-auto px-5 h-10"
                     >
                       Subscribe
                     </Button>
@@ -274,7 +276,7 @@ export default function Footer() {
 
             <motion.div
               {...staggerItem(1, motionTier)}
-              className="flex flex-col gap-2.5"
+              className="lg:col-span-5 flex flex-col gap-2.5"
             >
               <p className="text-white/70 text-xs font-semibold tracking-widest uppercase">
                 Trusted Partners &amp; Accreditation

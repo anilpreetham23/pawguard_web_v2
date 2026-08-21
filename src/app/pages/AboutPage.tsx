@@ -121,7 +121,7 @@ export default function AboutPage() {
                 Operational Transparency
               </SectionHeading>
               <p className="text-muted-foreground text-base leading-relaxed">
-                We believe donor trust is earned through radical transparency. Every dollar is accounted for. Our annual reports, audit results, and program outcomes are published publicly without delay.
+                We believe donor trust is earned through radical transparency. Every rupee is accounted for. Our annual reports, audit results, and program outcomes are published publicly without delay.
               </p>
               <div className="flex flex-col gap-4">
                 {[

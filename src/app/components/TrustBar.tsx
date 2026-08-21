@@ -21,8 +21,8 @@ const trusts: TrustItem[] = [
     stat: "501(c)(3)",
     statNum: 0,
     title: "Verified Nonprofit",
-    tagline: "Every dollar is accounted for",
-    evidence: "PawGuard is a registered 501(c)(3) nonprofit organization (EIN 87-1234567). Our financial records are audited annually and published publicly. 78% of every dollar goes directly to dog care programs.",
+    tagline: "Every rupee is accounted for",
+    evidence: "PawGuard is a registered nonprofit organization. Our financial records are audited annually and published publicly. 78% of every rupee goes directly to dog care programs.",
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary" aria-hidden="true">
         <path d="M16 4L6 8v10c0 5.5 3.5 9 10 10 6.5-1 10-4.5 10-10V8L16 4z" stroke="currentColor" />

@@ -87,8 +87,8 @@ export default function ContactPage() {
           </div>
         </div></DispatchReveal>
 
-        <Reveal><div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-section-md lg:pt-section-lg pb-8 grid grid-cols-1 lg:grid-cols-12 gap-[var(--space-12)] lg:gap-[var(--space-16)]">
-          <div className="lg:col-span-7 flex flex-col gap-12">
+        <Reveal><div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-section-md lg:pt-section-lg pb-8 grid grid-cols-1 lg:grid-cols-12 gap-[var(--space-12)] lg:gap-[var(--space-12)]">
+          <div className="lg:col-span-6 flex flex-col gap-12">
             <SectionHeading eyebrow="FAQ">
               Frequently Asked Questions
             </SectionHeading>
@@ -112,7 +112,7 @@ export default function ContactPage() {
             </Accordion.Root>
           </div>
 
-          <div className="lg:col-span-5 flex flex-col gap-12">
+          <div className="lg:col-span-6 flex flex-col gap-12">
             <Reveal><SectionHeading eyebrow="Send a Message">
               Get in Touch
             </SectionHeading>
@@ -164,6 +164,7 @@ export default function ContactPage() {
                   error={errors.email}
                   autoComplete="email"
                   inputMode="email"
+                  className="w-full text-sm sm:text-base tracking-normal min-w-0"
                 />
                 <div className="flex flex-col gap-2">
                   <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">Subject</label>

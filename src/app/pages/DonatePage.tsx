@@ -55,7 +55,7 @@ export default function DonatePage() {
             variant="dark"
             eyebrow="Support Our Work"
             title="Your money goes to dogs. Not overhead."
-            subtitle="78 cents of every dollar you give funds direct dog care — rescue operations, veterinary treatment, and foster support. We publish every dollar."
+            subtitle="78 paise of every rupee you give funds direct dog care — rescue operations, veterinary treatment, and foster support. We publish every rupee."
           />
         </Reveal>
 
@@ -435,7 +435,7 @@ export default function DonatePage() {
                       </svg>
                       <p className="text-foreground text-sm italic leading-relaxed mb-3">
                         &ldquo;I donate monthly because I know exactly where my
-                        money goes. 78 cents of every dollar hits the ground
+                        money goes. 78 paise of every rupee hits the ground
                         running. That is transparency I can trust.&rdquo;
                       </p>
                       <div className="flex items-center gap-3">
