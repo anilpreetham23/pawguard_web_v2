@@ -19,6 +19,8 @@ import { PageShell, Section, Button, Reveal, StaggerGrid, StaggerItem, Community
 import { Atmosphere, Parallax } from "../../motion";
 import { useAmbientPause } from "../hooks/useAmbientPause";
 import { useImpactStats } from "../hooks/useImpactStats";
+import { useAdoptionPets } from "../hooks/useAdoptionPets";
+import { useFaqEntries } from "../hooks/useFaqEntries";
 import { InteractiveImage } from "../../motion/components/InteractiveImage";
 import { useMotionStore } from "../../motion/motion-store";
 
@@ -243,6 +245,21 @@ function HowItWorksSection() {
 }
 
 function FeaturedDogsSection() {
+  const { data: apiDogs } = useAdoptionPets({ is_adoptable: true, page_size: 4 });
+
+  const dogsToDisplay =
+    apiDogs && apiDogs.length > 0
+      ? apiDogs.slice(0, 4).map((d) => ({
+          name: d.name,
+          breed: d.breed || "Mix Breed",
+          age: d.ageGroup,
+          gender: d.gender,
+          img: d.img || "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=280&fit=crop&auto=format",
+          urgent: d.adoptionBadge === "recent",
+          newArrival: (d.addedDaysAgo ?? 99) <= 14,
+        }))
+      : ANIMALS;
+
   return (
     <Section bg="card">
       <div className="flex flex-col gap-12 relative">
@@ -259,7 +276,7 @@ function FeaturedDogsSection() {
           </Link>
         </div>
         <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-grid-md">
-          {ANIMALS.map((a) => (
+          {dogsToDisplay.map((a) => (
             <StaggerItem key={a.name}>
               <AdoptionCard {...a} />
             </StaggerItem>
@@ -332,6 +349,12 @@ function StoriesSection() {
 
 function FaqSection() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const { data: apiFaqs } = useFaqEntries();
+
+  const faqsToDisplay =
+    apiFaqs && apiFaqs.length > 0
+      ? apiFaqs.map((f) => ({ q: f.question, a: f.answer }))
+      : FAQS;
 
   return (
     <Section bg="default" containerWidth="narrow" aria-label="Frequently asked questions">
@@ -340,7 +363,7 @@ function FaqSection() {
           Frequently *Asked* Questions
         </EditorialHeading>
         <div className="flex flex-col">
-          {FAQS.map((faq, i) => (
+          {faqsToDisplay.map((faq, i) => (
             <div key={i} className="border-t border-border last:border-b">
               <button
                 onClick={() => setOpenIdx(openIdx === i ? null : i)}

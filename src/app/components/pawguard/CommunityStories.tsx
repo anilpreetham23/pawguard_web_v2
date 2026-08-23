@@ -8,6 +8,7 @@ import { useMotionStore } from "../../../motion/motion-store";
 import { duration, ease } from "../../../motion/motion.config";
 import { useAmbientPause } from "../../hooks/useAmbientPause";
 import { EditorialHeading } from "./EditorialHeading";
+import { useSuccessStories } from "../../hooks/useSuccessStories";
 
 interface StoryData {
   id: string;
@@ -214,6 +215,24 @@ function StoryCard({
 }
 
 export function CommunityStories() {
+  const { data: remoteStories } = useSuccessStories();
+  const storiesToDisplay: StoryData[] =
+    remoteStories && remoteStories.length > 0
+      ? remoteStories.map((s) => ({
+          id: s.id,
+          animal: s.title,
+          type: "Rescue Dog",
+          quote: s.summary || "A story of hope and recovery.",
+          headline: s.title,
+          excerpt: s.summary || s.body.slice(0, 120),
+          img:
+            s.hero_image_url ||
+            "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1000&h=600&fit=crop&auto=format",
+          adopter: "PawGuard Family",
+          date: s.published_at ? s.published_at.slice(0, 10) : "Recent",
+        }))
+      : STORIES;
+
   const containerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -223,7 +242,7 @@ export function CommunityStories() {
   useAmbientPause(sectionRef);
 
   const autoIdxRef = useRef(0);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>(Array(STORIES.length).fill(null));
+  const cardRefs = useRef<(HTMLDivElement | null)[]>(Array(storiesToDisplay.length).fill(null));
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -275,9 +294,9 @@ export function CommunityStories() {
   }, [motionTier]);
 
   const goNext = useCallback(() => {
-    const next = Math.min(activeIdx + 1, STORIES.length - 1);
+    const next = Math.min(activeIdx + 1, storiesToDisplay.length - 1);
     if (next !== activeIdx) scrollTo(next);
-  }, [activeIdx, scrollTo]);
+  }, [activeIdx, storiesToDisplay.length, scrollTo]);
 
   const goPrev = useCallback(() => {
     const prev = Math.max(activeIdx - 1, 0);
@@ -287,10 +306,10 @@ export function CommunityStories() {
   useEffect(() => {
     if (motionTier === "none" || !sectionVisible) return;
     const id = setInterval(() => {
-      scrollTo((autoIdxRef.current + 1) % STORIES.length);
+      scrollTo((autoIdxRef.current + 1) % storiesToDisplay.length);
     }, 4500);
     return () => clearInterval(id);
-  }, [motionTier, sectionVisible, scrollTo]);
+  }, [motionTier, sectionVisible, storiesToDisplay.length, scrollTo]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -318,7 +337,7 @@ export function CommunityStories() {
             </h2>
           </div>
           <div className="grid gap-grid-md md:grid-cols-2 lg:grid-cols-3">
-            {STORIES.map((story) => (
+            {storiesToDisplay.map((story) => (
               <div key={story.id} className="bg-background rounded-card p-5 border border-border/40">
                 <blockquote className="text-foreground font-serif font-bold text-base leading-snug mb-3">
                   &ldquo;{story.quote}&rdquo;
@@ -351,7 +370,7 @@ export function CommunityStories() {
       </div>
 
       <div className="relative max-w-[1280px] mx-auto">
-        {STORIES.length > 1 && (
+        {storiesToDisplay.length > 1 && (
           <>
             <button
               onClick={goPrev}
@@ -371,7 +390,7 @@ export function CommunityStories() {
             </button>
             <button
               onClick={goNext}
-              disabled={activeIdx === STORIES.length - 1}
+              disabled={activeIdx === storiesToDisplay.length - 1}
               aria-label="Next story"
               className={cn(
                 "absolute right-2 lg:right-0 top-1/2 -translate-y-1/2 z-20",
@@ -380,7 +399,7 @@ export function CommunityStories() {
                 "flex items-center justify-center",
                 "text-white/70 hover:text-white hover:bg-white/20",
                 "transition-all duration-gentle ease-gentle focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                activeIdx === STORIES.length - 1 && "opacity-0 pointer-events-none",
+                activeIdx === storiesToDisplay.length - 1 && "opacity-0 pointer-events-none",
               )}
             >
               <ChevronRight size={18} />
@@ -405,7 +424,7 @@ export function CommunityStories() {
             WebkitOverflowScrolling: "touch",
           }}
         >
-          {STORIES.map((story, i) => (
+          {storiesToDisplay.map((story, i) => (
             <div
               key={story.id}
               ref={(el) => { cardRefs.current[i] = el; }}
@@ -423,7 +442,7 @@ export function CommunityStories() {
 
         <div className="mt-6 lg:mt-8 flex items-center justify-center gap-4">
           <ProgressDots
-            count={STORIES.length}
+            count={storiesToDisplay.length}
             active={hoveredIdx !== null ? hoveredIdx : activeIdx}
             onSelect={scrollTo}
           />

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Check, ArrowRight } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import { PageShell, Section, Button, Card, Reveal, DispatchReveal, StaggerGrid, StaggerItem } from "../components/pawguard";
+import { usePublicContent } from "../hooks/usePublicContent";
+import { useImpactStats } from "../hooks/useImpactStats";
 
 const TEAM = [
   { name: "Dr. Sarah Chen", role: "Executive Director", img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&auto=format" },
@@ -21,6 +23,19 @@ const VALUES = [
 ];
 
 export default function AboutPage() {
+  const { data: publicContent } = usePublicContent();
+  const impactStats = useImpactStats();
+
+  const missionText = publicContent?.mission || "To build coordinated, community-driven systems that ensure every dog in crisis receives rapid rescue, quality care, and a permanent home — without exception.";
+  const aboutText = publicContent?.about_us || "PawGuard began in 2018 when Dr. Sarah Chen, then a veterinary surgeon, responded to a series of uncoordinated dog rescue calls in her city and realized that good intentions were not enough. Dogs were slipping through gaps between organizations, jurisdictions, and volunteer networks.";
+
+  const statsList = [
+    { value: impactStats[0]?.value || "4,200+", label: "Dogs Rescued" },
+    { value: impactStats[1]?.value || "1,850+", label: "Successful Adoptions" },
+    { value: impactStats[2]?.value || "800+", label: "Active Volunteers" },
+    { value: "12", label: "Municipalities Served" },
+  ];
+
   return (
     <PageShell>
       <main id="main-content" className="flex-1">
@@ -50,7 +65,7 @@ export default function AboutPage() {
                 Our Mission
               </SectionHeading>
               <p className="text-muted-foreground text-base leading-relaxed max-w-[540px]">
-                To build coordinated, community-driven systems that ensure every dog in crisis receives rapid rescue, quality care, and a permanent home — without exception.
+                {missionText}
               </p>
               <div className="pl-6 border-l-2 border-primary max-w-[540px]">
                 <p className="text-foreground font-serif italic font-bold text-xl leading-snug">
@@ -63,14 +78,9 @@ export default function AboutPage() {
                 From a single rescue to a regional network
               </SectionHeading>
               <div className="flex flex-col gap-5 text-muted-foreground text-base leading-relaxed max-w-[540px]">
+                <p>{aboutText}</p>
                 <p>
-                  PawGuard began in 2018 when Dr. Sarah Chen, then a veterinary surgeon, responded to a series of uncoordinated dog rescue calls in her city and realized that good intentions were not enough. Dogs were slipping through gaps between organizations, jurisdictions, and volunteer networks.
-                </p>
-                <p>
-                  She recruited Marcus Osei, a logistics coordinator with emergency services experience, and together they designed a triage and dispatch system modelled on human emergency response. Within six months, response times dropped by 60%. Within a year, adoption rates in partnered shelters rose by 40%.
-                </p>
-                <p>
-                  Today, PawGuard operates across 12 municipalities, coordinates over 800 volunteers, and has facilitated more than 4,200 rescues. The systems are open-source and available to any organization ready to implement them.
+                  Today, PawGuard operates across 12 municipalities, coordinates over 800 volunteers, and has facilitated thousands of rescues. The systems are open-source and available to any organization ready to implement them.
                 </p>
               </div>
             </div>
@@ -79,12 +89,7 @@ export default function AboutPage() {
 
         <Reveal><Section bg="dark">
           <div className="flex flex-wrap items-center justify-between gap-8 lg:gap-12">
-            {[
-              { value: "4,200+", label: "Dogs Rescued" },
-              { value: "1,850+", label: "Successful Adoptions" },
-              { value: "800+", label: "Active Volunteers" },
-              { value: "12", label: "Municipalities Served" },
-            ].map((s) => (
+            {statsList.map((s) => (
               <div key={s.label} className="flex flex-col gap-1">
                 <span className="text-background font-serif font-bold text-3xl lg:text-4xl leading-none">{s.value}</span>
                 <span className="text-white/70 text-xs font-medium tracking-wider uppercase font-condensed">{s.label}</span>

@@ -5,6 +5,7 @@ import { BookOpen, ShieldCheck, Heart, Stethoscope, AlertTriangle, ArrowRight } 
 import PageHeader from "../components/PageHeader";
 import SectionHeading from "../components/SectionHeading";
 import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, Button } from "../components/pawguard";
+import { useBlogPosts } from "../hooks/useBlogPosts";
 
 export const GUIDES = [
   {
@@ -121,6 +122,27 @@ export const GUIDES = [
 ];
 
 export default function EducationPage() {
+  const { data: apiPosts } = useBlogPosts();
+
+  const guidesToDisplay =
+    apiPosts && apiPosts.length > 0
+      ? apiPosts.map((post) => ({
+          slug: post.slug,
+          title: post.title,
+          category: post.category.replace("-", " ").toUpperCase(),
+          icon: BookOpen,
+          readTime: `${post.readTimeMinutes} min read`,
+          summary: post.shortDescription,
+        }))
+      : GUIDES.map((g) => ({
+          slug: g.slug,
+          title: g.title,
+          category: g.category,
+          icon: g.icon,
+          readTime: g.readTime,
+          summary: g.summary,
+        }));
+
   return (
     <PageShell>
       <main id="main-content" className="flex-1">
@@ -133,7 +155,7 @@ export default function EducationPage() {
         <Section bg="default">
           <div className="max-w-[1280px] mx-auto flex flex-col gap-10">
             <StaggerGrid className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {GUIDES.map((guide) => {
+              {guidesToDisplay.map((guide) => {
                 const Icon = guide.icon;
                 return (
                   <StaggerItem key={guide.slug}>

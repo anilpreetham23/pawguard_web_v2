@@ -9,6 +9,8 @@ import { useMotionStore } from "../../motion";
 import { duration, ease, stagger, delay } from "../../motion/motion.config";
 import { cn } from "./ui/utils";
 import { EMERGENCY, SITE_STATS } from "../config/site";
+import { useImpactStats } from "../hooks/useImpactStats";
+import { useUrgentAlerts } from "../hooks/useUrgentAlerts";
 
 interface TopEmergencyBarProps {
   scrolled: boolean;
@@ -105,7 +107,9 @@ function EmergencyCard({ compact }: { compact: boolean }) {
 }
 
 function StatisticsCard({ compact }: { compact: boolean }) {
-  const display = useCountUpOnMount(SITE_STATS.rescuedDogs);
+  const impactStats = useImpactStats();
+  const rescuedStat = impactStats[0]?.value || SITE_STATS.rescuedDogs;
+  const display = useCountUpOnMount(rescuedStat);
 
   return (
     <motion.div variants={cardStagger} className="relative h-full min-w-0">
@@ -201,6 +205,8 @@ function DonationCard({ compact }: { compact: boolean }) {
 export default function TopEmergencyBar({ scrolled }: TopEmergencyBarProps) {
   const reduced = useMotionStore((s) => s.motionTier) !== "full";
   const compact = scrolled;
+  const { data: alerts } = useUrgentAlerts();
+  const activeAlert = alerts.find((a) => a.is_active);
 
   // Resolve strip heights once from the design tokens (kept in sync with CSS)
   const heights = useMemo(() => {
@@ -213,68 +219,88 @@ export default function TopEmergencyBar({ scrolled }: TopEmergencyBarProps) {
   }, []);
 
   return (
-    <motion.div
-      className="top-emergency-strip relative z-[var(--z-top-strip)] overflow-hidden bg-background will-change-[height]"
-      initial={false}
-      animate={{ height: compact ? heights.compact : heights.full }}
-      transition={
-        reduced
-          ? { duration: 0 }
-          : { duration: STRIP_DURATION, ease: STRIP_EASE }
-      }
-      role="region"
-      aria-label="Emergency hotline, rescue statistics, and donation"
-    >
-      <style jsx global>{`
-        @keyframes top-bar-marquee {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
-
-      {/* Desktop 3-column layout */}
-      <motion.div
-        className="hidden sm:grid mx-auto h-full max-w-[1280px] grid-cols-3"
-        initial={reduced ? false : "hidden"}
-        animate={reduced ? undefined : "visible"}
-        variants={{
-          hidden: {},
-          visible: {
-            transition: { staggerChildren: stagger.fast, delayChildren: delay.micro / 1000 },
-          },
-        }}
-      >
-        <DonationCard compact={compact} />
-        <StatisticsCard compact={compact} />
-        <EmergencyCard compact={compact} />
-      </motion.div>
-
-      {/* Mobile continuous marquee */}
-      <div className="sm:hidden flex items-center h-full w-full overflow-hidden relative">
+    <>
+      {activeAlert && (
         <div
-          className="flex items-center h-full shrink-0"
-          style={{
-            animation: reduced ? "none" : "top-bar-marquee 16s linear infinite",
-            display: "flex",
-            width: "max-content",
+          className={cn(
+            "w-full px-4 py-2 text-center text-xs font-semibold flex items-center justify-center gap-2",
+            activeAlert.severity === "critical"
+              ? "bg-destructive text-white"
+              : activeAlert.severity === "warning"
+              ? "bg-amber-600 text-white"
+              : "bg-primary text-white"
+          )}
+          role="alert"
+        >
+          <span className="uppercase font-condensed tracking-wider font-bold">[{activeAlert.severity}]</span>
+          <span>{activeAlert.title}:</span>
+          <span className="font-normal">{activeAlert.message}</span>
+        </div>
+      )}
+
+      <motion.div
+        className="top-emergency-strip relative z-[var(--z-top-strip)] overflow-hidden bg-background will-change-[height]"
+        initial={false}
+        animate={{ height: compact ? heights.compact : heights.full }}
+        transition={
+          reduced
+            ? { duration: 0 }
+            : { duration: STRIP_DURATION, ease: STRIP_EASE }
+        }
+        role="region"
+        aria-label="Emergency hotline, rescue statistics, and donation"
+      >
+        <style jsx global>{`
+          @keyframes top-bar-marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+          }
+        `}</style>
+
+        {/* Desktop 3-column layout */}
+        <motion.div
+          className="hidden sm:grid mx-auto h-full max-w-[1280px] grid-cols-3"
+          initial={reduced ? false : "hidden"}
+          animate={reduced ? undefined : "visible"}
+          variants={{
+            hidden: {},
+            visible: {
+              transition: { staggerChildren: stagger.fast, delayChildren: delay.micro / 1000 },
+            },
           }}
         >
-          {/* Loop Set 1 */}
-          <div className="flex items-center h-full shrink-0">
-            <DonationCard compact={compact} />
-            <StatisticsCard compact={compact} />
-            <EmergencyCard compact={compact} />
-          </div>
-          {/* Loop Set 2 (Duplicate for seamless loop) */}
-          <div className="flex items-center h-full shrink-0" aria-hidden="true">
-            <DonationCard compact={compact} />
-            <StatisticsCard compact={compact} />
-            <EmergencyCard compact={compact} />
+          <DonationCard compact={compact} />
+          <StatisticsCard compact={compact} />
+          <EmergencyCard compact={compact} />
+        </motion.div>
+
+        {/* Mobile continuous marquee */}
+        <div className="sm:hidden flex items-center h-full w-full overflow-hidden relative">
+          <div
+            className="flex items-center h-full shrink-0"
+            style={{
+              animation: reduced ? "none" : "top-bar-marquee 16s linear infinite",
+              display: "flex",
+              width: "max-content",
+            }}
+          >
+            {/* Loop Set 1 */}
+            <div className="flex items-center h-full shrink-0">
+              <DonationCard compact={compact} />
+              <StatisticsCard compact={compact} />
+              <EmergencyCard compact={compact} />
+            </div>
+            {/* Loop Set 2 (Duplicate for seamless loop) */}
+            <div className="flex items-center h-full shrink-0" aria-hidden="true">
+              <DonationCard compact={compact} />
+              <StatisticsCard compact={compact} />
+              <EmergencyCard compact={compact} />
+            </div>
           </div>
         </div>
-      </div>
 
-      <span className="sr-only">{SITE_STATS.rescuedDogs} dogs rescued</span>
-    </motion.div>
+        <span className="sr-only">{SITE_STATS.rescuedDogs} dogs rescued</span>
+      </motion.div>
+    </>
   );
 }

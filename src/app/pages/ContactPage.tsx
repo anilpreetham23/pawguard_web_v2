@@ -11,6 +11,9 @@ import { PageShell, Section, Button, Input, Textarea, Reveal, DispatchReveal, St
 import { contactService } from "@/services/api/contact";
 import { getErrorMessage } from "@/lib/api";
 
+import { useFaqEntries } from "../hooks/useFaqEntries";
+import { useContactLocations } from "../hooks/useContactLocations";
+
 const FAQS = [
   { q: "How quickly does PawGuard respond to emergency reports?", a: "Our average response time is under 15 minutes for critical emergencies within our coverage area. Non-critical situations are typically attended within 4 hours." },
   { q: "Can I surrender a dog to PawGuard?", a: "Yes. We accept owner surrenders subject to intake availability. Please contact us before arriving to ensure we have space and can assess the dog's needs." },
@@ -22,6 +25,14 @@ const FAQS = [
 ];
 
 export default function ContactPage() {
+  const { data: apiFaqs } = useFaqEntries();
+  const { data: apiLocations } = useContactLocations();
+
+  const faqsToDisplay =
+    apiFaqs && apiFaqs.length > 0
+      ? apiFaqs.map((f) => ({ q: f.question, a: f.answer }))
+      : FAQS;
+
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -93,7 +104,7 @@ export default function ContactPage() {
               Frequently Asked Questions
             </SectionHeading>
             <Accordion.Root type="single" collapsible className="flex flex-col">
-              {FAQS.map((faq, i) => (
+              {faqsToDisplay.map((faq, i) => (
                 <Accordion.Item key={i} value={`item-${i}`} className="border-t border-border last:border-b">
                   <Accordion.Trigger className="w-full flex items-center justify-between py-5 text-left gap-4 group min-h-[44px]">
                     <span className="text-foreground font-semibold text-base leading-snug group-hover:text-primary transition-colors duration-200">
@@ -126,7 +137,7 @@ export default function ContactPage() {
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
                 </div>
-                <h3 className="text-foreground font-bold text-xl">Message failed to send</h3>
+                <h3 className="text-foreground font-bold text-xl">Submission Error</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {formError || "Something went wrong. Please try again or email us directly at hello@pawguard.org."}
                 </p>
@@ -206,7 +217,31 @@ export default function ContactPage() {
           </div>
         </div></Reveal>
 
-        <Reveal><div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-8 pb-20 lg:pb-28 border-t border-border">
+        <Reveal><div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-8 pb-20 lg:pb-28 border-t border-border flex flex-col gap-10">
+          {apiLocations && apiLocations.length > 0 && (
+            <div className="flex flex-col gap-4">
+              <h3 className="text-foreground font-bold text-base">Shelter & Office Locations</h3>
+              <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md" staggerDelay={0.05}>
+                {apiLocations.map((loc) => (
+                  <StaggerItem key={loc.id}>
+                    <div className="bg-card border border-border rounded-card p-5 shadow-sm flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-foreground font-bold text-base">{loc.name}</span>
+                        {loc.is_emergency_hotline && (
+                          <span className="text-2xs bg-destructive/10 text-destructive px-2 py-0.5 rounded font-semibold uppercase">Emergency</span>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground text-xs">{loc.address}</p>
+                      {loc.phone && <p className="text-primary text-xs font-semibold">Phone: {loc.phone}</p>}
+                      {loc.email && <p className="text-muted-foreground text-xs">Email: {loc.email}</p>}
+                      {loc.operating_hours && <p className="text-muted-foreground text-2xs italic mt-1">Hours: {loc.operating_hours}</p>}
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerGrid>
+            </div>
+          )}
+
           <div className="flex flex-col gap-4">
             <h3 className="text-foreground font-bold text-base">Direct Contacts</h3>
             <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-grid-md" staggerDelay={0.05}>

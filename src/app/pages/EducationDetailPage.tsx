@@ -5,9 +5,44 @@ import { ArrowLeft, Clock, BookOpen, Share2 } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import { PageShell, Section, Card, Reveal, Button } from "../components/pawguard";
 import { GUIDES } from "./EducationPage";
+import { useBlogPost } from "../hooks/useBlogPost";
 
 export default function EducationDetailPage({ slug }: { slug: string }) {
-  const guide = GUIDES.find((g) => g.slug === slug);
+  const { data: remotePost, isLoading } = useBlogPost(slug);
+  const staticGuide = GUIDES.find((g) => g.slug === slug);
+
+  if (isLoading) {
+    return (
+      <PageShell>
+        <main id="main-content" className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+3rem)] text-center">
+          <p className="text-muted-foreground">Loading guide details...</p>
+        </main>
+      </PageShell>
+    );
+  }
+
+  const guide = remotePost
+    ? {
+        category: remotePost.category.replace("-", " ").toUpperCase(),
+        title: remotePost.title,
+        description: remotePost.shortDescription,
+        readTime: `${remotePost.readTimeMinutes} min read`,
+        sections: remotePost.sections.map((s) => ({
+          heading: s.heading,
+          content: s.paragraphs.join("\n\n"),
+        })),
+        icon: BookOpen,
+      }
+    : staticGuide
+    ? {
+        category: staticGuide.category,
+        title: staticGuide.title,
+        description: staticGuide.description,
+        readTime: staticGuide.readTime,
+        sections: staticGuide.sections,
+        icon: staticGuide.icon,
+      }
+    : null;
 
   if (!guide) {
     return (
@@ -63,7 +98,7 @@ export default function EducationDetailPage({ slug }: { slug: string }) {
                   <h2 className="font-serif font-bold text-xl text-foreground">
                     {sec.heading}
                   </h2>
-                  <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                  <p className="text-muted-foreground text-sm sm:text-base leading-relaxed whitespace-pre-line">
                     {sec.content}
                   </p>
                 </Card>
