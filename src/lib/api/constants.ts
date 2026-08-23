@@ -122,6 +122,7 @@ export const API_ROUTES = {
     sighting: "/lost-found/sighting",
     lostById: (id: string) => `/lost-found/lost/${id}`,
     foundById: (id: string) => `/lost-found/found/${id}`,
+    reportById: (id: string) => `/lost-found/reports/${id}`,
     broadcast: (reportId: string) => `/lost-found/lost/${reportId}/broadcast`,
     matches: (reportId: string) => `/lost-found/lost/${reportId}/matches`,
     foundMatches: (reportId: string) => `/lost-found/found/${reportId}/matches`,

@@ -31,7 +31,7 @@ export function useAdoptionApplicationsAll(enabled = true): AdoptionApplications
     enabled: enabled && isAuthenticated && status === "authenticated",
     queryFn: () =>
       adoptionService.listMyApplications({
-        page_size: 100,
+        page_size: 20,
       }),
   });
 

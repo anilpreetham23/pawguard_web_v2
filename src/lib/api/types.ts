@@ -316,6 +316,11 @@ export interface DogQueryParams
   breed?: string;
   gender?: string;
   temperament?: string;
+  min_age_months?: number;
+  max_age_months?: number;
+  min_weight?: number;
+  max_weight?: number;
+  location?: string;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -968,10 +973,21 @@ export interface PetSightingResponse {
 /** Content lifecycle state (`ContentStatus` enum). */
 export type ContentStatus = "draft" | "published";
 
-/**
- * `GET /portal/blog` / `GET /portal/blog/slug/{slug}` payload
- * (`BlogPostResponse`).
- */
+/** `GET /portal/blog` summary payload excluding full article body. */
+export interface BlogPostSummaryResponse {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  cover_image_url: string | null;
+  category: string;
+  status: ContentStatus;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** `GET /portal/blog` / `GET /portal/blog/slug/{slug}` payload (`BlogPostResponse`). */
 export interface BlogPostResponse {
   id: string;
   title: string;
@@ -984,6 +1000,12 @@ export interface BlogPostResponse {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** `GET /lost-found/reports/{id}` unified response payload. */
+export interface UnifiedLostFoundReportResponse {
+  kind: "lost" | "found";
+  report: LostReportResponse | FoundReportResponse;
 }
 
 /** `GET /portal/stats` payload (`PublicHeroStats`). */

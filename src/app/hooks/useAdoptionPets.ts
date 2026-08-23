@@ -13,11 +13,11 @@ import {
  * instant — the backend has no age-group/size facets, only estimated age and
  * weight, which the mapper buckets into `ageGroup`/`size` locally.
  */
-export function useAdoptionPets() {
+export function useAdoptionPets(params?: Parameters<typeof adoptionService.listDogs>[0]) {
   return useApiQuery({
-    queryKey: QUERY_KEYS.adoption.pets,
+    queryKey: [QUERY_KEYS.adoption.pets, params],
     queryFn: () =>
-      adoptionService.listDogs({ is_adoptable: true, page_size: 100 }),
+      adoptionService.listDogs({ is_adoptable: true, page_size: 24, ...params }),
     select: (page) => page.items.map(dogProfileToPet),
   });
 }

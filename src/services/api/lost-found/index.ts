@@ -29,6 +29,7 @@ import type {
   PetSightingCreate,
   PetSightingResponse,
   ReportMatchResponse,
+  UnifiedLostFoundReportResponse,
 } from "@/lib/api";
 import type { LostFoundCase, LostFoundKind } from "@/types";
 import { foundReportToCase, lostReportToCase } from "./mapper";
@@ -81,7 +82,38 @@ export const lostFoundService = {
    * and the found detail on a 404; a 404 from both resolves to `null`. Any
    * other error (network, 5xx) propagates.
    */
-  async getReportById(id: string): Promise<LostFoundCase | null> {
+  async getReportById(id: string, knownKind?: LostFoundKind): Promise<LostFoundCase | null> {
+    if (knownKind === "lost") {
+      try {
+        const lost = await apiGet<LostReportResponse>(API_ROUTES.lostFound.lostById(id));
+        return lostReportToCase(lost);
+      } catch (error) {
+        if (isApiError(error) && error.isNotFound) return null;
+        throw error;
+      }
+    }
+    if (knownKind === "found") {
+      try {
+        const found = await apiGet<FoundReportResponse>(API_ROUTES.lostFound.foundById(id));
+        return foundReportToCase(found);
+      } catch (error) {
+        if (isApiError(error) && error.isNotFound) return null;
+        throw error;
+      }
+    }
+    try {
+      const unified = await apiGet<UnifiedLostFoundReportResponse>(
+        API_ROUTES.lostFound.reportById(id)
+      );
+      if (unified && unified.kind && unified.report) {
+        return unified.kind === "lost"
+          ? lostReportToCase(unified.report as LostReportResponse)
+          : foundReportToCase(unified.report as FoundReportResponse);
+      }
+    } catch (error) {
+      if (!(isApiError(error) && error.isNotFound)) throw error;
+    }
+
     try {
       const lost = await apiGet<LostReportResponse>(
         API_ROUTES.lostFound.lostById(id)

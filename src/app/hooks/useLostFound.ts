@@ -50,10 +50,10 @@ export interface LostFoundDetailResult {
 }
 
 /** Single report resolved through its direct detail endpoint. */
-export function useLostFoundReport(id: string): LostFoundDetailResult {
+export function useLostFoundReport(id: string, kind?: LostFoundKind): LostFoundDetailResult {
   const { data, isLoading, isError, error, refetch } = useApiQuery({
-    queryKey: QUERY_KEYS.lostFound.report(id),
-    queryFn: () => lostFoundService.getReportById(id),
+    queryKey: [...QUERY_KEYS.lostFound.report(id), kind],
+    queryFn: () => lostFoundService.getReportById(id, kind),
   });
 
   return {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Shield, RefreshCw, ChevronLeft, ChevronRight, Search, X, ChevronDown, Filter } from "lucide-react";
 import SectionHeading from "../components/SectionHeading";
@@ -49,13 +49,45 @@ function CardSkeleton() {
 }
 
 export default function AdoptionPage() {
-  const { data: pets = [], isLoading, isError, error, refetch } = useAdoptionPets();
-
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAge, setSelectedAge] = useState<string[]>([]);
   const [selectedSize, setSelectedSize] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("default");
   const [page, setPage] = useState(1);
+
+  const apiParams = useMemo(() => {
+    let min_age_months: number | undefined;
+    let max_age_months: number | undefined;
+    let min_weight: number | undefined;
+    let max_weight: number | undefined;
+
+    if (selectedAge.length === 1) {
+      const age = selectedAge[0];
+      if (age === "Puppy (< 1 yr)") max_age_months = 12;
+      else if (age === "Young (1-3 yrs)") { min_age_months = 12; max_age_months = 36; }
+      else if (age === "Adult (3-8 yrs)") { min_age_months = 36; max_age_months = 96; }
+      else if (age === "Senior (8+ yrs)") min_age_months = 96;
+    }
+
+    if (selectedSize.length === 1) {
+      const sz = selectedSize[0];
+      if (sz === "Small (< 10 kg)") max_weight = 10;
+      else if (sz === "Medium (10-25 kg)") { min_weight = 10; max_weight = 25; }
+      else if (sz === "Large (25+ kg)") min_weight = 25;
+    }
+
+    return {
+      search: searchQuery.trim() || undefined,
+      min_age_months,
+      max_age_months,
+      min_weight,
+      max_weight,
+      page,
+      page_size: 24,
+    };
+  }, [searchQuery, selectedAge, selectedSize, page]);
+
+  const { data: pets = [], isLoading, isError, error, refetch } = useAdoptionPets(apiParams);
 
   function toggle(list: string[], value: string, setter: (v: string[]) => void) {
     setter(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);

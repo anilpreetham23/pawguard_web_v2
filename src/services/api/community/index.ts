@@ -15,7 +15,8 @@
  * `@/data/community` (documented in the community implementation report).
  */
 
-import { API_ROUTES, apiGet, apiGetPage, apiPost } from "@/lib/api";
+import { API_ROUTES, QUERY_KEYS, apiGet, apiGetPage, apiPost } from "@/lib/api";
+import { queryClient } from "@/lib/react-query";
 import type {
   BlogPostResponse,
   DownloadUrlResponse,
@@ -62,7 +63,9 @@ export const communityService = {
 
   /** Related posts derived from the published list (same category first). */
   getRelatedBlogPosts(post: BlogPost, limit = 3): Promise<BlogPost[]> {
-    return this.getBlogPosts().then((posts) => {
+    const cached = queryClient.getQueryData<BlogPost[]>(QUERY_KEYS.community.blog);
+    const postsPromise = cached ? Promise.resolve(cached) : this.getBlogPosts();
+    return postsPromise.then((posts) => {
       const sameCategory = posts.filter(
         (item) => item.slug !== post.slug && item.category === post.category
       );

@@ -435,7 +435,7 @@ export default function AccountPage() {
                   </div>
                   {user && user.roles.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {user.roles.map((role) => (
+                      {user.roles.map((role: string) => (
                         <span
                           key={role}
                           className="bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full"
@@ -783,7 +783,7 @@ export default function AccountPage() {
                           Assigned System Roles
                         </span>
                         <div className="flex flex-wrap gap-1.5">
-                          {user?.roles.map((r) => (
+                          {user?.roles.map((r: string) => (
                             <span key={r} className="bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
                               {roleLabel(r)}
                             </span>
