@@ -31,9 +31,12 @@ import {
   Badge,
 } from "../components/pawguard";
 import { useVeterinaryPartners } from "../hooks/useVeterinaryPartners";
+import { useVetClinics } from "../hooks/useVetClinics";
+import { findMatchingClinic } from "@/lib/utils/clinic-matcher";
 import { getErrorMessage } from "@/lib/api";
 import { cn } from "../components/ui/utils";
 import type { VeterinaryPartner } from "@/types";
+import type { VetClinicResponse } from "@/lib/api";
 import {
   Dialog,
   DialogContent,
@@ -91,12 +94,20 @@ function PartnerCardSkeleton() {
 
 function PartnerCard({
   partner,
+  clinics,
   onViewDetails,
 }: {
   partner: VeterinaryPartner;
+  clinics: VetClinicResponse[];
   onViewDetails: (partner: VeterinaryPartner) => void;
 }) {
-  const bookingHref = `/appointments/book?clinic_id=${partner.id}`;
+  const matchedClinic = useMemo(
+    () => findMatchingClinic(partner, clinics),
+    [partner, clinics]
+  );
+  const bookingHref = matchedClinic
+    ? `/appointments/book?clinic_id=${matchedClinic.id}`
+    : `/appointments/book`;
 
   return (
     <Card variant="elevated" className="gap-0 overflow-hidden p-0 flex flex-col justify-between h-full">
@@ -209,12 +220,20 @@ function PartnerCard({
 
 function ClinicDetailModal({
   partner,
+  clinics,
   onClose,
 }: {
   partner: VeterinaryPartner;
+  clinics: VetClinicResponse[];
   onClose: () => void;
 }) {
-  const bookingHref = `/appointments/book?clinic_id=${partner.id}`;
+  const matchedClinic = useMemo(
+    () => findMatchingClinic(partner, clinics),
+    [partner, clinics]
+  );
+  const bookingHref = matchedClinic
+    ? `/appointments/book?clinic_id=${matchedClinic.id}`
+    : `/appointments/book`;
 
   return (
     <Dialog open={Boolean(partner)} onOpenChange={(open) => !open && onClose()}>
@@ -330,6 +349,7 @@ export default function VeterinaryPage() {
     error,
     refetch,
   } = useVeterinaryPartners();
+  const { clinics = [] } = useVetClinics();
 
   const [query, setQuery] = useState("");
   const [emergencyOnly, setEmergencyOnly] = useState(false);
@@ -490,6 +510,7 @@ export default function VeterinaryPage() {
                     <StaggerItem key={partner.id}>
                       <PartnerCard
                         partner={partner}
+                        clinics={clinics}
                         onViewDetails={(p) => setSelectedPartner(p)}
                       />
                     </StaggerItem>
@@ -536,6 +557,7 @@ export default function VeterinaryPage() {
         {selectedPartner && (
           <ClinicDetailModal
             partner={selectedPartner}
+            clinics={clinics}
             onClose={() => setSelectedPartner(null)}
           />
         )}

@@ -13,6 +13,7 @@ import { useAuth } from "../providers/auth-provider";
 import { useMyPets } from "../hooks/useMyPets";
 import { useVetClinics } from "../hooks/useVetClinics";
 import { useVeterinaryPartners } from "../hooks/useVeterinaryPartners";
+import { findMatchingClinic } from "@/lib/utils/clinic-matcher";
 import { getErrorMessage } from "@/lib/api";
 import type { PetAppointmentResponse } from "@/lib/api";
 
@@ -84,24 +85,44 @@ function AppointmentBookForm() {
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState<PetAppointmentResponse | null>(null);
 
-  // Auto-select clinic from URL parameter
-  useEffect(() => {
-    if (urlClinicId && !clinicId) {
-      setClinicId(urlClinicId);
+  // Resolve URL clinic parameter against active appointment clinics dataset
+  const resolvedClinic = useMemo(() => {
+    if (!urlClinicId) return null;
+    // 1. Direct match in active appointment booking clinics
+    const direct = clinics.find((c) => c.id === urlClinicId);
+    if (direct) return direct;
+    // 2. Resolve portal veterinary partner ID to corresponding booking clinic
+    const matchedPartner = (partners ?? []).find((p) => p.id === urlClinicId);
+    if (matchedPartner) {
+      return findMatchingClinic(matchedPartner, clinics);
     }
-  }, [urlClinicId, clinicId]);
+    // 3. Fallback string/name lookup
+    return findMatchingClinic({ name: urlClinicId }, clinics);
+  }, [urlClinicId, clinics, partners]);
+
+  // Auto-select clinic from URL parameter when resolved
+  useEffect(() => {
+    if (resolvedClinic && !clinicId) {
+      setClinicId(resolvedClinic.id);
+    }
+  }, [resolvedClinic, clinicId]);
 
   const mutation = useApiMutation<PetAppointmentResponse, void>({
-    mutationFn: () =>
-      appointmentsService.bookAppointment({
+    mutationFn: () => {
+      const targetClinicId = clinicId || resolvedClinic?.id || "";
+      if (!targetClinicId || !clinics.some((c) => c.id === targetClinicId)) {
+        throw new Error("Please select a valid veterinary clinic from the list.");
+      }
+      return appointmentsService.bookAppointment({
         pet_id: petId,
-        clinic_id: clinicId || urlClinicId || "",
+        clinic_id: targetClinicId,
         vet_id: null,
         starts_at: startsAtISO,
         ends_at: endsAtISO,
         reason: reason.trim(),
         notes: notes.trim() === "" ? null : notes.trim(),
-      }),
+      });
+    },
     onSuccess: async (appointment) => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.companionPets.appointments });
       setSubmitted(appointment);
@@ -121,26 +142,10 @@ function AppointmentBookForm() {
 
   const selectedPet = useMemo(() => pets.find((p) => p.id === petId) ?? null, [pets, petId]);
   const selectedClinic = useMemo(() => {
-    const idToFind = clinicId || urlClinicId;
+    const idToFind = clinicId || resolvedClinic?.id;
     if (!idToFind) return null;
-    const foundInClinics = clinics.find((c) => c.id === idToFind);
-    if (foundInClinics) {
-      return {
-        id: foundInClinics.id,
-        name: foundInClinics.name,
-        address: foundInClinics.address,
-      };
-    }
-    const foundInPartners = (partners ?? []).find((p) => p.id === idToFind);
-    if (foundInPartners) {
-      return {
-        id: foundInPartners.id,
-        name: foundInPartners.name,
-        address: foundInPartners.address,
-      };
-    }
-    return null;
-  }, [clinics, partners, clinicId, urlClinicId]);
+    return clinics.find((c) => c.id === idToFind) ?? resolvedClinic ?? null;
+  }, [clinics, clinicId, resolvedClinic]);
 
   const startsAt = useMemo(() => {
     if (!date || !startTime) return null;
@@ -378,7 +383,7 @@ function AppointmentBookForm() {
                   )}
                 </FieldSelect>
 
-                {urlClinicId ? (
+                {(urlClinicId && (resolvedClinic || clinicsLoading)) ? (
                   <div className="flex flex-col gap-2 w-full">
                     <span className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
                       Selected Clinic
