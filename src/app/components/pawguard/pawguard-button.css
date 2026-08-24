@@ -5,9 +5,19 @@
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
   transition: transform var(--duration-gentle) var(--ease-gentle),
               box-shadow var(--duration-gentle) var(--ease-gentle),
               background-color var(--duration-gentle) var(--ease-gentle);
+}
+
+.pawguard-btn svg {
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .pawguard-btn::before {

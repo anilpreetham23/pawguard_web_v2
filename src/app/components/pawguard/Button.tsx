@@ -116,7 +116,7 @@ export function Button({
   );
 
   const content = (
-    <>
+    <span className="inline-flex items-center justify-center gap-2.5 whitespace-nowrap min-w-0">
       {isLoading && (
         <svg className="size-4 shrink-0 animate-pulse-soft text-amber-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <ellipse cx="12" cy="17" rx="4.6" ry="3.8" opacity="0.85" />
@@ -130,8 +130,10 @@ export function Button({
           <polyline points="20 6 9 17 4 12" />
         </svg>
       )}
-      <span>{typeof label === "string" ? label : label}</span>
-    </>
+      <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+        {label}
+      </span>
+    </span>
   );
 
   if (asLink) {

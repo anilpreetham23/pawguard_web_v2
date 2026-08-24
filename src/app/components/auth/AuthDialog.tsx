@@ -89,11 +89,16 @@ export default function AuthDialog() {
           throw err;
         }
       } else {
+        if (!phone.trim()) {
+          setError("Phone number is required to create an account.");
+          setPending(false);
+          return;
+        }
         await signUp({
           full_name: fullName.trim(),
           email: email.trim(),
           password,
-          phone: phone.trim() === "" ? null : phone.trim(),
+          phone: phone.trim(),
         });
         // Registration succeeded — switch to sign-in with the email prefilled;
         // login must happen manually (email verification may still be pending).
@@ -270,12 +275,13 @@ export default function AuthDialog() {
                 {activeMode === "sign-up" && (
                   <Input
                     id="auth-phone"
-                    label="Phone (optional)"
+                    label="Phone number *"
                     type="tel"
                     placeholder="+91 98765 43210"
                     autoComplete="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    required
                   />
                 )}
                 <Input

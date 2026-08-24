@@ -34,6 +34,13 @@ import { useVeterinaryPartners } from "../hooks/useVeterinaryPartners";
 import { getErrorMessage } from "@/lib/api";
 import { cn } from "../components/ui/utils";
 import type { VeterinaryPartner } from "@/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "../components/ui/dialog";
 
 const PAGE_SIZE = 9;
 
@@ -209,35 +216,11 @@ function ClinicDetailModal({
 }) {
   const bookingHref = `/appointments/book?clinic_id=${partner.id}`;
 
-  useEffect(() => {
-    const originalStyle = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalStyle;
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-[640px] max-h-[90vh] overflow-y-auto bg-card border border-border rounded-card shadow-2xl p-6 sm:p-8 flex flex-col gap-6">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors p-2 rounded-full hover:bg-muted"
-          aria-label="Close details"
-        >
-          <X size={20} />
-        </button>
-
-        <div className="flex flex-col gap-2 pr-8">
-          <div className="flex flex-wrap items-center gap-2">
+    <Dialog open={Boolean(partner)} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-[640px] w-full p-6 sm:p-8 rounded-card border-border bg-card shadow-2xl gap-6">
+        <DialogHeader className="text-left gap-2 pr-8">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
             <Badge variant="neutral">Verified Partner Clinic</Badge>
             {partner.isEmergency ? (
               <Badge variant="urgent">24/7 Emergency Care</Badge>
@@ -245,92 +228,97 @@ function ClinicDetailModal({
               <Badge variant="success">Standard Hours</Badge>
             )}
           </div>
-          <h2 className="text-foreground font-serif font-bold text-2xl sm:text-3xl">
+          <DialogTitle className="font-serif font-bold text-2xl sm:text-3xl text-foreground">
             {partner.name}
-          </h2>
-        </div>
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Details and contact information for {partner.name}
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="flex flex-col gap-4 text-sm text-muted-foreground">
-          <div className="flex items-start gap-2.5">
-            <MapPin size={18} className="shrink-0 mt-0.5 text-primary" />
-            <div className="flex flex-col">
-              <span className="font-semibold text-foreground">Address</span>
-              <span>{partner.address}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <Phone size={18} className="shrink-0 text-primary" />
-            <div className="flex flex-col">
-              <span className="font-semibold text-foreground">Phone</span>
-              <a
-                href={`tel:${partner.phone.replace(/[^+\d]/g, "")}`}
-                className="hover:underline text-foreground"
-              >
-                {partner.phone}
-              </a>
-            </div>
-          </div>
-
-          {partner.email && (
-            <div className="flex items-center gap-2.5">
-              <Mail size={18} className="shrink-0 text-primary" />
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 text-sm text-muted-foreground">
+            <div className="flex items-start gap-2.5">
+              <MapPin size={18} className="shrink-0 mt-0.5 text-primary" />
               <div className="flex flex-col">
-                <span className="font-semibold text-foreground">Email</span>
+                <span className="font-semibold text-foreground">Address</span>
+                <span>{partner.address}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <Phone size={18} className="shrink-0 text-primary" />
+              <div className="flex flex-col">
+                <span className="font-semibold text-foreground">Phone</span>
                 <a
-                  href={`mailto:${partner.email}`}
+                  href={`tel:${partner.phone.replace(/[^+\d]/g, "")}`}
                   className="hover:underline text-foreground"
                 >
-                  {partner.email}
+                  {partner.phone}
                 </a>
               </div>
             </div>
-          )}
-        </div>
 
-        {partner.services && partner.services.length > 0 && (
-          <div className="flex flex-col gap-2 pt-2 border-t border-border">
-            <span className="text-xs font-semibold tracking-wider uppercase font-condensed text-foreground">
-              Services Offered
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {partner.services.map((s) => (
-                <span
-                  key={s}
-                  className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full"
-                >
-                  <Syringe size={12} />
-                  {s}
-                </span>
-              ))}
-            </div>
+            {partner.email && (
+              <div className="flex items-center gap-2.5">
+                <Mail size={18} className="shrink-0 text-primary" />
+                <div className="flex flex-col">
+                  <span className="font-semibold text-foreground">Email</span>
+                  <a
+                    href={`mailto:${partner.email}`}
+                    className="hover:underline text-foreground"
+                  >
+                    {partner.email}
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
-        )}
 
-        <div className="flex flex-wrap sm:flex-nowrap gap-3 pt-4 border-t border-border">
-          <Button
-            variant="primary"
-            size="lg"
-            asLink={{ href: bookingHref }}
-            className="w-full sm:w-auto flex-1"
-          >
-            <CalendarDays size={16} />
-            Book Appointment at this Clinic
-          </Button>
-          {partner.directionsUrl && (
-            <a
-              href={partner.directionsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-card border border-border text-foreground text-xs font-semibold tracking-wider uppercase px-5 py-3 rounded-btn hover:border-primary hover:text-primary transition-all duration-fast"
-            >
-              <Navigation size={16} />
-              Directions
-            </a>
+          {partner.services && partner.services.length > 0 && (
+            <div className="flex flex-col gap-2 pt-2 border-t border-border">
+              <span className="text-xs font-semibold tracking-wider uppercase font-condensed text-foreground">
+                Services Offered
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {partner.services.map((s) => (
+                  <span
+                    key={s}
+                    className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full"
+                  >
+                    <Syringe size={12} />
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
+
+          <div className="flex flex-wrap sm:flex-nowrap gap-3 pt-4 border-t border-border">
+            <Button
+              variant="primary"
+              size="lg"
+              asLink={{ href: bookingHref }}
+              className="w-full sm:w-auto flex-1"
+            >
+              <CalendarDays size={16} />
+              Book Appointment at this Clinic
+            </Button>
+            {partner.directionsUrl && (
+              <a
+                href={partner.directionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-card border border-border text-foreground text-xs font-semibold tracking-wider uppercase px-5 py-3 rounded-btn hover:border-primary hover:text-primary transition-all duration-fast"
+              >
+                <Navigation size={16} />
+                Directions
+              </a>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

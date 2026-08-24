@@ -18,7 +18,7 @@ export function useVetClinics(enabled = true): VetClinicsResult {
     queryKey: QUERY_KEYS.companionPets.clinics,
     queryFn: () =>
       appointmentsService.listClinics({
-        page_size: 100,
+        page_size: 20,
         sort_by: "name",
         sort_order: "asc",
       }),

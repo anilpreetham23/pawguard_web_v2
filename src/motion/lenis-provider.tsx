@@ -128,7 +128,12 @@ export function LenisProvider({ children }: LenisProviderProps) {
     // the page and can freeze wheel scrolling. Whenever the real position
     // diverges, force Lenis to follow it so smooth scroll always resumes from
     // where the page actually is.
+    //
+    // CRITICAL: Guard with `if (lenis.isScrolling) return;` so that Lenis is
+    // NOT interrupted on every frame while actively animating smooth touchpad /
+    // wheel gestures.
     const onRealScroll = () => {
+      if (lenis.isScrolling) return;
       const real = window.scrollY;
       if (Math.abs(real - lenis.scroll) > 20) {
         lenis.scrollTo(real, { immediate: true, force: true, programmatic: true });
@@ -141,9 +146,8 @@ export function LenisProvider({ children }: LenisProviderProps) {
     // created before the lazy route chunk has finished rendering (short
     // placeholder page), its built-in ResizeObserver on <html> does not fire
     // when the content later grows, so `limit` stays stale and smooth-scroll
-    // freezes at the old smaller range. Instead of polling every 500ms, use
-    // a ResizeObserver on <html> which fires only when content actually
-    // changes (lazy images, fonts, dynamic content).
+    // freezes at the old smaller range. Use a ResizeObserver on <html> and
+    // <body> to capture dynamic content growth.
     let lastKnownMax = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
     const dimensionObs = new ResizeObserver(() => {
       const realMax = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
@@ -153,6 +157,9 @@ export function LenisProvider({ children }: LenisProviderProps) {
       }
     });
     dimensionObs.observe(document.documentElement);
+    if (document.body) {
+      dimensionObs.observe(document.body);
+    }
 
     function onLenisScroll(e: { scroll: number; velocity: number; direction: number; limit: number }) {
       const max = e.limit;
@@ -162,17 +169,13 @@ export function LenisProvider({ children }: LenisProviderProps) {
         scrollDirection: e.direction === 1 ? "down" : "up",
         scrollProgress: max > 0 ? Math.min(1, e.scroll / max) : 0,
       });
-      ScrollTrigger.update()
+      ScrollTrigger.update();
     }
 
     scrollFnRef.current = onLenisScroll;
     lenis.on("scroll", onLenisScroll);
 
     // Drive Lenis on its OWN rAF loop instead of piggy-backing on gsap.ticker.
-    // GSAP's ticker is shared with every animation on the page (including the
-    // hero's continuous full-screen CSS loops); when those saturate a frame the
-    // scroll loop used to stall too. Decoupling keeps smooth scrolling and
-    // ScrollTrigger sync independent of animation load.
     let rafId = 0;
     let resizeCheckCounter = 0;
 
@@ -207,7 +210,6 @@ export function LenisProvider({ children }: LenisProviderProps) {
     window.addEventListener("resize", onResize);
 
     // Debounce ScrollTrigger.refresh() — multiple sources fire it on mount
-    // (fonts, video metadata, hero image resize). Batch into one call.
     let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
     const debouncedRefresh = () => {
       if (refreshTimeout) clearTimeout(refreshTimeout);

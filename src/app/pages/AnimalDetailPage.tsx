@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   CalendarDays,
@@ -15,7 +15,7 @@ import {
   Heart,
   Sparkles,
 } from "lucide-react";
-import { PageShell, Section, Card, Reveal, Button, Input, EmptyState, SuccessState, Skeleton, Alert } from "../components/pawguard";
+import { PageShell, Section, Card, Reveal, Button, Input, Textarea, Badge, EmptyState, SuccessState, Skeleton, Alert } from "../components/pawguard";
 import SectionHeading from "../components/SectionHeading";
 import AdoptionCard from "../components/AdoptionCard";
 import { StaggerGrid, StaggerItem } from "../components/pawguard";
@@ -27,6 +27,15 @@ import { adoptionService } from "@/services/api/adoption";
 import { dogProfileToPet, type Pet } from "@/services/api/adoption/mapper";
 import { useAuth } from "../providers/auth-provider";
 import { useAdoptionApplicationsAll } from "../hooks/useAdoptionApplicationsAll";
+import { useQueryClient } from "@tanstack/react-query";
+import { ensureScrollUnlocked, refreshScroll } from "@/motion/scroll";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "../components/ui/dialog";
 
 const energyLabels: Record<string, string> = {
   Low: "Easy-going",
@@ -91,6 +100,168 @@ const PET_TONE_GRADIENTS: Record<string, string> = {
   teal: "from-teal-200/90 via-emerald-100 to-teal-100",
 };
 
+function AdoptionApplicationModal({
+  petName,
+  dogId,
+  isOpen,
+  onClose,
+  onSuccess,
+}: {
+  petName: string;
+  dogId?: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [form, setForm] = useState({
+    residentialStatus: "owned",
+    hasLandlordApproval: true,
+    hasYardFence: true,
+    householdMembersCount: 1,
+    existingPetsMedicalDetails: "",
+    petCareExperience: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const promise = dogId
+      ? adoptionService.submitApplication({
+          dog_id: dogId,
+          residential_status: form.residentialStatus,
+          has_landlord_approval:
+            form.residentialStatus === "rented" ? form.hasLandlordApproval : undefined,
+          has_yard_fence: form.hasYardFence,
+          household_members_count: Number(form.householdMembersCount) || 1,
+          existing_pets_medical_details: form.existingPetsMedicalDetails.trim() || null,
+          pet_care_experience: form.petCareExperience.trim() || null,
+        })
+      : new Promise((resolve) => setTimeout(resolve, 800));
+
+    promise
+      .then(() => {
+        if (dogId) {
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adoption.applications });
+        }
+        onSuccess();
+        onClose();
+      })
+      .catch((err) => setSubmitError(getErrorMessage(err)))
+      .finally(() => setSubmitting(false));
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-[600px] w-full p-6 sm:p-8 rounded-card border-border bg-card shadow-2xl gap-6">
+        <DialogHeader className="text-left gap-2 pr-8">
+          <Badge variant="neutral">Adoption Screening</Badge>
+          <DialogTitle className="font-serif font-bold text-2xl sm:text-3xl text-foreground">
+            Adoption Application for {petName}
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground text-sm">
+            Please complete the screening details below so our adoption team can review your application.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {submitError && (
+            <Alert variant="error" title="Couldn't submit your application">
+              {submitError}
+            </Alert>
+          )}
+
+          <div className="flex flex-col gap-2">
+            <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
+              Housing Arrangement *
+            </label>
+            <select
+              value={form.residentialStatus}
+              onChange={(e) => setForm({ ...form, residentialStatus: e.target.value })}
+              className="w-full bg-background border border-border rounded-btn px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+              required
+            >
+              <option value="owned">I own my home</option>
+              <option value="rented">I rent (Landlord approval required)</option>
+              <option value="other">Other housing arrangement</option>
+            </select>
+          </div>
+
+          {form.residentialStatus === "rented" && (
+            <label className="flex items-center gap-3 cursor-pointer p-3 bg-muted/40 rounded-card border border-border">
+              <input
+                type="checkbox"
+                checked={form.hasLandlordApproval}
+                onChange={(e) => setForm({ ...form, hasLandlordApproval: e.target.checked })}
+                className="w-4 h-4 accent-primary rounded shrink-0"
+              />
+              <span className="text-sm text-foreground">
+                I have explicit landlord approval to keep a dog in my residence
+              </span>
+            </label>
+          )}
+
+          <label className="flex items-center gap-3 cursor-pointer p-3 bg-muted/40 rounded-card border border-border">
+            <input
+              type="checkbox"
+              checked={form.hasYardFence}
+              onChange={(e) => setForm({ ...form, hasYardFence: e.target.checked })}
+              className="w-4 h-4 accent-primary rounded shrink-0"
+            />
+            <span className="text-sm text-foreground">
+              Residence has a secure enclosed yard / fenced outdoor space
+            </span>
+          </label>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
+              Household Members Count
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={form.householdMembersCount}
+              onChange={(e) => setForm({ ...form, householdMembersCount: parseInt(e.target.value) || 1 })}
+              className="w-full bg-background border border-border rounded-btn px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+            />
+          </div>
+
+          <Textarea
+            label="Existing Pets & Medical Details (Optional)"
+            placeholder="List any pets currently living in your household and their vaccination status..."
+            value={form.existingPetsMedicalDetails}
+            onChange={(e) => setForm({ ...form, existingPetsMedicalDetails: e.target.value })}
+            rows={2}
+          />
+
+          <Textarea
+            label="Pet Care Experience (Optional)"
+            placeholder="Briefly describe your experience caring for dogs or animals..."
+            value={form.petCareExperience}
+            onChange={(e) => setForm({ ...form, petCareExperience: e.target.value })}
+            rows={2}
+          />
+
+          <div className="pt-3 border-t border-border flex items-center justify-end gap-3">
+            <Button type="button" variant="outline" size="md" onClick={onClose} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" size="md" isLoading={submitting}>
+              Submit Application
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function LivePetDetailPage({ id }: { id: string }) {
   const {
     data: pet,
@@ -117,11 +288,14 @@ function LivePetDetailPage({ id }: { id: string }) {
     !!dogApplication &&
     (dogApplication.status === "approved" || dogApplication.status === "completed");
   const applicationPending = !!dogApplication && !alreadyAdopted;
-  const [form, setForm] = useState({ name: "", email: "", phone: "", residentialStatus: "owned" });
-  const [submitting, setSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  useEffect(() => {
+    ensureScrollUnlocked();
+    refreshScroll();
+  }, [pet, isLoading]);
 
   if (isLoading) {
     return (
@@ -187,23 +361,13 @@ function LivePetDetailPage({ id }: { id: string }) {
     { icon: Sparkles, label: "Colour", value: pet.color },
   ];
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (submitting || !isAvailable || alreadyAdopted || applicationPending) return;
+  function handleApplyClick() {
+    if (!isAvailable || alreadyAdopted || applicationPending) return;
     if (!isAuthenticated) {
       openAuthDialog("sign-in");
       return;
     }
-    setSubmitting(true);
-    setSubmitError(null);
-    adoptionService
-      .submitApplication({
-        dog_id: id,
-        residential_status: form.residentialStatus,
-      })
-      .then(() => setSubmitted(true))
-      .catch((err) => setSubmitError(getErrorMessage(err)))
-      .finally(() => setSubmitting(false));
+    setIsModalOpen(true);
   }
 
   return (
@@ -336,43 +500,21 @@ function LivePetDetailPage({ id }: { id: string }) {
                     </div>
                   </Alert>
                 ) : !submitted ? (
-                  <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-2">
-                      <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
-                        Housing situation
-                      </label>
-                      <select
-                        value={form.residentialStatus}
-                        onChange={(e) => setForm({ ...form, residentialStatus: e.target.value })}
-                        className="w-full bg-background border border-border rounded-btn px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
-                        aria-label="Housing situation"
-                      >
-                        <option value="owned">I own my home</option>
-                        <option value="rented">I rent — with landlord approval</option>
-                        <option value="other">Other housing arrangement</option>
-                      </select>
-                    </div>
-                    {submitError && (
-                      <Alert variant="error" title="Couldn't submit your application">
-                        {submitError}
-                      </Alert>
-                    )}
+                  <div className="flex flex-col gap-3">
                     {!isAuthenticated && (
                       <p className="text-muted-foreground text-xs">
-                        You'll need to sign in to submit an application. Clicking apply will open the sign-in dialog.
+                        You&apos;ll need to sign in to submit an application. Clicking apply will open the sign-in dialog.
                       </p>
                     )}
                     <Button
                       variant={isAvailable ? "primary" : "outline"}
                       size="lg"
-                      type="submit"
-                      isLoading={submitting}
-                      context="adoption_apply"
+                      onClick={handleApplyClick}
                       disabled={!isAvailable}
                     >
                       {isAvailable ? <>Apply to adopt {pet.name}</> : <>Already adopted</>}
                     </Button>
-                  </form>
+                  </div>
                 ) : (
                   <SuccessState
                     icon={Heart}
@@ -448,6 +590,13 @@ function LivePetDetailPage({ id }: { id: string }) {
         </Reveal>
 
         <RelatedPets pet={pet} />
+        <AdoptionApplicationModal
+          petName={pet.name}
+          dogId={id}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => setSubmitted(true)}
+        />
       </main>
     </PageShell>
   );
@@ -497,10 +646,15 @@ function RelatedPets({ pet }: { pet: Pet }) {
 export default function AnimalDetailPage({ slug }: { slug?: string }) {
   const animal = getAnimalBySlug(slug ?? "");
 
-  const [form, setForm] = useState({ name: "", email: "", phone: "" });
-  const [submitting, setSubmitting] = useState(false);
+  const { isAuthenticated, openAuthDialog } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [favourite, setFavourite] = useState(false);
+
+  useEffect(() => {
+    ensureScrollUnlocked();
+    refreshScroll();
+  }, [animal]);
 
   if (!animal) {
     // Live adoption profiles address detail pages by UUID (mock slugs are
@@ -528,14 +682,13 @@ export default function AnimalDetailPage({ slug }: { slug?: string }) {
   const isAvailable = animal.status === "available";
   const related = ANIMALS.filter((a) => a.slug !== animal.slug && a.status === "available").slice(0, 3);
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (submitting || !isAvailable) return;
-    setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      setSubmitted(true);
-    }, 1200);
+  function handleApplyClick() {
+    if (!isAvailable) return;
+    if (!isAuthenticated) {
+      openAuthDialog("sign-in");
+      return;
+    }
+    setIsModalOpen(true);
   }
 
   return (
@@ -636,48 +789,21 @@ export default function AnimalDetailPage({ slug }: { slug?: string }) {
 
                 {/* Apply CTA */}
                 {!submitted ? (
-                  <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Input
-                        label="Your name"
-                        value={form.name}
-                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                        placeholder="Full name"
-                        required
-                      />
-                      <Input
-                        label="Email"
-                        type="email"
-                        value={form.email}
-                        onChange={(e) => setForm({ ...form, email: e.target.value })}
-                        placeholder="you@example.com"
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Input
-                        label="Phone (optional)"
-                        value={form.phone}
-                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                        placeholder="(555) 000-0000"
-                      />
-                      <Button
-                        variant={isAvailable ? "primary" : "outline"}
-                        size="lg"
-                        type="submit"
-                        isLoading={submitting}
-                        context="adoption_apply"
-                        disabled={!isAvailable}
-                      >
-                        {isAvailable ? <>Apply to adopt {animal.name}</> : <>Already adopted</>}
-                      </Button>
-                    </div>
-                    {!isAvailable && (
+                  <div className="flex flex-col gap-3">
+                    {!isAuthenticated && (
                       <p className="text-muted-foreground text-xs">
-                        This dog is <strong className="text-foreground">{animal.status === "pending" ? "currently being processed" : "already in a forever home"}</strong>. Applications are paused.
+                        You&apos;ll need to sign in to submit an application. Clicking apply will open the sign-in dialog.
                       </p>
                     )}
-                  </form>
+                    <Button
+                      variant={isAvailable ? "primary" : "outline"}
+                      size="lg"
+                      onClick={handleApplyClick}
+                      disabled={!isAvailable}
+                    >
+                      {isAvailable ? <>Apply to adopt {animal.name}</> : <>Already adopted</>}
+                    </Button>
+                  </div>
                 ) : (
                   <SuccessState
                     icon={Heart}
@@ -764,6 +890,12 @@ export default function AnimalDetailPage({ slug }: { slug?: string }) {
             </Section>
           </Reveal>
         )}
+        <AdoptionApplicationModal
+          petName={animal.name}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => setSubmitted(true)}
+        />
       </main>
     </PageShell>
   );
