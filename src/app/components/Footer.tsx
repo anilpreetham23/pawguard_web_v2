@@ -130,12 +130,12 @@ export default function Footer() {
               {...staggerItem(0, motionTier)}
               className="flex flex-col gap-3 lg:col-span-3 lg:order-1"
             >
-              <Link href="/" className="flex items-center gap-3 group">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center group-hover:shadow-glow-primary transition-shadow duration-300">
-                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                    <path d="M10 1C7.5 1 5.5 3 5.5 5.5C5.5 6.8 6.1 7.9 7 8.6C5.2 9.3 4 11 4 13C4 15.8 6.2 18 9 18H11C13.8 18 16 15.8 16 13C16 11 14.8 9.3 13 8.6C13.9 7.9 14.5 6.8 14.5 5.5C14.5 3 12.5 1 10 1Z" fill="white" />
-                  </svg>
-                </div>
+              <Link href="/" className="flex items-center gap-2.5 group">
+                <img
+                  src="/images/rescue-process/assets/Logo.png"
+                  alt="PawGuard Logo"
+                  className="h-10 w-auto object-contain transition-transform duration-fast group-hover:scale-105"
+                />
                 <span className="font-bold text-white text-lg tracking-tight">PawGuard</span>
               </Link>
               <p className="text-white/60 text-sm leading-relaxed max-w-[220px]">

@@ -90,13 +90,8 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   icons: {
-    icon: {
-      url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2300236f'/%3E%3Cpath d='M16 4c-3 0-5.5 2.5-5.5 5.5 0 1.6.7 3 1.8 3.9-2.1.9-3.6 2.9-3.6 5.1 0 3.2 2.6 5.8 5.8 5.8h4c3.2 0 5.8-2.6 5.8-5.8 0-2.2-1.5-4.2-3.6-5.1 1.1-.9 1.8-2.3 1.8-3.9C21.5 6.5 19 4 16 4z' fill='white'/%3E%3C/svg%3E",
-      type: "image/svg+xml",
-    },
-    apple: {
-      url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2300236f'/%3E%3Cpath d='M16 4c-3 0-5.5 2.5-5.5 5.5 0 1.6.7 3 1.8 3.9-2.1.9-3.6 2.9-3.6 5.1 0 3.2 2.6 5.8 5.8 5.8h4c3.2 0 5.8-2.6 5.8-5.8 0-2.2-1.5-4.2-3.6-5.1 1.1-.9 1.8-2.3 1.8-3.9C21.5 6.5 19 4 16 4z' fill='white'/%3E%3C/svg%3E",
-    },
+    icon: "/images/rescue-process/assets/Logo.png",
+    apple: "/images/rescue-process/assets/Logo.png",
   },
 };
 

@@ -183,18 +183,14 @@ export default function Navbar() {
               {/* Logo — left column */}
               <Link
                 href="/"
-                className="group flex items-center gap-3 shrink-0 origin-left transition-transform duration-fast ease-gentle relative z-10"
+                className="group flex items-center gap-2.5 shrink-0 origin-left transition-transform duration-fast ease-gentle relative z-10"
                 aria-label="PawGuard home"
               >
-                <div className="relative w-8 h-8 bg-primary rounded-lg flex items-center justify-center overflow-hidden group-hover:shadow-md transition-shadow duration-fast">
-                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <path d="M10 1C7.5 1 5.5 3 5.5 5.5C5.5 6.8 6.1 7.9 7 8.6C5.2 9.3 4 11 4 13C4 15.8 6.2 18 9 18H11C13.8 18 16 15.8 16 13C16 11 14.8 9.3 13 8.6C13.9 7.9 14.5 6.8 14.5 5.5C14.5 3 12.5 1 10 1Z" fill="white" />
-                  </svg>
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-gentle"
-                  />
-                </div>
+                <img
+                  src="/images/rescue-process/assets/Logo.png"
+                  alt="PawGuard Logo"
+                  className="h-10 w-auto object-contain transition-transform duration-fast group-hover:scale-105"
+                />
                 <span className="font-bold text-primary text-xl tracking-tight">PawGuard</span>
               </Link>
 
