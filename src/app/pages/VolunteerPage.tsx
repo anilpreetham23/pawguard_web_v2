@@ -62,6 +62,18 @@ const VOLUNTEER_STATUS_META: Record<
   },
 };
 
+/**
+ * Maps the authoritative lifecycle enum (NOT_APPLIED | PENDING | ACTIVE | REJECTED | INACTIVE)
+ * returned by `GET /volunteers/me/status` to human-readable labels for the status badge.
+ */
+const LIFECYCLE_LABEL: Record<string, string> = {
+  NOT_APPLIED: "Not Applied",
+  PENDING: "Pending Review",
+  ACTIVE: "Active",
+  REJECTED: "Not Approved",
+  INACTIVE: "Inactive",
+};
+
 const ROLES = [
   {
     title: "Foster Care",
@@ -167,15 +179,12 @@ export default function VolunteerPage() {
 
   const canApply = volunteerStatus ? volunteerStatus.can_apply : !volunteerProfile;
   const canReapply = volunteerStatus ? volunteerStatus.can_reapply : false;
-  const volunteerMeta = volunteerProfile
-    ? VOLUNTEER_STATUS_META[volunteerProfile.status]
-    : null;
   const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
+    emergencyContactName: "",
+    emergencyContactPhone: "",
     role: "",
     availability: "",
+    animalHandlingExperience: "",
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
@@ -186,27 +195,16 @@ export default function VolunteerPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { setRef } = useFocusOnError(errors);
 
-  function validateField(field: keyof typeof form, value: string) {
-    const e: Record<string, string> = {};
-    if (!value.trim())
-      e[field] =
-        `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
-    setErrors((prev) => ({ ...prev, ...e }));
-  }
 
   const [formStep, setFormStep] = useState<"basic" | "details">("basic");
 
   function validateStep() {
     const e: Record<string, string> = {};
     if (formStep === "basic") {
-      if (!form.name.trim()) e.name = "Full Name is required";
-      if (!form.email.trim()) {
-        e.email = "Email is required";
-      } else if (!/\S+@\S+\.\S+/.test(form.email.trim())) {
-        e.email = "Please enter a valid email address";
-      }
-    } else if (formStep === "details") {
-      if (!form.phone.trim()) e.phone = "Phone number is required";
+      if (!form.emergencyContactName.trim())
+        e.emergencyContactName = "Emergency contact name is required";
+      if (!form.emergencyContactPhone.trim())
+        e.emergencyContactPhone = "Emergency contact phone is required";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -234,11 +232,13 @@ export default function VolunteerPage() {
     );
     communityService
       .applyVolunteer({
-        emergency_contact_name: form.name.trim(),
-        emergency_contact_phone: form.phone.trim(),
+        emergency_contact_name: form.emergencyContactName.trim(),
+        emergency_contact_phone: form.emergencyContactPhone.trim(),
         availability: form.availability.trim() || null,
         notes: form.message.trim() || null,
         skills: form.role ? `Role: ${form.role}` : null,
+        animal_handling_experience:
+          form.animalHandlingExperience.trim() || null,
       })
       .then(() => {
         clearInterval(interval);
@@ -362,8 +362,29 @@ export default function VolunteerPage() {
                             &mdash; {role.quotee}
                           </p>
                         </div>
+                        {role.requirements.length > 0 && (
+                          <div className="mt-1">
+                            <p className="text-foreground text-xs font-semibold uppercase tracking-wider font-condensed mb-2">
+                              Requirements
+                            </p>
+                            <ul className="flex flex-col gap-1">
+                              {role.requirements.map((req) => (
+                                <li
+                                  key={req}
+                                  className="flex items-start gap-2 text-muted-foreground text-xs leading-relaxed"
+                                >
+                                  <span className="mt-0.5 shrink-0 w-3.5 h-3.5 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <span className="text-primary text-[8px] font-bold">&#10003;</span>
+                                  </span>
+                                  {req}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                         <button
                           onClick={() => {
+                            setForm((prev) => ({ ...prev, role: role.title }));
                             const el = document.getElementById("apply");
                             if (el) scrollTo(el);
                           }}
@@ -499,7 +520,7 @@ export default function VolunteerPage() {
                             : "bg-muted text-muted-foreground border border-border"
                         }`}
                       >
-                        {vLifecycleStatus}
+                        {LIFECYCLE_LABEL[vLifecycleStatus] ?? vLifecycleStatus}
                       </span>
                     </div>
                   </div>
@@ -613,46 +634,59 @@ export default function VolunteerPage() {
                 <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                   {formStep === "basic" ? (
                     <>
+                      <div className="rounded-lg border border-border bg-card p-4 flex flex-col gap-1">
+                        <p className="text-foreground font-semibold text-sm">
+                          Emergency Contact
+                        </p>
+                        <p className="text-muted-foreground text-xs leading-relaxed">
+                          Please provide the details of a person we can contact
+                          in case of an emergency during your volunteer activity.
+                          This is not your personal contact information — it is
+                          the person we should reach if something happens to you.
+                        </p>
+                      </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <Input
-                          label="Full Name"
-                          placeholder="Jane Smith"
-                          ref={setRef("name")}
-                          value={form.name}
+                          label="Emergency Contact Name"
+                          placeholder="e.g. Ramesh Kumar"
+                          ref={setRef("emergencyContactName")}
+                          value={form.emergencyContactName}
                           onChange={(e) => {
-                            setForm({ ...form, name: e.target.value });
-                            if (errors.name) setErrors({ ...errors, name: "" });
+                            setForm({
+                              ...form,
+                              emergencyContactName: e.target.value,
+                            });
+                            if (errors.emergencyContactName)
+                              setErrors({
+                                ...errors,
+                                emergencyContactName: "",
+                              });
                           }}
-                          onBlur={() => {
-                            if (!form.name.trim())
-                              validateField("name", form.name);
-                          }}
-                          error={errors.name}
-                          autoComplete="name"
+                          error={errors.emergencyContactName}
+                          autoComplete="off"
                         />
                         <Input
-                          label="Email"
-                          type="email"
-                          placeholder="your@email.com"
-                          ref={setRef("email")}
-                          value={form.email}
+                          label="Emergency Contact Phone"
+                          type="tel"
+                          placeholder="+91 98765 43210"
+                          ref={setRef("emergencyContactPhone")}
+                          value={form.emergencyContactPhone}
                           onChange={(e) => {
-                            setForm({ ...form, email: e.target.value });
-                            if (errors.email)
-                              setErrors({ ...errors, email: "" });
+                            setForm({
+                              ...form,
+                              emergencyContactPhone: e.target.value,
+                            });
+                            if (errors.emergencyContactPhone)
+                              setErrors({
+                                ...errors,
+                                emergencyContactPhone: "",
+                              });
                           }}
-                          onBlur={() => {
-                            if (!form.email.trim())
-                              validateField("email", form.email);
-                          }}
-                          error={errors.email}
-                          autoComplete="email"
-                          inputMode="email"
+                          error={errors.emergencyContactPhone}
+                          autoComplete="tel"
+                          inputMode="tel"
                         />
                       </div>
-                      <p className="text-muted-foreground text-sm -mt-2">
-                        You will be able to add more details in the next step.
-                      </p>
                       <Button type="submit" variant="secondary" size="lg">
                         Continue <ArrowRight size={14} />
                       </Button>
@@ -661,18 +695,16 @@ export default function VolunteerPage() {
                     <>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <Input
-                          label="Phone"
-                          type="tel"
-                          placeholder="+91 98765 43210"
-                          ref={setRef("phone")}
-                          value={form.phone}
-                          onChange={(e) => {
-                            setForm({ ...form, phone: e.target.value });
-                            if (errors.phone) setErrors({ ...errors, phone: "" });
-                          }}
-                          error={errors.phone}
-                          autoComplete="tel"
-                          inputMode="tel"
+                          label="Animal Handling Experience (Optional)"
+                          placeholder="e.g. 2 years fostering, dog training"
+                          value={form.animalHandlingExperience}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              animalHandlingExperience: e.target.value,
+                            })
+                          }
+                          autoComplete="off"
                         />
                         <div className="flex flex-col gap-2">
                           <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">

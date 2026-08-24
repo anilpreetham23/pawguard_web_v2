@@ -28,6 +28,9 @@ function timeAgo(iso: string): string {
 
 const TYPE_EMOJI: Record<string, string> = {
   rescue: "🚨",
+  emergency: "🚨",
+  emergency_rescue: "🚨",
+  lost_pet: "🐕",
   adoption: "🐶",
   appointment: "📅",
   reminder: "⏰",

@@ -27,6 +27,9 @@ function timeAgo(iso: string): string {
 
 const TYPE_EMOJI: Record<string, string> = {
   rescue: "🚨",
+  emergency: "🚨",
+  emergency_rescue: "🚨",
+  lost_pet: "🐕",
   adoption: "🐶",
   appointment: "📅",
   reminder: "⏰",
@@ -178,6 +181,9 @@ export function NotificationBell({ className }: { className?: string }) {
                           <span className={cn("block text-sm leading-snug", n.is_read ? "text-muted-foreground font-medium" : "text-foreground font-semibold")}>
                             {n.title}
                           </span>
+                          {n.body && (
+                            <span className="block text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</span>
+                          )}
                           {!n.is_read && (
                             <span aria-hidden="true" className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full bg-primary" />
                           )}

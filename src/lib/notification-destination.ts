@@ -45,7 +45,10 @@ const TYPE_DESTINATION: Record<string, string> = {
   appointment: "/appointments",
   reminder: "/reminders",
   donation: "/account",
-  rescue: "/account",
+  rescue: "/lost-found",
+  emergency: "/lost-found",
+  emergency_rescue: "/lost-found",
+  lost_pet: "/lost-found",
   lost_found: "/lost-found",
   lostfound: "/lost-found",
   found: "/lost-found",
@@ -65,12 +68,23 @@ function normalizeType(type: string | null): string {
     .replace(/^_+|_+$/g, "");
 }
 
-/** A relative, exact public route is the only trustworthy action_url form. */
+/**
+ * A relative, exact public route or verified dynamic public path is the only
+ * trustworthy action_url form.
+ */
 function sanitizeActionUrl(actionUrl: string | null): string | null {
   if (!actionUrl) return null;
   const path = actionUrl.split(/[?#]/)[0];
   if (!path.startsWith("/")) return null;
+
+  // Exact static public routes
   if (EXACT_PUBLIC_ROUTES.has(path)) return path;
+
+  // Lost & Found dynamic report routes: /lost-found/lost/*, /lost-found/found/*, /lost-found/*
+  if (/^\/lost-found\/(?:lost\/|found\/)?[a-zA-Z0-9_-]+$/.test(path)) {
+    return path;
+  }
+
   return null;
 }
 
@@ -92,6 +106,7 @@ export function getNotificationDestination(
   if (/\badoption\b/.test(haystack)) return "/applications";
   if (/\bappointment\b/.test(haystack)) return "/appointments";
   if (/\breminder\b/.test(haystack)) return "/reminders";
+  if (/\blost\b|\bfound\b|\bemergency\b|\brescue\b/.test(haystack)) return "/lost-found";
 
   return "/account";
 }

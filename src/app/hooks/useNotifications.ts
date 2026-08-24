@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import {
   QUERY_KEYS,
   useApiMutation,
@@ -93,11 +94,13 @@ export function useNotifications(page = 1, pageSize = 20): NotificationsResult {
 /**
  * Lightweight unread-count hook for the navbar bell badge. Polls the
  * `unread-count` endpoint on an interval so the badge stays live without
- * re-fetching the whole list.
+ * re-fetching the whole list. Synchronizes notification list cache whenever
+ * unread count changes.
  */
 export function useUnreadCount(refreshMs = 60_000): number {
   const { isAuthenticated, status } = useAuth();
   const enabled = isAuthenticated && status === "authenticated";
+  const prevCountRef = useRef<number | null>(null);
 
   const unread = useApiQuery({
     queryKey: QUERY_KEYS.notifications.unreadCount,
@@ -106,5 +109,14 @@ export function useUnreadCount(refreshMs = 60_000): number {
     queryFn: () => notificationsService.getUnreadCount(),
   });
 
-  return unread.data?.count ?? 0;
+  const count = unread.data?.count ?? 0;
+
+  useEffect(() => {
+    if (prevCountRef.current !== null && prevCountRef.current !== count) {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.notifications.list });
+    }
+    prevCountRef.current = count;
+  }, [count]);
+
+  return count;
 }
