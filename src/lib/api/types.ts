@@ -1073,9 +1073,12 @@ export interface ShiftAttendanceResponse {
   id: string;
   shift_id: string;
   volunteer_id: string;
+  status?: string | null;
   check_in_at: string | null;
   check_out_at: string | null;
   hours_logged: number | null;
+  created_at?: string | null;
+  shift?: VolunteerShiftResponse | null;
 }
 
 /** `GET /volunteers/{id}/service-summary` payload (`VolunteerServiceSummary`). */

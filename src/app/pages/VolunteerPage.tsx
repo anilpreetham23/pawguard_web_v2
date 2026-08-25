@@ -185,6 +185,7 @@ export default function VolunteerPage() {
     role: "",
     availability: "",
     animalHandlingExperience: "",
+    medicalConditions: "",
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
@@ -239,6 +240,7 @@ export default function VolunteerPage() {
         skills: form.role ? `Role: ${form.role}` : null,
         animal_handling_experience:
           form.animalHandlingExperience.trim() || null,
+        medical_conditions: form.medicalConditions.trim() || null,
       })
       .then(() => {
         clearInterval(interval);
@@ -732,6 +734,16 @@ export default function VolunteerPage() {
                         onChange={(e) =>
                           setForm({ ...form, availability: e.target.value })
                         }
+                      />
+                      <Textarea
+                        label="Medical Conditions / Allergies (Optional)"
+                        placeholder="Please mention any medical conditions, allergies, or health considerations we should be aware of while assigning volunteer duties."
+                        value={form.medicalConditions}
+                        onChange={(e) =>
+                          setForm({ ...form, medicalConditions: e.target.value })
+                        }
+                        maxLength={500}
+                        rows={3}
                       />
                       <Textarea
                         label="Message (Optional)"

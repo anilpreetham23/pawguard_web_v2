@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import {
   Calendar,
@@ -36,7 +36,13 @@ import { useDashboardSummary } from "../hooks/useDashboardSummary";
 import { useVolunteerStatus } from "../hooks/useVolunteerStatus";
 import { useApiQuery, getErrorMessage, QUERY_KEYS } from "@/lib/api";
 import { communityService } from "@/services/api/community";
-import type { VolunteerProfileResponse, VolunteerShiftResponse } from "@/lib/api";
+import { queryClient } from "@/lib/react-query";
+import type {
+  VolunteerProfileResponse,
+  VolunteerShiftResponse,
+  ShiftAttendanceResponse,
+  Page,
+} from "@/lib/api";
 
 const STATUS_BADGE: Record<string, { label: string; cls: string; hint: string }> = {
   NOT_APPLIED: {
@@ -96,6 +102,62 @@ const STATUS_BADGE: Record<string, { label: string; cls: string; hint: string }>
   },
 };
 
+/**
+ * Extract and normalize volunteer skills and applied roles into a lowercase Set.
+ * Supports comma-separated strings (e.g. "Grooming, Transport, Photography")
+ * and "Role: <Name>" prefixes.
+ */
+function parseVolunteerSkills(
+  rawSkills: string | null | undefined,
+  roleApplied?: string | null | undefined
+): Set<string> {
+  const normalized = new Set<string>();
+  const stringsToParse = [rawSkills, roleApplied].filter(Boolean) as string[];
+
+  for (const raw of stringsToParse) {
+    const cleaned = raw.replace(/^Role:\s*/i, "");
+    const parts = cleaned.split(",");
+    for (const part of parts) {
+      const trimmed = part.trim().toLowerCase();
+      if (trimmed) {
+        normalized.add(trimmed);
+      }
+    }
+  }
+
+  return normalized;
+}
+
+/**
+ * Determines if a shift is eligible for a volunteer based on their approved skills.
+ * Shifts that the user has already joined (My Shifts) are always visible regardless of skills.
+ */
+function isShiftEligible(
+  shiftRoleName: string,
+  userSkills: Set<string>,
+  isAlreadyJoined: boolean
+): boolean {
+  // Requirement 6: Do NOT filter My Shifts (shifts already claimed by the volunteer)
+  if (isAlreadyJoined) return true;
+
+  // If user has no skills specified, do not block open shifts
+  if (userSkills.size === 0) return true;
+
+  const normalizedRole = shiftRoleName.trim().toLowerCase();
+
+  // Exact match
+  if (userSkills.has(normalizedRole)) return true;
+
+  // Partial / substring match (e.g. "shelter support" in "shelter support & dog walking")
+  for (const skill of userSkills) {
+    if (normalizedRole.includes(skill) || skill.includes(normalizedRole)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export default function VolunteerDashboardPage() {
   const { user, isAuthenticated, status: authStatus, openAuthDialog } = useAuth();
   const {
@@ -114,9 +176,9 @@ export default function VolunteerDashboardPage() {
     refetch: refetchStatus,
   } = useVolunteerStatus();
 
-  const volunteerProfile = summary?.volunteer_profile
-    ? (summary.volunteer_profile as unknown as VolunteerProfileResponse)
-    : (volunteerStatus?.profile as VolunteerProfileResponse | null);
+  const volunteerProfile =
+    volunteerStatus?.profile ??
+    (summary?.volunteer_profile as VolunteerProfileResponse | null);
 
   const applicationInfo = volunteerStatus?.application;
   const vLifecycleStatus =
@@ -146,6 +208,37 @@ export default function VolunteerDashboardPage() {
     enabled: isAuthenticated && Boolean(volunteerProfile) && vLifecycleStatus === "ACTIVE",
   });
 
+  // Query attendance / claimed shifts for the current volunteer
+  const {
+    data: rawAttendanceData,
+    isLoading: isAttendanceLoading,
+    refetch: refetchAttendance,
+  } = useApiQuery({
+    queryKey: QUERY_KEYS.community.myAttendance,
+    queryFn: () => communityService.getMyAttendance(),
+    enabled: isAuthenticated && Boolean(volunteerProfile) && vLifecycleStatus === "ACTIVE",
+  });
+
+  const attendanceItems = useMemo(() => {
+    if (!rawAttendanceData) return [];
+    if (Array.isArray(rawAttendanceData)) return rawAttendanceData;
+    return (rawAttendanceData as Page<ShiftAttendanceResponse>).items ?? [];
+  }, [rawAttendanceData]);
+
+  // Build a reliable map of shift_id -> attendance record
+  const attendanceByShiftId = useMemo(() => {
+    const map = new Map<string, ShiftAttendanceResponse>();
+    for (const att of attendanceItems) {
+      if (att.shift_id) {
+        map.set(att.shift_id, att);
+      }
+      if (att.shift?.id) {
+        map.set(att.shift.id, att);
+      }
+    }
+    return map;
+  }, [attendanceItems]);
+
   // Query service summary if volunteer profile exists
   const { data: serviceSummary, refetch: refetchSummaryData } = useApiQuery({
     queryKey: QUERY_KEYS.community.volunteerServiceSummary(profileId ?? ""),
@@ -166,6 +259,19 @@ export default function VolunteerDashboardPage() {
   const [shiftError, setShiftError] = useState<string | null>(null);
   const [shiftNotice, setShiftNotice] = useState<string | null>(null);
 
+  const refetchAllQueries = () => {
+    void refetchShifts();
+    void refetchAttendance();
+    void refetchSummaryData();
+    void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.community.myAttendance });
+    void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.community.volunteerShifts });
+    if (profileId) {
+      void queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.community.volunteerServiceSummary(profileId),
+      });
+    }
+  };
+
   async function handleJoinShift(shiftId: string) {
     setJoiningShiftId(shiftId);
     setShiftError(null);
@@ -173,8 +279,7 @@ export default function VolunteerDashboardPage() {
     try {
       await communityService.joinVolunteerShift(shiftId);
       setShiftNotice("Successfully signed up for this shift!");
-      refetchShifts();
-      refetchSummaryData();
+      refetchAllQueries();
     } catch (err) {
       setShiftError(getErrorMessage(err));
     } finally {
@@ -189,8 +294,7 @@ export default function VolunteerDashboardPage() {
     try {
       await communityService.checkInShift(attendanceId);
       setShiftNotice("Checked in successfully! Thank you for your service.");
-      refetchShifts();
-      refetchSummaryData();
+      refetchAllQueries();
     } catch (err) {
       setShiftError(getErrorMessage(err));
     } finally {
@@ -205,8 +309,7 @@ export default function VolunteerDashboardPage() {
     try {
       await communityService.checkOutShift(attendanceId);
       setShiftNotice("Checked out successfully! Hours logged.");
-      refetchShifts();
-      refetchSummaryData();
+      refetchAllQueries();
     } catch (err) {
       setShiftError(getErrorMessage(err));
     } finally {
@@ -319,7 +422,16 @@ export default function VolunteerDashboardPage() {
   }
 
   const badgeInfo = STATUS_BADGE[vLifecycleStatus] ?? STATUS_BADGE.PENDING;
-  const shifts = shiftsPage?.items ?? [];
+  const userSkills = parseVolunteerSkills(
+    volunteerProfile?.skills,
+    applicationInfo?.role_applied
+  );
+  const allShifts = shiftsPage?.items ?? [];
+  const eligibleShifts = allShifts.filter((shift) => {
+    const attendanceId =
+      (shift as any).user_attendance_id || (shift as any).attendance_id;
+    return isShiftEligible(shift.role_name, userSkills, Boolean(attendanceId));
+  });
 
   return (
     <PageShell>
@@ -394,7 +506,7 @@ export default function VolunteerDashboardPage() {
                 Completed Assignments
               </span>
               <span className="text-2xl font-bold text-foreground font-serif">
-                {(serviceSummary as any)?.shifts_completed ?? (serviceSummary as any)?.total_shifts ?? 0}
+                {serviceSummary?.shifts_count ?? 0}
               </span>
             </Card>
             <Card variant="default" className="p-4 flex flex-col gap-1">
@@ -462,15 +574,45 @@ export default function VolunteerDashboardPage() {
                       <Skeleton className="h-20 w-full rounded-card" />
                       <Skeleton className="h-20 w-full rounded-card" />
                     </div>
-                  ) : shifts.length === 0 ? (
+                  ) : allShifts.length === 0 ? (
                     <Card variant="default" className="p-6 text-center text-muted-foreground text-sm">
                       No upcoming shifts currently scheduled. Check back soon for new opportunities.
                     </Card>
+                  ) : eligibleShifts.length === 0 ? (
+                    <Card variant="default" className="p-6 text-center text-muted-foreground text-sm">
+                      No volunteer opportunities currently match your skills.
+                    </Card>
                   ) : (
                     <div className="flex flex-col gap-3">
-                      {shifts.map((shift) => {
-                        const attendanceId = (shift as any).user_attendance_id || (shift as any).attendance_id;
-                        const isCheckedIn = (shift as any).is_checked_in;
+                      {eligibleShifts.map((shift) => {
+                        const att =
+                          attendanceByShiftId.get(shift.id) ||
+                          (shift as any).attendance ||
+                          (shift as any).user_attendance;
+
+                        const attendanceId =
+                          att?.id ||
+                          (shift as any).user_attendance_id ||
+                          (shift as any).attendance_id;
+
+                        const attStatus = (att?.status ?? "").toLowerCase();
+
+                        const isCompleted =
+                          Boolean(att?.check_out_at) ||
+                          attStatus === "completed" ||
+                          attStatus === "checked_out";
+
+                        const isCheckedIn =
+                          !isCompleted &&
+                          (Boolean(att?.check_in_at) ||
+                            attStatus === "checked_in" ||
+                            Boolean((shift as any).is_checked_in));
+
+                        const isClaimed =
+                          Boolean(att) ||
+                          Boolean(attendanceId) ||
+                          ["claimed", "registered", "joined"].includes(attStatus);
+
                         return (
                           <Card key={shift.id} variant="default" className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-primary/40 transition-colors">
                             <div className="flex flex-col gap-1.5">
@@ -481,6 +623,11 @@ export default function VolunteerDashboardPage() {
                                 <span className="text-2xs bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold uppercase">
                                   {shift.capacity} spots
                                 </span>
+                                {isClaimed && (
+                                  <span className="text-2xs bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 px-2 py-0.5 rounded font-semibold uppercase">
+                                    {isCompleted ? "Completed" : isCheckedIn ? "Checked In" : "Claimed"}
+                                  </span>
+                                )}
                               </div>
                               <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1">
@@ -495,28 +642,31 @@ export default function VolunteerDashboardPage() {
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
-                              {attendanceId ? (
-                                isCheckedIn ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={checkingOutId === attendanceId}
-                                    onClick={() => handleCheckOut(attendanceId)}
-                                  >
-                                    <LogOut size={13} className="mr-1" />
-                                    {checkingOutId === attendanceId ? "Checking Out..." : "Check Out"}
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    variant="primary"
-                                    size="sm"
-                                    disabled={checkingInId === attendanceId}
-                                    onClick={() => handleCheckIn(attendanceId)}
-                                  >
-                                    <LogIn size={13} className="mr-1" />
-                                    {checkingInId === attendanceId ? "Checking In..." : "Check In"}
-                                  </Button>
-                                )
+                              {isCompleted ? (
+                                <Badge variant="neutral" className="bg-muted text-muted-foreground border-border px-3 py-1 text-xs font-semibold uppercase">
+                                  <CheckCircle2 size={13} className="mr-1 inline text-emerald-600" />
+                                  Completed
+                                </Badge>
+                              ) : isCheckedIn ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={checkingOutId === attendanceId}
+                                  onClick={() => handleCheckOut(attendanceId!)}
+                                >
+                                  <LogOut size={13} className="mr-1" />
+                                  {checkingOutId === attendanceId ? "Checking Out..." : "Check Out"}
+                                </Button>
+                              ) : isClaimed ? (
+                                <Button
+                                  variant="primary"
+                                  size="sm"
+                                  disabled={checkingInId === attendanceId}
+                                  onClick={() => handleCheckIn(attendanceId!)}
+                                >
+                                  <LogIn size={13} className="mr-1" />
+                                  {checkingInId === attendanceId ? "Checking In..." : "Check In"}
+                                </Button>
                               ) : (
                                 <Button
                                   variant="primary"
@@ -635,6 +785,15 @@ export default function VolunteerDashboardPage() {
                       </span>
                       <span className="text-xs text-muted-foreground leading-relaxed">
                         {volunteerProfile?.animal_handling_experience || "None specified"}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground font-condensed">
+                        Medical Conditions / Allergies
+                      </span>
+                      <span className="text-xs text-muted-foreground leading-relaxed">
+                        {volunteerProfile?.medical_conditions || "Not provided"}
                       </span>
                     </div>
 

@@ -130,6 +130,13 @@ export const communityService = {
     );
   },
 
+  /** `GET /volunteers/me/attendance` — current volunteer's attendance/joined shift records. */
+  getMyAttendance(): Promise<ShiftAttendanceResponse[] | Page<ShiftAttendanceResponse>> {
+    return apiGet<ShiftAttendanceResponse[] | Page<ShiftAttendanceResponse>>(
+      API_ROUTES.community.myAttendance
+    );
+  },
+
   /** `GET /volunteers/{profile_id}/certificate` — verified service-certificate URL. */
   getVolunteerCertificate(
     profileId: string
