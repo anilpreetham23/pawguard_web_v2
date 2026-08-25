@@ -9,9 +9,9 @@ import { useMotionStore } from "../../motion/motion-store";
 import { duration, ease } from "../../motion/motion.config";
 
 const SOCIALS = [
-  { icon: Twitter, label: "Twitter / X", href: "https://twitter.com/pawguard" },
-  { icon: Instagram, label: "Instagram", href: "https://instagram.com/pawguard" },
-  { icon: Facebook, label: "Facebook", href: "https://facebook.com/pawguard" },
+  { icon: Twitter, label: "X/Twitter", href: "https://twitter.com" },
+  { icon: Instagram, label: "Instagram", href: "https://instagram.com" },
+  { icon: Facebook, label: "Facebook", href: "https://facebook.com" },
 ];
 
 const SERVICES = [
@@ -142,10 +142,12 @@ export default function Footer() {
                 Coordinating emergency rescue, adoption, and veterinary care for dogs across the region.
               </p>
               <div className="flex items-center gap-2.5">
-                {SOCIALS.map(({ icon: Icon, label }) => (
+                {SOCIALS.map(({ icon: Icon, label, href }) => (
                   <a
                     key={label}
-                    href="#"
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 hover:border-white/20 hover:scale-105 transition-all duration-gentle ease-gentle"
                     aria-label={label}
                   >
