@@ -44,6 +44,7 @@ import {
   Input,
 } from "../components/pawguard";
 import { PhotoUploadInput } from "../components/PhotoUploadInput";
+import { validateOptionalIndianPhone } from "@/lib/utils/validation";
 import { useAuth } from "../providers/auth-provider";
 import { useFavorites } from "../hooks/useFavorites";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
@@ -203,6 +204,7 @@ export default function AccountPage() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [profilePhoneError, setProfilePhoneError] = useState<string | null>(null);
 
   // Sync user profile data into form state
   useEffect(() => {
@@ -265,6 +267,13 @@ export default function AccountPage() {
       setProfileError("Full Name is required.");
       return;
     }
+    // Phone is optional, but if entered it must be a valid Indian mobile number
+    const phoneFormatError = validateOptionalIndianPhone(phone);
+    if (phoneFormatError) {
+      setProfilePhoneError(phoneFormatError);
+      return;
+    }
+    setProfilePhoneError(null);
     setIsSavingProfile(true);
     setProfileSuccess(null);
     setProfileError(null);
@@ -291,6 +300,7 @@ export default function AccountPage() {
     }
     setProfileError(null);
     setProfileSuccess(null);
+    setProfilePhoneError(null);
   }
 
   async function handleSavePassword(e: React.FormEvent) {
@@ -674,10 +684,16 @@ export default function AccountPage() {
                       <Input
                         label="Phone Number"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        onChange={(e) => {
+                          setPhone(e.target.value);
+                          if (profilePhoneError) setProfilePhoneError(null);
+                        }}
                         placeholder="+91 98765 43210"
                         prefix={<Phone size={16} />}
-                        helper="Used for emergency rescue coordination and volunteer contact."
+                        helper="Used for emergency rescue coordination and volunteer contact. Optional."
+                        error={profilePhoneError ?? undefined}
+                        inputMode="tel"
+                        type="tel"
                       />
 
                       <PhotoUploadInput

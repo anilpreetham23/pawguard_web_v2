@@ -47,6 +47,7 @@ import type {
   SafetyTagScanResponse,
   PetSightingCreate,
 } from "@/lib/api";
+import { validateIndianPhone } from "@/lib/utils/validation";
 
 type ScanState =
   | { status: "idle" }
@@ -103,6 +104,7 @@ export default function ScanPage() {
   const [sightingLoading, setSightingLoading] = useState(false);
   const [sightingSubmitted, setSightingSubmitted] = useState(false);
   const [sightingError, setSightingError] = useState<string | null>(null);
+  const [sightingFieldErrors, setSightingFieldErrors] = useState<{ phone?: string; location?: string }>({});
 
   const scan = useApiMutation<SafetyTagScanResponse, string>({
     mutationFn: (token: string) => safetyTagService.scanToken(token),
@@ -132,6 +134,7 @@ export default function ScanPage() {
     setSightingLoading(false);
     setSightingSubmitted(false);
     setSightingError(null);
+    setSightingFieldErrors({});
   };
 
   const submitToken = useCallback(
@@ -270,12 +273,17 @@ export default function ScanPage() {
       if (state.status !== "success") return;
       const pet = state.pet;
 
-      if (!finderName.trim() || !finderPhone.trim() || !locationAddress.trim()) {
-        setSightingError(
-          "Please fill in all required fields: Your Name, Phone Number, and Reported Location Address."
-        );
-        return;
-      }
+      // Validate all required fields before API call
+      const fieldErrs: { phone?: string; location?: string } = {};
+      const phoneErr = validateIndianPhone(finderPhone);
+      if (phoneErr) fieldErrs.phone = phoneErr;
+      if (!locationAddress.trim()) fieldErrs.location = "Location address is required.";
+      setSightingFieldErrors(fieldErrs);
+
+      const nameErr = !finderName.trim() ? "Your name is required." : null;
+      setSightingError(nameErr);
+
+      if (nameErr || Object.keys(fieldErrs).length > 0) return;
 
       setSightingError(null);
       setSightingLoading(true);
@@ -702,8 +710,13 @@ export default function ScanPage() {
                       label="Your Mobile Number *"
                       placeholder="e.g. +91 98765 43210"
                       value={finderPhone}
-                      onChange={(e) => setFinderPhone(e.target.value)}
                       required
+                      aria-required="true"
+                      onChange={(e) => {
+                        setFinderPhone(e.target.value);
+                        if (sightingFieldErrors.phone) setSightingFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                      }}
+                      error={sightingFieldErrors.phone}
                     />
                   </div>
 
@@ -727,8 +740,13 @@ export default function ScanPage() {
                       id="location-address"
                       placeholder="Street, area, landmark or landmark details…"
                       value={locationAddress}
-                      onChange={(e) => setLocationAddress(e.target.value)}
                       required
+                      aria-required="true"
+                      onChange={(e) => {
+                        setLocationAddress(e.target.value);
+                        if (sightingFieldErrors.location) setSightingFieldErrors((prev) => ({ ...prev, location: undefined }));
+                      }}
+                      error={sightingFieldErrors.location}
                     />
                     {locationStatus && (
                       <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">

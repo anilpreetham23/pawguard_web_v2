@@ -10,10 +10,11 @@ import {
 } from "../ui/dialog";
 import { Input, Button, Alert } from "../pawguard";
 import { useApiErrorMessage, normalizeError } from "@/lib/api";
+import { authService } from "@/services/api/auth";
 import { useAuth, MFARequiredError } from "../../providers/auth-provider";
 import { cn } from "../ui/utils";
 
-type Step = "credentials" | "mfa";
+type Step = "credentials" | "mfa" | "forgot-password";
 
 export default function AuthDialog() {
   const {
@@ -43,11 +44,13 @@ export default function AuthDialog() {
 
   const title = useMemo(() => {
     if (step === "mfa") return "Two-step verification";
+    if (step === "forgot-password") return "Reset your password";
     return activeMode === "sign-in" ? "Welcome back" : "Create your account";
   }, [step, activeMode]);
 
   const description = useMemo(() => {
     if (step === "mfa") return "Enter the 6-digit code from your authenticator app.";
+    if (step === "forgot-password") return "Enter your email address and we'll send you a secure password reset link.";
     return activeMode === "sign-in"
       ? "Sign in to unlock community features like reporting lost pets and broadcasting alerts."
       : "Join PawGuard to report lost pets, broadcast alerts, and support rescued companions.";
@@ -70,6 +73,17 @@ export default function AuthDialog() {
     setPending(true);
 
     try {
+      if (step === "forgot-password") {
+        if (!email.trim()) {
+          setError("Please enter your email address.");
+          setPending(false);
+          return;
+        }
+        await authService.requestPasswordReset({ email: email.trim() });
+        setNotice("If an account exists for this email, we'll send a password reset link. Check your inbox.");
+        setPending(false);
+        return;
+      }
       if (step === "mfa") {
         await verifyMfa(code.trim());
         closeAuthDialog();
@@ -100,8 +114,6 @@ export default function AuthDialog() {
           password,
           phone: phone.trim(),
         });
-        // Registration succeeded — switch to sign-in with the email prefilled;
-        // login must happen manually (email verification may still be pending).
         setMode("sign-in");
         setPassword("");
         setNotice("Account created. Sign in to continue.");
@@ -245,7 +257,7 @@ export default function AuthDialog() {
           )}
 
           {notice && (
-            <Alert variant="success" title="Done">
+            <Alert variant="success" title="Notification">
               {notice}
             </Alert>
           )}
@@ -257,21 +269,10 @@ export default function AuthDialog() {
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {activeMode === "sign-up" && step === "credentials" && (
-              <Input
-                id="auth-full-name"
-                label="Full name"
-                placeholder="Jane Doe"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-              />
-            )}
-
-            {step === "credentials" ? (
+            {step === "forgot-password" ? (
               <>
                 <Input
-                  id="auth-email"
+                  id="auth-forgot-email"
                   label="Email address"
                   type="email"
                   placeholder="you@example.com"
@@ -280,73 +281,135 @@ export default function AuthDialog() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-                {activeMode === "sign-up" && (
-                  <Input
-                    id="auth-phone"
-                    label="Phone number *"
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    autoComplete="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                  />
-                )}
-                <Input
-                  id="auth-password"
-                  label="Password"
-                  type="password"
-                  placeholder="••••••••"
-                  autoComplete={activeMode === "sign-in" ? "current-password" : "new-password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  isLoading={isPending}
+                  disabled={isPending}
+                >
+                  Send Password Reset Link
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="md"
+                  onClick={() => switchMode("sign-in")}
+                >
+                  Back to Sign In
+                </Button>
               </>
             ) : (
               <>
-                {mfaRequired && (
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Your account uses two-step verification. We've issued a
-                    challenge for <span className="font-semibold text-foreground">{email.trim()}</span>.
-                  </p>
+                {activeMode === "sign-up" && step === "credentials" && (
+                  <Input
+                    id="auth-full-name"
+                    label="Full name"
+                    placeholder="Jane Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
                 )}
-                <Input
-                  id="auth-mfa-code"
-                  label="Verification code"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  placeholder="123456"
-                  maxLength={6}
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep("credentials");
-                    setError(null);
-                  }}
-                  className="text-primary text-xs font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity self-start"
+
+                {step === "credentials" ? (
+                  <>
+                    <Input
+                      id="auth-email"
+                      label="Email address"
+                      type="email"
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                    {activeMode === "sign-up" && (
+                      <Input
+                        id="auth-phone"
+                        label="Phone number *"
+                        type="tel"
+                        placeholder="+91 98765 43210"
+                        autoComplete="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required
+                      />
+                    )}
+                    <div className="flex flex-col gap-1.5">
+                      <Input
+                        id="auth-password"
+                        label="Password"
+                        type="password"
+                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                        autoComplete={activeMode === "sign-in" ? "current-password" : "new-password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                      {activeMode === "sign-in" && (
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setStep("forgot-password");
+                              setError(null);
+                              setNotice(null);
+                            }}
+                            className="text-xs font-semibold text-primary hover:underline transition-all"
+                          >
+                            Forgot Password?
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {mfaRequired && (
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        Your account uses two-step verification. We've issued a
+                        challenge for <span className="font-semibold text-foreground">{email.trim()}</span>.
+                      </p>
+                    )}
+                    <Input
+                      id="auth-mfa-code"
+                      label="Verification code"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder="123456"
+                      maxLength={6}
+                      value={code}
+                      onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep("credentials");
+                        setError(null);
+                      }}
+                      className="text-primary text-xs font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity self-start"
+                    >
+                      Back to password
+                    </button>
+                  </>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  isLoading={isPending}
+                  disabled={isPending}
                 >
-                  Back to password
-                </button>
+                  {step === "mfa" ? "Verify & sign in" : activeMode === "sign-in" ? "Sign in" : "Create account"}
+                </Button>
               </>
             )}
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              isLoading={isPending}
-              disabled={isPending}
-            >
-              {step === "mfa" ? "Verify & sign in" : activeMode === "sign-in" ? "Sign in" : "Create account"}
-            </Button>
           </form>
 
-          {step !== "mfa" && (
+          {step !== "mfa" && step !== "forgot-password" && (
             <p className="text-muted-foreground text-xs leading-relaxed">
               By continuing you agree to PawGuard&apos;s terms and privacy policy.
               We&apos;ll use your details to help reunite companions with their

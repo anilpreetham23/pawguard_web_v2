@@ -10,6 +10,7 @@ import { PhotoUploadInput } from "../components/PhotoUploadInput";
 import { rescueService } from "@/services/api/rescue";
 import { getErrorMessage } from "@/lib/api";
 import type { RescuePhysicalCondition, RescueSeverity } from "@/lib/api";
+import { validateIndianPhone } from "@/lib/utils/validation";
 
 type FormStep = "situation" | "details" | "review";
 
@@ -137,11 +138,15 @@ export default function EmergencyPage() {
 
   const draftNotified = useRef(false);
 
-  // When GPS coords arrive, store them and optionally pre-fill address field
+  // When GPS coords arrive, store them, pre-fill location display text, and clear location error
   useEffect(() => {
     if (geo.status === "granted" && geo.coords) {
       setLat(geo.coords.latitude);
       setLng(geo.coords.longitude);
+      // Set a non-empty sentinel so location validation passes even without manual text entry
+      setLocation((prev) => prev.trim() ? prev : "Current location detected");
+      // Immediately clear any stale "Location is required" error
+      setErrors((prev) => ({ ...prev, location: "" }));
     }
   }, [geo.status, geo.coords]);
 
@@ -184,12 +189,15 @@ export default function EmergencyPage() {
     if (advancingTo === "details" && !severity) e.severity = "Select the situation type";
     if (advancingTo === "review") {
       if (!reporterName.trim()) e.reporterName = "Your name is required";
-      if (!contact.trim()) e.contact = "Your phone number is required so dispatch can reach you";
-      if (!location.trim()) e.location = "Location is required";
+      // Phone: required + Indian format validation
+      const phoneError = validateIndianPhone(contact);
+      if (phoneError) e.contact = phoneError;
+      // Location: valid if manual text entered OR GPS coords present
+      if (!location.trim() && lat === null) e.location = "Location is required";
       if (!description.trim()) e.description = "Description is required";
       if (!photoUrl || !photoUrl.trim()) e.photoUrl = "Please upload a photo before submitting the report.";
     }
-    // lat/lng are optional — never block submission
+    // lat/lng are supplemental — GPS alone is sufficient for location
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -476,21 +484,28 @@ export default function EmergencyPage() {
                     <div className="flex flex-col gap-5 animate-fade-in">
                       <div className="flex flex-col gap-2">
                         <Input
-                          label="Your Name"
+                          label="Your Name *"
                           placeholder="Full name of the person reporting"
                           ref={setRef("reporterName")}
                           value={reporterName}
+                          required
+                          aria-required="true"
                           onChange={(e) => { setReporterName(e.target.value); if (errors.reporterName) setErrors((prev) => ({ ...prev, reporterName: "" })); }}
                           error={errors.reporterName}
                           autoComplete="name"
                         />
                         <Input
-                          label="Your Contact Number"
+                          label="Your Contact Number *"
                           type="tel"
                           placeholder="+91 98765 43210"
                           ref={setRef("contact")}
                           value={contact}
-                          onChange={(e) => { setContact(e.target.value); if (errors.contact) setErrors((prev) => ({ ...prev, contact: "" })); }}
+                          required
+                          aria-required="true"
+                          onChange={(e) => {
+                            setContact(e.target.value);
+                            if (errors.contact) setErrors((prev) => ({ ...prev, contact: "" }));
+                          }}
                           error={errors.contact}
                           autoComplete="tel"
                           inputMode="tel"
@@ -520,10 +535,12 @@ export default function EmergencyPage() {
 
                       <div className="flex flex-col gap-2">
                         <Input
-                          label="Location"
+                          label="Location *"
                           placeholder="Current address or coordinates"
                           ref={setRef("location")}
                           value={location}
+                          required
+                          aria-required="true"
                           onChange={(e) => { setLocation(e.target.value); if (errors.location) setErrors((prev) => ({ ...prev, location: "" })); }}
                           error={errors.location}
                           prefix={<MapPin size={16} />}
