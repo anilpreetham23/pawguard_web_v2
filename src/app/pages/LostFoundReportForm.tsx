@@ -19,23 +19,21 @@ import type { LostFoundKind } from "@/types";
 
 const SPECIES_OPTIONS: { value: Species; label: string }[] = [
   { value: "dog", label: "Dog" },
-  { value: "cat", label: "Cat" },
-  { value: "bird", label: "Bird" },
-  { value: "rabbit", label: "Rabbit" },
-  { value: "other", label: "Other" },
 ];
 
-const FIELD_LABELS: Record<LostFoundKind, { form: string; place: string; pet: string; id: string }> = {
+const FIELD_LABELS: Record<LostFoundKind, { form: string; subtitle: string; place: string; pet: string; id: string }> = {
   lost: {
-    form: "Report a Lost Pet",
-    place: "Where was the pet last seen?",
-    pet: "Pet name",
+    form: "Report a Lost Dog",
+    subtitle: "Tell us about your missing dog and where they were last seen. Every report helps our community bring them home safely.",
+    place: "Where was your dog last seen?",
+    pet: "Dog name",
     id: "Microchip ID (if known)",
   },
   found: {
-    form: "Report a Found Animal",
-    place: "Where did you find the animal?",
-    pet: "Animal type",
+    form: "Report a Found Dog",
+    subtitle: "Describe the dog you found and where you found them. Your report can help reunite them safely with their family.",
+    place: "Where did you find the dog?",
+    pet: "Dog details",
     id: "Description",
   },
 };
@@ -307,9 +305,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
             <div className="max-w-[960px]">
               <SectionHeading eyebrow="Lost & Found">{labels.form}</SectionHeading>
               <p className="text-muted-foreground text-base leading-relaxed mt-3 max-w-[720px]">
-                {kind === "lost"
-                  ? "Tell us about your missing companion and where they were last seen. Every report helps our community search together."
-                  : "Describe the animal you found and where. Your report helps a family recognise their companion and reunite safely."}
+                {labels.subtitle}
               </p>
             </div>
           </Reveal>
@@ -320,7 +316,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                 {kind === "lost" && isAuthenticated && (
                   <div className="flex flex-col gap-2 p-4 rounded-card bg-primary/5 border border-primary/20 w-full">
                     <label htmlFor="select-my-pet" className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed flex items-center gap-1.5">
-                      <PawPrint size={14} className="text-primary" /> Select My Pet (Optional)
+                      <PawPrint size={14} className="text-primary" /> Select Registered Dog (Optional)
                     </label>
                     <select
                       id="select-my-pet"
@@ -329,7 +325,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                       disabled={petsLoading}
                       className="w-full h-12 bg-input-background border border-border rounded-input px-4 text-foreground text-base focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-gentle ease-gentle"
                     >
-                      <option value="">-- Enter pet details manually --</option>
+                      <option value="">-- Enter dog details manually --</option>
                       {pets.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name} {p.breed ? `(${p.breed})` : ""}
@@ -338,7 +334,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                     </select>
                     {selectedPetObject && (
                       <div className="flex items-center gap-2 text-xs text-emerald-700 font-medium mt-1">
-                        <CheckCircle2 size={13} /> Selected pet details pre-filled from My Pets.
+                        <CheckCircle2 size={13} /> Selected dog details pre-filled from My Pets.
                       </div>
                     )}
                   </div>
@@ -375,21 +371,14 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                     required
                   />
 
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor={`${kind}-species`} className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
-                      Species
-                    </label>
-                    <select
-                      id={`${kind}-species`}
-                      value={species}
-                      onChange={(e) => setSpecies(e.target.value as Species)}
-                      className="w-full h-12 bg-input-background border border-border rounded-input px-4 text-foreground text-base focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-gentle ease-gentle"
-                    >
-                      {SPECIES_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <Input
+                    id={`${kind}-species`}
+                    label="Species"
+                    value="Dog (PawGuard is Dog-Only)"
+                    readOnly
+                    disabled
+                    helper="PawGuard Lost & Found is dedicated exclusively to dogs."
+                  />
 
                   <Input
                     id={`${kind}-breed`}

@@ -116,17 +116,25 @@ export const communityService = {
     );
   },
 
-  /** `POST /volunteers/attendance/{id}/check-in` — check in for a joined shift. */
-  checkInShift(attendanceId: string): Promise<ShiftAttendanceResponse> {
+  /** `POST /volunteers/attendance/{id}/check-in` — check in for a joined shift with optional GPS location. */
+  checkInShift(
+    attendanceId: string,
+    payload?: { latitude?: number; longitude?: number }
+  ): Promise<ShiftAttendanceResponse> {
     return apiPost<ShiftAttendanceResponse>(
-      API_ROUTES.community.attendanceCheckIn(attendanceId)
+      API_ROUTES.community.attendanceCheckIn(attendanceId),
+      payload
     );
   },
 
-  /** `POST /volunteers/attendance/{id}/check-out` — check out of a joined shift. */
-  checkOutShift(attendanceId: string): Promise<ShiftAttendanceResponse> {
+  /** `POST /volunteers/attendance/{id}/check-out` — check out of a joined shift with optional GPS location. */
+  checkOutShift(
+    attendanceId: string,
+    payload?: { latitude?: number; longitude?: number }
+  ): Promise<ShiftAttendanceResponse> {
     return apiPost<ShiftAttendanceResponse>(
-      API_ROUTES.community.attendanceCheckOut(attendanceId)
+      API_ROUTES.community.attendanceCheckOut(attendanceId),
+      payload
     );
   },
 

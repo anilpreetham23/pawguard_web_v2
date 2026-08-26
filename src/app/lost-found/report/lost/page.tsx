@@ -3,9 +3,9 @@ import { Suspense } from "react";
 import LostFoundReportForm from "../../../pages/LostFoundReportForm";
 
 export const metadata: Metadata = {
-  title: "Report a Lost Pet",
+  title: "Report a Lost Dog",
   description:
-    "File a lost-pet report so the PawGuard community can help search for your missing companion.",
+    "File a lost-dog report so the PawGuard community can help search for your missing dog.",
 };
 
 export default function Page() {

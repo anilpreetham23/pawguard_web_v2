@@ -35,9 +35,15 @@ const COMPANY = [
 ];
 
 const CONTACTS = [
-  { icon: Mail, label: "support@pawguard.org", href: "mailto:support@pawguard.org" },
-  { icon: Phone, label: "+91 98765 43210", href: "tel:+919876543210" },
-  { icon: MapPin, label: "12 Jubilee Hills Road, Hyderabad, Telangana", href: "#" },
+  { icon: Mail, label: "support@pawguard.org", href: "mailto:support@pawguard.org", target: undefined, rel: undefined },
+  { icon: Phone, label: "+91 98765 43210", href: "tel:+919876543210", target: undefined, rel: undefined },
+  {
+    icon: MapPin,
+    label: "12 Jubilee Hills Road, Hyderabad, Telangana",
+    href: "https://www.google.com/maps/search/?api=1&query=12+Jubilee+Hills+Road%2C+Hyderabad%2C+Telangana",
+    target: "_blank",
+    rel: "noopener noreferrer",
+  },
 ];
 
 const TRUST = [
@@ -208,10 +214,12 @@ export default function Footer() {
                 </Button>
               </div>
               <div className="flex flex-col gap-2">
-                {CONTACTS.map(({ icon: Icon, label, href }) => (
+                {CONTACTS.map(({ icon: Icon, label, href, target, rel }) => (
                   <a
                     key={label}
                     href={href}
+                    target={target}
+                    rel={rel}
                     className="group flex items-center gap-2.5 text-sm text-white/50 hover:text-white transition-colors duration-gentle ease-gentle w-fit"
                   >
                     <span className="w-7 h-7 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center shrink-0 group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-gentle ease-gentle">

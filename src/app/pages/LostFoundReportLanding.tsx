@@ -9,15 +9,15 @@ import { PageShell, Section, Card, Reveal, Button } from "../components/pawguard
 const CHOICES = [
   {
     kind: "lost",
-    title: "Report a Lost Pet",
-    subtitle: "Has your companion gone missing? File a report so neighbours can help search.",
+    title: "Report a Lost Dog",
+    subtitle: "Has your dog gone missing? File a report so neighbours can help search.",
     href: "/lost-found/report/lost",
     emoji: "🐾",
   },
   {
     kind: "found",
-    title: "Report a Found Animal",
-    subtitle: "Found a roaming animal? File a report so their family can find them.",
+    title: "Report a Found Dog",
+    subtitle: "Found a roaming dog? File a report so their family can find them.",
     href: "/lost-found/report/found",
     emoji: "🏠",
   },
@@ -29,8 +29,8 @@ export default function LostFoundReportLanding() {
       <main id="main-content" className="flex-1">
         <PageHeader
           eyebrow="Lost & Found"
-          title="Report a Missing or Found Companion"
-          subtitle="Your report appears in the public Lost & Found directory, giving your community the details they need to help reunite."
+          title="Report a Missing or Found Dog"
+          subtitle="Your report appears in the public Lost & Found directory, giving your community the details they need to bring dogs home safely."
         />
 
         <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-section-md lg:py-section-lg">

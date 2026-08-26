@@ -18,13 +18,13 @@ const PAGE_SIZE = 9;
 const KIND_OPTIONS: { value: LostFoundKind; label: string; hint: string }[] = [
   {
     value: "lost",
-    label: "Lost Pets",
-    hint: "Reported missing by their owners. Check here if you've spotted a roaming animal.",
+    label: "Lost Dogs",
+    hint: "Reported missing by their owners. Check here if you've spotted a roaming dog.",
   },
   {
     value: "found",
-    label: "Found Animals",
-    hint: "Spotted or taken in by community members. Check here if you're searching for your missing companion.",
+    label: "Found Dogs",
+    hint: "Spotted or taken in by community members. Check here if you're searching for your missing dog.",
   },
 ];
 
@@ -36,14 +36,14 @@ const STATUS_OPTIONS: { value: LostFoundReportStatus; label: string }[] = [
 
 const EMPTY_MESSAGES: Record<LostFoundKind, { title: string; description: string }> = {
   lost: {
-    title: "No lost pets reported yet",
+    title: "No lost dogs reported yet",
     description:
-      "When an owner files a lost-pet alert, it will appear here immediately for community sightings.",
+      "When an owner files a lost-dog alert, it will appear here immediately for community sightings.",
   },
   found: {
-    title: "No found animals reported yet",
+    title: "No found dogs reported yet",
     description:
-      "If you've spotted or taken in a roaming animal, report it above so the owner can reach you.",
+      "If you've spotted or taken in a roaming dog, report it above so the owner can reach you.",
   },
 };
 
@@ -111,14 +111,14 @@ export default function LostFoundPage() {
         <PageHeader
           eyebrow="Lost & Found"
           title="Help Families Reunite"
-          subtitle="Browse missing-pet reports and animals found safe. If you recognize one of these companions, reach out through the contact details on each report."
+          subtitle="Browse missing-dog reports and dogs found safe. If you recognize one of these dogs, reach out through the contact details on each report."
         >
           <div className="flex flex-wrap gap-3">
             <Button variant="primary" size="md" asLink={{ href: "/lost-found/report/lost" }}>
-              Report a Lost Pet
+              Report a Lost Dog
             </Button>
             <Button variant="outline" size="md" asLink={{ href: "/lost-found/report/found" }}>
-              Report a Found Animal
+              Report a Found Dog
             </Button>
           </div>
         </PageHeader>

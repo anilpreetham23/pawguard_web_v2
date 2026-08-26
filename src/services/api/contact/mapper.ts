@@ -96,6 +96,16 @@ function deriveViews(value: string): number {
   return 200 + (hashString(value) % 9800);
 }
 
+/** Filter out automated benchmark/sweep test fixture keys. */
+export function isHumanReadableFaqQuestion(text?: string): boolean {
+  if (!text || typeof text !== "string") return false;
+  const trimmed = text.trim();
+  if (trimmed.length < 5) return false;
+  if (/^(sweep|perf|test|mock|seed|id_)[a-f0-9]+$/i.test(trimmed)) return false;
+  if (/^[a-f0-9]{10,}$/i.test(trimmed)) return false;
+  return true;
+}
+
 /** Map a backend FAQ entry onto the display `FaqEntry`. */
 export function faqResponseToFaqEntry(
   entry: FAQEntryResponse,
@@ -111,10 +121,10 @@ export function faqResponseToFaqEntry(
   };
 }
 
-/** Filter to published entries, ordered by `sort_order`. */
+/** Filter to published entries with human-readable questions, ordered by `sort_order`. */
 export function faqResponsesToFaqEntries(list: FAQEntryResponse[]): FaqEntry[] {
   return (list ?? [])
-    .filter((entry) => entry.is_published)
+    .filter((entry) => entry.is_published && isHumanReadableFaqQuestion(entry.question))
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((entry, index) => faqResponseToFaqEntry(entry, index));
 }

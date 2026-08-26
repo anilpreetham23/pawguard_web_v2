@@ -182,7 +182,7 @@ function BroadcastPanel({ caseItem }: { caseItem: LostFoundCase }) {
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-card border border-border rounded-card p-6 lg:p-8 flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
           <div className="flex-1 flex flex-col gap-1.5">
-            <h2 className="text-foreground font-bold text-lg">Broadcast a missing-pet alert</h2>
+            <h2 className="text-foreground font-bold text-lg">Broadcast a missing-dog alert</h2>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-[520px]">
               Push this lost report to nearby PawGuard members for faster sightings. Sign-in is required.
             </p>

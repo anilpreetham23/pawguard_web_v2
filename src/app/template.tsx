@@ -7,6 +7,8 @@ import { useMotionStore } from "@/motion/motion-store";
 import type { RouteType } from "@/motion/motion.types";
 import { useEffect } from "react";
 
+import { ensureScrollUnlocked, refreshScroll } from "@/motion/scroll";
+
 const routeToTransition: Record<RouteType, keyof typeof routeTransition> = {
   homepage: "default",
   marketing: "warm",
@@ -31,6 +33,8 @@ export default function Template({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setActiveRoute(getRouteType(pathname));
+    ensureScrollUnlocked();
+    refreshScroll();
   }, [pathname, setActiveRoute]);
 
   if (motionTier !== "full") {

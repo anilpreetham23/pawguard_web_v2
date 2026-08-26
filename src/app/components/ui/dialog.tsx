@@ -62,8 +62,15 @@ function DialogContent({
     const lenis = getLenis();
     if (lenis) lenis.stop();
     return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.overscrollBehavior = "";
       const l = getLenis();
-      if (l) l.start();
+      if (l) {
+        l.start();
+        l.scrollTo(window.scrollY, { immediate: true, force: true });
+        l.resize();
+      }
     };
   }, []);
 

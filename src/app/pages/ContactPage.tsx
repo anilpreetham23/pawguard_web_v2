@@ -24,13 +24,16 @@ const FAQS = [
   { q: "How long does the adoption process take?", a: "The typical adoption process takes 3–7 business days from application to approval." },
 ];
 
+import { isHumanReadableFaqQuestion } from "@/services/api/contact/mapper";
+
 export default function ContactPage() {
   const { data: apiFaqs } = useFaqEntries();
   const { data: apiLocations } = useContactLocations();
 
+  const validApiFaqs = (apiFaqs ?? []).filter((f) => isHumanReadableFaqQuestion(f.question));
   const faqsToDisplay =
-    apiFaqs && apiFaqs.length > 0
-      ? apiFaqs.map((f) => ({ q: f.question, a: f.answer }))
+    validApiFaqs.length > 0
+      ? validApiFaqs.map((f) => ({ q: f.question, a: f.answer }))
       : FAQS;
 
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });

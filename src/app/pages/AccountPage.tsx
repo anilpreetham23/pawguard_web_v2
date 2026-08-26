@@ -43,6 +43,7 @@ import {
   Button,
   Input,
 } from "../components/pawguard";
+import { PhotoUploadInput } from "../components/PhotoUploadInput";
 import { useAuth } from "../providers/auth-provider";
 import { useFavorites } from "../hooks/useFavorites";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
@@ -461,13 +462,6 @@ export default function AccountPage() {
                     <PawPrint size={14} />
                     My Pets
                   </Link>
-                  <button
-                    type="button"
-                    onClick={() => { void refreshProfile(); }}
-                    className="text-xs text-muted-foreground hover:text-primary transition-colors duration-fast underline underline-offset-2 self-center lg:self-end mt-1"
-                  >
-                    Refresh profile
-                  </button>
                 </div>
               </div>
             </Card>
@@ -686,13 +680,11 @@ export default function AccountPage() {
                         helper="Used for emergency rescue coordination and volunteer contact."
                       />
 
-                      <Input
-                        label="Avatar Image URL"
+                      <PhotoUploadInput
+                        label="Profile Photo"
+                        required={false}
                         value={avatarUrl}
-                        onChange={(e) => setAvatarUrl(e.target.value)}
-                        placeholder="https://images.unsplash.com/..."
-                        prefix={<ImageIcon size={16} />}
-                        helper="Direct image URL for your profile avatar."
+                        onChange={(_file, dataUrl) => setAvatarUrl(dataUrl)}
                       />
 
                       <div className="flex items-center gap-3 pt-2">

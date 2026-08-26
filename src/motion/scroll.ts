@@ -85,9 +85,13 @@ export function resumeScroll(): void {
 // route transitions and whenever a fresh Lenis instance is created.
 export function ensureScrollUnlocked(): void {
   document.body.style.overflow = "";
+  document.documentElement.style.overflow = "";
+  document.documentElement.style.overscrollBehavior = "";
   const lenis = getLenis();
   if (lenis) {
     lenis.start();
+    lenis.scrollTo(window.scrollY, { immediate: true, force: true });
+    lenis.resize();
   }
 }
 

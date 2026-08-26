@@ -133,9 +133,14 @@ export function LenisProvider({ children }: LenisProviderProps) {
     // NOT interrupted on every frame while actively animating smooth touchpad /
     // wheel gestures.
     const onRealScroll = () => {
-      if (lenis.isScrolling) return;
       const real = window.scrollY;
-      if (Math.abs(real - lenis.scroll) > 20) {
+      const diff = Math.abs(real - lenis.scroll);
+      if (diff > 50 || (real === 0 && lenis.scroll > 10)) {
+        lenis.scrollTo(real, { immediate: true, force: true, programmatic: true });
+        return;
+      }
+      if (lenis.isScrolling) return;
+      if (diff > 10) {
         lenis.scrollTo(real, { immediate: true, force: true, programmatic: true });
       }
     };
@@ -146,12 +151,12 @@ export function LenisProvider({ children }: LenisProviderProps) {
     // created before the lazy route chunk has finished rendering (short
     // placeholder page), its built-in ResizeObserver on <html> does not fire
     // when the content later grows, so `limit` stays stale and smooth-scroll
-    // freezes at the old smaller range. Use a ResizeObserver on <html> and
-    // <body> to capture dynamic content growth.
+    // freezes at the old smaller range. Use a ResizeObserver on <html>, <body>,
+    // and <main> to capture dynamic content growth.
     let lastKnownMax = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
     const dimensionObs = new ResizeObserver(() => {
       const realMax = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
-      if (Math.abs(realMax - lastKnownMax) > 4) {
+      if (Math.abs(realMax - lastKnownMax) > 2) {
         lastKnownMax = realMax;
         lenis.resize();
       }
@@ -159,6 +164,10 @@ export function LenisProvider({ children }: LenisProviderProps) {
     dimensionObs.observe(document.documentElement);
     if (document.body) {
       dimensionObs.observe(document.body);
+    }
+    const mainContent = document.getElementById("main-content") || document.querySelector("main");
+    if (mainContent) {
+      dimensionObs.observe(mainContent);
     }
 
     function onLenisScroll(e: { scroll: number; velocity: number; direction: number; limit: number }) {
@@ -177,16 +186,12 @@ export function LenisProvider({ children }: LenisProviderProps) {
 
     // Drive Lenis on its OWN rAF loop instead of piggy-backing on gsap.ticker.
     let rafId = 0;
-    let resizeCheckCounter = 0;
 
     function loop(now: number) {
       lenis.raf(now);
-      // Every ~2 seconds, verify Lenis limit still matches actual scroll height
-      if (++resizeCheckCounter % 120 === 0) {
-        const realMax = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
-        if (Math.abs(realMax - lenis.limit) > 4) {
-          lenis.resize();
-        }
+      const realMax = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
+      if (Math.abs(realMax - lenis.limit) > 2) {
+        lenis.resize();
       }
       rafId = window.requestAnimationFrame(loop);
     }

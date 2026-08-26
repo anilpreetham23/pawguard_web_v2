@@ -59,6 +59,9 @@ function ListSkeleton() {
 export default function NotificationsPage() {
   const { isAuthenticated, status, openAuthDialog } = useAuth();
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const {
     notifications,
     total,
@@ -72,6 +75,67 @@ export default function NotificationsPage() {
     markAllRead,
     deleteNotification,
   } = useNotifications(page, PAGE_SIZE);
+
+  const isAllSelected =
+    notifications.length > 0 &&
+    notifications.every((n) => selectedIds.includes(n.id));
+
+  function toggleSelectAll() {
+    if (isAllSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(notifications.map((n) => n.id));
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  }
+
+  async function handleDeleteSelected() {
+    if (selectedIds.length === 0) return;
+    const count = selectedIds.length;
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${count} selected notification${count === 1 ? "" : "s"}?`
+      )
+    ) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      for (const id of selectedIds) {
+        await deleteNotification(id);
+      }
+      setSelectedIds([]);
+      refetch();
+    } catch (err) {
+      console.error("Failed to delete selected notifications:", err);
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  async function handleDeleteAll() {
+    if (notifications.length === 0) return;
+    if (!window.confirm("Are you sure you want to delete all notifications on this page?")) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      for (const n of notifications) {
+        await deleteNotification(n.id);
+      }
+      setSelectedIds([]);
+      refetch();
+    } catch (err) {
+      console.error("Failed to delete all notifications:", err);
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   if (status === "loading") {
     return (
@@ -119,19 +183,58 @@ export default function NotificationsPage() {
 
         <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md lg:py-section-lg">
           <Reveal>
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-muted-foreground text-sm">
-                <span className="font-semibold text-foreground">{total}</span> notification{total === 1 ? "" : "s"}
-              </p>
-              {unreadCount > 0 && (
-                <button
-                  onClick={() => markAllRead()}
-                  className="inline-flex items-center gap-2 bg-card border border-border text-foreground text-xs font-semibold tracking-wider uppercase px-4 py-2.5 rounded-btn hover:border-primary hover:text-primary transition-all duration-fast"
-                >
-                  <CheckCheck size={15} />
-                  Mark all read
-                </button>
-              )}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-border">
+              <div className="flex items-center gap-3">
+                {notifications.length > 0 && (
+                  <label className="flex items-center gap-2 text-xs font-semibold text-foreground cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      onChange={toggleSelectAll}
+                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                      aria-label="Select all notifications"
+                    />
+                    <span>Select All ({selectedIds.length} selected)</span>
+                  </label>
+                )}
+                <p className="text-muted-foreground text-xs">
+                  <span className="font-semibold text-foreground">{total}</span> notification{total === 1 ? "" : "s"}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={() => markAllRead()}
+                    className="inline-flex items-center gap-1.5 bg-card border border-border text-foreground text-xs font-semibold px-3 py-2 rounded-btn hover:border-primary hover:text-primary transition-all duration-fast"
+                  >
+                    <CheckCheck size={14} />
+                    Mark All Read
+                  </button>
+                )}
+
+                {selectedIds.length > 0 && (
+                  <button
+                    disabled={isDeleting}
+                    onClick={handleDeleteSelected}
+                    className="inline-flex items-center gap-1.5 bg-destructive text-destructive-foreground text-xs font-semibold px-3.5 py-2 rounded-btn hover:bg-destructive/90 transition-all duration-fast disabled:opacity-50"
+                  >
+                    <Trash2 size={14} />
+                    Delete Selected ({selectedIds.length})
+                  </button>
+                )}
+
+                {notifications.length > 0 && (
+                  <button
+                    disabled={isDeleting}
+                    onClick={handleDeleteAll}
+                    className="inline-flex items-center gap-1.5 bg-card border border-destructive/30 text-destructive text-xs font-semibold px-3.5 py-2 rounded-btn hover:bg-destructive/10 transition-all duration-fast disabled:opacity-50"
+                  >
+                    <Trash2 size={14} />
+                    Delete All
+                  </button>
+                )}
+              </div>
             </div>
 
             {isLoading ? (
@@ -154,54 +257,70 @@ export default function NotificationsPage() {
               </Card>
             ) : (
               <div className="flex flex-col gap-3">
-                {notifications.map((n) => (
-                  <Card
-                    key={n.id}
-                    className={n.is_read ? "bg-card" : "border-primary/30 bg-primary/[0.04]"}
-                  >
-                    <div className="flex items-start gap-4 p-5">
-                      <span aria-hidden="true" className="mt-1 text-xl leading-none">
-                        {emojiFor(n.notification_type)}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-3">
-                          <p className={`text-sm font-semibold ${n.is_read ? "text-muted-foreground" : "text-foreground"}`}>
-                            {n.title}
-                          </p>
-                          <span className="shrink-0 text-[11px] text-muted-foreground">{timeAgo(n.created_at)}</span>
+                {notifications.map((n) => {
+                  const isSelected = selectedIds.includes(n.id);
+                  return (
+                    <Card
+                      key={n.id}
+                      className={
+                        isSelected
+                          ? "border-primary bg-primary/10 shadow-sm"
+                          : n.is_read
+                          ? "bg-card"
+                          : "border-primary/30 bg-primary/[0.04]"
+                      }
+                    >
+                      <div className="flex items-start gap-3.5 p-5">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelect(n.id)}
+                          aria-label={`Select notification: ${n.title}`}
+                          className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer shrink-0"
+                        />
+                        <span aria-hidden="true" className="mt-0.5 text-xl leading-none shrink-0">
+                          {emojiFor(n.notification_type)}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className={`text-sm font-semibold ${n.is_read ? "text-muted-foreground" : "text-foreground"}`}>
+                              {n.title}
+                            </p>
+                            <span className="shrink-0 text-[11px] text-muted-foreground">{timeAgo(n.created_at)}</span>
+                          </div>
+                          {n.body && (
+                            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{n.body}</p>
+                          )}
+                          {n.notification_type && (
+                            <span className="mt-2 inline-block rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+                              {n.notification_type}
+                            </span>
+                          )}
                         </div>
-                        {n.body && (
-                          <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{n.body}</p>
-                        )}
-                        {n.notification_type && (
-                          <span className="mt-2 inline-block rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
-                            {n.notification_type}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-col items-center gap-2 shrink-0">
-                        {!n.is_read && (
+                        <div className="flex flex-col items-center gap-2 shrink-0">
+                          {!n.is_read && (
+                            <button
+                              type="button"
+                              onClick={() => markRead(n.id)}
+                              aria-label="Mark as read"
+                              className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-fast"
+                            >
+                              <CheckCheck size={16} />
+                            </button>
+                          )}
                           <button
                             type="button"
-                            onClick={() => markRead(n.id)}
-                            aria-label="Mark as read"
-                            className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-fast"
+                            onClick={() => deleteNotification(n.id)}
+                            aria-label="Delete notification"
+                            className="p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors duration-fast"
                           >
-                            <CheckCheck size={16} />
+                            <Trash2 size={16} />
                           </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => deleteNotification(n.id)}
-                          aria-label="Delete notification"
-                          className="p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors duration-fast"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        </div>
                       </div>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
             )}
 

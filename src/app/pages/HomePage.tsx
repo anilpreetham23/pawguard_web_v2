@@ -347,13 +347,16 @@ function StoriesSection() {
   return <CommunityStories />;
 }
 
+import { isHumanReadableFaqQuestion } from "@/services/api/contact/mapper";
+
 function FaqSection() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const { data: apiFaqs } = useFaqEntries();
 
+  const validApiFaqs = (apiFaqs ?? []).filter((f) => isHumanReadableFaqQuestion(f.question));
   const faqsToDisplay =
-    apiFaqs && apiFaqs.length > 0
-      ? apiFaqs.map((f) => ({ q: f.question, a: f.answer }))
+    validApiFaqs.length > 0
+      ? validApiFaqs.map((f) => ({ q: f.question, a: f.answer }))
       : FAQS;
 
   return (

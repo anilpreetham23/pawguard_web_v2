@@ -295,6 +295,10 @@ function LivePetDetailPage({ id }: { id: string }) {
   useEffect(() => {
     ensureScrollUnlocked();
     refreshScroll();
+    const t = setTimeout(() => {
+      refreshScroll();
+    }, 200);
+    return () => clearTimeout(t);
   }, [pet, isLoading]);
 
   if (isLoading) {
@@ -394,6 +398,7 @@ function LivePetDetailPage({ id }: { id: string }) {
                     variant="hero"
                     aspectRatio="4/5"
                     className="rounded-img shadow-lg"
+                    onImageLoad={() => refreshScroll()}
                   />
                 ) : (
                   <div
@@ -654,6 +659,10 @@ export default function AnimalDetailPage({ slug }: { slug?: string }) {
   useEffect(() => {
     ensureScrollUnlocked();
     refreshScroll();
+    const t = setTimeout(() => {
+      refreshScroll();
+    }, 200);
+    return () => clearTimeout(t);
   }, [animal]);
 
   if (!animal) {
@@ -717,6 +726,7 @@ export default function AnimalDetailPage({ slug }: { slug?: string }) {
                   variant="hero"
                   aspectRatio="4/5"
                   className="rounded-img shadow-lg"
+                  onImageLoad={() => refreshScroll()}
                   overlay={
                     <div className="absolute bottom-0 left-0 right-0 p-5 flex items-center justify-between">
                       <StatusBadge status={animal.status} />

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useMotionStore } from "../../motion";
 import { getLenis } from "../../motion/lenis-instance";
@@ -14,12 +14,19 @@ import TopEmergencyBar from "./TopEmergencyBar";
 import { AuthNavControls, AuthMobileControls } from "./AuthNavControls";
 
 
+const SERVICE_ITEMS = [
+  { label: "Volunteer", to: "/volunteer", desc: "Join shelter team & shift duties" },
+  { label: "Foster Program", to: "/foster", desc: "Open your home to a dog in need" },
+  { label: "Emergency Rescue", to: "/emergency", desc: "Report & track urgent rescues" },
+  { label: "Donate", to: "/donate", desc: "Support medical care & shelter ops" },
+];
+
 const NAV_LINKS = [
   { label: "Home",      to: "/" },
   { label: "Adopt",     to: "/adopt" },
+  { label: "Services",  to: "/services", isDropdown: true },
   { label: "Veterinary", to: "/veterinary" },
   { label: "Lost & Found", to: "/lost-found" },
-  { label: "Volunteer", to: "/volunteer" },
   { label: "About",     to: "/about" },
   { label: "Stories",   to: "/stories" },
   { label: "Contact",   to: "/contact" },
@@ -33,12 +40,24 @@ const TRANSITION_REDUCED = undefined;
 
 export default function Navbar() {
   const [menuOpen,        setMenuOpen]        = useState(false);
+  const [servicesOpen,    setServicesOpen]    = useState(false);
   const [scrolled,        setScrolled]        = useState(false);
   const [hidden,          setHidden]          = useState(false);
 
   const pathname      = usePathname();
   const menuRef       = useRef<HTMLDivElement>(null);
+  const servicesRef   = useRef<HTMLDivElement>(null);
   const toggleRef     = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (servicesRef.current && !servicesRef.current.contains(e.target as Node)) {
+        setServicesOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const lastScrollRef = useRef(0);
   const scrolledRef   = useRef(false);
   const hiddenRef     = useRef(false);
@@ -81,7 +100,12 @@ export default function Navbar() {
       document.body.style.overflow = "";
       docEl.style.overflow = "";
       docEl.style.overscrollBehavior = "";
-      getLenis()?.start();
+      const l = getLenis();
+      if (l) {
+        l.start();
+        l.scrollTo(window.scrollY, { immediate: true, force: true });
+        l.resize();
+      }
       clearTimeout(t);
     };
   }, [menuOpen]);
@@ -196,13 +220,72 @@ export default function Navbar() {
 
               {/* Desktop nav links — center column, mathematically centered */}
               <nav aria-label="Main navigation" className="hidden md:flex items-center gap-0.5 lg:gap-1">
-                {NAV_LINKS.map(({ label, to }) => {
-                  const active = pathname === to;
+                {NAV_LINKS.map((link) => {
+                  if (link.isDropdown) {
+                    const isServiceActive = SERVICE_ITEMS.some((item) => pathname === item.to);
+                    return (
+                      <div key={link.label} ref={servicesRef} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setServicesOpen((prev) => !prev)}
+                          aria-expanded={servicesOpen}
+                          aria-haspopup="true"
+                          className={cn(
+                            "group relative px-2.5 lg:px-3 xl:px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-[200ms] ease-gentle whitespace-nowrap flex items-center gap-1",
+                            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring/60",
+                          )}
+                          style={{
+                            color: isServiceActive ? "var(--primary)" : "var(--foreground)",
+                            letterSpacing: "0.02em",
+                            background: isServiceActive ? "rgba(37,99,235,0.08)" : "transparent",
+                          }}
+                        >
+                          {link.label}
+                          <ChevronDown
+                            size={14}
+                            className={cn("transition-transform duration-200", servicesOpen ? "rotate-180 text-primary" : "text-muted-foreground")}
+                          />
+                        </button>
+
+                        <AnimatePresence>
+                          {servicesOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                              transition={{ duration: 0.18, ease: "easeOut" }}
+                              className="absolute top-full left-0 mt-2 w-64 rounded-card border border-border bg-background/95 backdrop-blur-xl shadow-xl p-2 z-50 flex flex-col gap-1"
+                            >
+                              {SERVICE_ITEMS.map((item) => {
+                                const active = pathname === item.to;
+                                return (
+                                  <Link
+                                    key={item.to}
+                                    href={item.to}
+                                    onClick={() => setServicesOpen(false)}
+                                    className={cn(
+                                      "flex flex-col gap-0.5 p-2.5 rounded-card text-xs transition-colors duration-fast",
+                                      active ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted text-foreground"
+                                    )}
+                                  >
+                                    <span className="font-semibold text-sm text-foreground">{item.label}</span>
+                                    <span className="text-2xs text-muted-foreground">{item.desc}</span>
+                                  </Link>
+                                );
+                              })}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  }
+
+                  const active = pathname === link.to;
                   return (
                     <Link
-                      key={to}
-                      href={to}
-                      data-analytics-nav={label.toLowerCase()}
+                      key={link.to}
+                      href={link.to}
+                      data-analytics-nav={link.label.toLowerCase()}
                       className={cn(
                         "group relative px-2.5 lg:px-3 xl:px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-[200ms] ease-gentle whitespace-nowrap",
                         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring/60",
@@ -232,7 +315,7 @@ export default function Navbar() {
                         if (underline) underline.style.transform = "scaleX(0)";
                       }}
                     >
-                      {label}
+                      {link.label}
                       {/* Hover underline — grows from center on hover */}
                       <span
                         aria-hidden="true"
@@ -296,24 +379,59 @@ export default function Navbar() {
                 transition={{ duration: duration.scroll / 1000, ease: ease.gentle }}
               >
                 <nav aria-label="Mobile navigation" className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-6 flex flex-col gap-1">
-                  {NAV_LINKS.map(({ label, to }, i) => {
-                    const active = pathname === to;
+                  {NAV_LINKS.map((link, i) => {
+                    if (link.isDropdown) {
+                      return (
+                        <motion.div
+                          key={link.label}
+                          initial={reduced ? false : { opacity: 0, x: 18 }}
+                          animate={reduced ? undefined : { opacity: 1, x: 0 }}
+                          transition={{ delay: reduced ? 0 : 0.05 + i * 0.05, duration: duration.fast / 1000, ease: ease.gentle }}
+                          className="flex flex-col gap-1 my-1 pl-2 border-l-2 border-primary/20"
+                        >
+                          <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground px-3 py-1">
+                            Services
+                          </span>
+                          {SERVICE_ITEMS.map((item) => {
+                            const active = pathname === item.to;
+                            return (
+                              <Link
+                                key={item.to}
+                                href={item.to}
+                                onClick={() => setMenuOpen(false)}
+                                className={cn(
+                                  "flex items-center justify-between min-h-[44px] px-3.5 rounded-card text-sm font-semibold transition-colors duration-fast",
+                                  active ? "text-primary bg-primary/8" : "text-foreground hover:bg-secondary/60"
+                                )}
+                              >
+                                {item.label}
+                                {active && (
+                                  <span className="h-[2px] w-4 rounded-full bg-primary" />
+                                )}
+                              </Link>
+                            );
+                          })}
+                        </motion.div>
+                      );
+                    }
+
+                    const active = pathname === link.to;
                     return (
                       <motion.div
-                        key={to}
+                        key={link.to}
                         initial={reduced ? false : { opacity: 0, x: 18 }}
                         animate={reduced ? undefined : { opacity: 1, x: 0 }}
                         transition={{ delay: reduced ? 0 : 0.05 + i * 0.05, duration: duration.fast / 1000, ease: ease.gentle }}
                       >
                         <Link
-                          href={to}
+                          href={link.to}
                           onClick={() => setMenuOpen(false)}
                           className={cn(
                             "flex items-center justify-between min-h-[52px] px-4 rounded-card text-base font-semibold tracking-normal transition-colors duration-fast",
                             active ? "text-primary bg-primary/8" : "text-foreground hover:bg-secondary/60",
                           )}
                         >
-                          {label}
+                          {link.label}
                           {active && (
                             <motion.span
                               layoutId="mobile-active"

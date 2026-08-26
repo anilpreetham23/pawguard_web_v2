@@ -19,6 +19,7 @@ import {
   LogIn,
   LogOut,
   FileText,
+  History,
 } from "lucide-react";
 import {
   PageShell,
@@ -158,6 +159,111 @@ function isShiftEligible(
   return false;
 }
 
+function formatDistance(meters: number): string {
+  if (meters >= 1000) {
+    const km = (meters / 1000).toFixed(2).replace(/\.?0+$/, "");
+    return `${km} km`;
+  }
+  return `${Math.round(meters)} m`;
+}
+
+function formatGeofenceErrorMessage(rawMsg: string): string {
+  const distMatch =
+    rawMsg.match(/(\d+(?:\.\d+)?)\s*(?:meters|meter|m|km)\s*(?:away|from)/i) ||
+    rawMsg.match(/(\d+(?:\.\d+)?)\s*(?:meters|meter|m)\b/i);
+
+  const radMatch =
+    rawMsg.match(/(?:radius|allowed|geofence)[^0-9]*(\d+(?:\.\d+)?)\s*(?:meters|meter|m|km)/i) ||
+    rawMsg.match(/exceeds[^0-9]*(\d+(?:\.\d+)?)\s*(?:meters|meter|m|km)/i);
+
+  if (distMatch && radMatch) {
+    let distVal = parseFloat(distMatch[1]);
+    if (distMatch[0].toLowerCase().includes("km")) distVal *= 1000;
+
+    let radVal = parseFloat(radMatch[1]);
+    if (radMatch[0].toLowerCase().includes("km")) radVal *= 1000;
+
+    return `You're outside the allowed location for this shift.\n\nYou are approximately ${formatDistance(distVal)} away from the assigned location.\nAllowed radius: ${formatDistance(radVal)}.\n\nPlease move closer to the shift location and try again.`;
+  }
+
+  if (distMatch) {
+    let distVal = parseFloat(distMatch[1]);
+    if (distMatch[0].toLowerCase().includes("km")) distVal *= 1000;
+    return `You're outside the allowed location for this shift.\n\nYou are approximately ${formatDistance(distVal)} away from the assigned location.\n\nPlease move closer to the shift location and try again.`;
+  }
+
+  if (rawMsg && rawMsg !== "Error") {
+    return rawMsg;
+  }
+
+  return "You're outside the allowed location for this shift. Please move closer to the shift location and try again.";
+}
+
+interface GPSCoordinates {
+  latitude: number;
+  longitude: number;
+}
+
+/**
+ * Obtains current GPS coordinates from the browser's Geolocation API.
+ * Maps permissions, timeouts, and availability errors into clean user messages.
+ */
+function getCurrentGPSLocation(): Promise<GPSCoordinates> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      return reject(
+        new Error("Geolocation is not supported by your browser.")
+      );
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (error) => {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            reject(
+              new Error(
+                "Location permission was denied. Please allow location access in your browser settings to verify your shift location."
+              )
+            );
+            break;
+          case error.POSITION_UNAVAILABLE:
+            reject(
+              new Error(
+                "GPS location is unavailable. Please ensure location services are enabled on your device and try again."
+              )
+            );
+            break;
+          case error.TIMEOUT:
+            reject(
+              new Error(
+                "GPS location request timed out. Please try again."
+              )
+            );
+            break;
+          default:
+            reject(
+              new Error(
+                "Unable to obtain GPS location. Please try again."
+              )
+            );
+            break;
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  });
+}
+
 export default function VolunteerDashboardPage() {
   const { user, isAuthenticated, status: authStatus, openAuthDialog } = useAuth();
   const {
@@ -239,6 +345,17 @@ export default function VolunteerDashboardPage() {
     return map;
   }, [attendanceItems]);
 
+  const completedAttendanceItems = useMemo(() => {
+    return attendanceItems.filter((att) => {
+      const status = (att.status ?? "").toLowerCase();
+      return (
+        Boolean(att.check_out_at) ||
+        status === "completed" ||
+        status === "checked_out"
+      );
+    });
+  }, [attendanceItems]);
+
   // Query service summary if volunteer profile exists
   const { data: serviceSummary, refetch: refetchSummaryData } = useApiQuery({
     queryKey: QUERY_KEYS.community.volunteerServiceSummary(profileId ?? ""),
@@ -258,6 +375,7 @@ export default function VolunteerDashboardPage() {
   const [checkingOutId, setCheckingOutId] = useState<string | null>(null);
   const [shiftError, setShiftError] = useState<string | null>(null);
   const [shiftNotice, setShiftNotice] = useState<string | null>(null);
+  const [showShiftHistory, setShowShiftHistory] = useState(false);
 
   const refetchAllQueries = () => {
     void refetchShifts();
@@ -292,11 +410,38 @@ export default function VolunteerDashboardPage() {
     setShiftError(null);
     setShiftNotice(null);
     try {
-      await communityService.checkInShift(attendanceId);
+      let coords: GPSCoordinates | undefined;
+      try {
+        coords = await getCurrentGPSLocation();
+      } catch (gpsErr) {
+        setShiftError(
+          gpsErr instanceof Error ? gpsErr.message : "Unable to acquire location."
+        );
+        setCheckingInId(null);
+        return;
+      }
+
+      await communityService.checkInShift(attendanceId, {
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      });
       setShiftNotice("Checked in successfully! Thank you for your service.");
       refetchAllQueries();
     } catch (err) {
-      setShiftError(getErrorMessage(err));
+      const rawMsg = getErrorMessage(err);
+      const isLocationError =
+        rawMsg.toLowerCase().includes("location") ||
+        rawMsg.toLowerCase().includes("geofence") ||
+        rawMsg.toLowerCase().includes("distance") ||
+        rawMsg.toLowerCase().includes("outside") ||
+        rawMsg.toLowerCase().includes("coordinate") ||
+        rawMsg.toLowerCase().includes("meters");
+
+      if (isLocationError) {
+        setShiftError(formatGeofenceErrorMessage(rawMsg));
+      } else {
+        setShiftError(rawMsg);
+      }
     } finally {
       setCheckingInId(null);
     }
@@ -307,11 +452,38 @@ export default function VolunteerDashboardPage() {
     setShiftError(null);
     setShiftNotice(null);
     try {
-      await communityService.checkOutShift(attendanceId);
+      let coords: GPSCoordinates | undefined;
+      try {
+        coords = await getCurrentGPSLocation();
+      } catch (gpsErr) {
+        setShiftError(
+          gpsErr instanceof Error ? gpsErr.message : "Unable to acquire location."
+        );
+        setCheckingOutId(null);
+        return;
+      }
+
+      await communityService.checkOutShift(attendanceId, {
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      });
       setShiftNotice("Checked out successfully! Hours logged.");
       refetchAllQueries();
     } catch (err) {
-      setShiftError(getErrorMessage(err));
+      const rawMsg = getErrorMessage(err);
+      const isLocationError =
+        rawMsg.toLowerCase().includes("location") ||
+        rawMsg.toLowerCase().includes("geofence") ||
+        rawMsg.toLowerCase().includes("distance") ||
+        rawMsg.toLowerCase().includes("outside") ||
+        rawMsg.toLowerCase().includes("coordinate") ||
+        rawMsg.toLowerCase().includes("meters");
+
+      if (isLocationError) {
+        setShiftError(formatGeofenceErrorMessage(rawMsg));
+      } else {
+        setShiftError(rawMsg);
+      }
     } finally {
       setCheckingOutId(null);
     }
@@ -501,13 +673,29 @@ export default function VolunteerDashboardPage() {
                 {(serviceSummary as any)?.total_hours ?? (serviceSummary as any)?.hours_contributed ?? 0} hrs
               </span>
             </Card>
-            <Card variant="default" className="p-4 flex flex-col gap-1">
-              <span className="text-muted-foreground text-2xs uppercase font-condensed font-semibold tracking-wider">
-                Completed Assignments
-              </span>
-              <span className="text-2xl font-bold text-foreground font-serif">
-                {serviceSummary?.shifts_count ?? 0}
-              </span>
+            <Card variant="default" className="p-4 flex flex-col justify-between gap-1">
+              <div className="flex flex-col gap-1">
+                <span className="text-muted-foreground text-2xs uppercase font-condensed font-semibold tracking-wider">
+                  Completed Assignments
+                </span>
+                <span className="text-2xl font-bold text-foreground font-serif">
+                  {serviceSummary?.shifts_count ?? completedAttendanceItems.length ?? 0}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowShiftHistory((prev) => !prev);
+                  if (!showShiftHistory) {
+                    setTimeout(() => {
+                      document.getElementById("shift-history")?.scrollIntoView({ behavior: "smooth" });
+                    }, 50);
+                  }
+                }}
+                className="text-2xs font-semibold text-primary hover:underline text-left mt-0.5"
+              >
+                {showShiftHistory ? "Hide Shift History ↑" : "View Shift History →"}
+              </button>
             </Card>
             <Card variant="default" className="p-4 flex flex-col gap-1">
               <span className="text-muted-foreground text-2xs uppercase font-condensed font-semibold tracking-wider">
@@ -528,10 +716,12 @@ export default function VolunteerDashboardPage() {
               <span className="text-sm font-bold text-foreground mt-1 flex items-center gap-1.5">
                 {certData?.download_url ? (
                   <a href={certData.download_url} target="_blank" rel="noreferrer" className="text-primary underline flex items-center gap-1">
-                    <Award size={14} /> Download Certificate
+                    <Award size={14} /> Certificate Available
                   </a>
                 ) : (
-                  <span className="text-muted-foreground font-normal text-xs">Issued on active service</span>
+                  <span className="text-amber-600 font-medium text-xs flex items-center gap-1">
+                    <Clock size={14} /> Pending Admin Verification
+                  </span>
                 )}
               </span>
             </Card>
@@ -706,31 +896,144 @@ export default function VolunteerDashboardPage() {
                 </Card>
               </Reveal>
 
-              {/* 12 & 13. Activity History & Certificate */}
+              {/* 12. Shift History & Service Records */}
+              <Reveal>
+                <div id="shift-history" className="scroll-mt-24">
+                  <Card variant="default" className="p-6 flex flex-col gap-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+                      <div className="flex flex-col gap-1">
+                        <h3 className="font-serif font-bold text-xl text-foreground flex items-center gap-2">
+                          <History size={18} className="text-primary" />
+                          Shift History &amp; Service Records
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Detailed log of your completed volunteer assignments and verified service hours.
+                        </p>
+                      </div>
+                      {certData?.download_url && (
+                        <a
+                          href={certData.download_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline shrink-0"
+                        >
+                          <Award size={14} /> Download Certificate
+                        </a>
+                      )}
+                    </div>
+
+                    {completedAttendanceItems.length === 0 ? (
+                      <div className="text-center py-6 text-muted-foreground text-sm bg-muted/30 rounded-card border border-border/50">
+                        No completed volunteer shifts recorded yet. Complete your first scheduled shift to view your detailed service log here.
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-3">
+                        {completedAttendanceItems.map((att) => {
+                          const shiftRole = att.shift?.role_name || "Volunteer Shift";
+                          const checkInTime = att.check_in_at
+                            ? new Date(att.check_in_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                            : "N/A";
+                          const checkOutTime = att.check_out_at
+                            ? new Date(att.check_out_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                            : "N/A";
+                          const shiftDate = att.check_in_at
+                            ? new Date(att.check_in_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+                            : att.shift?.start_at
+                            ? new Date(att.shift.start_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+                            : "Completed Shift";
+                          const hoursText = att.hours_logged
+                            ? `${att.hours_logged.toFixed(2)} hours`
+                            : "0.00 hours";
+                          const locationText =
+                            (att.shift as any)?.location_name ||
+                            (att.shift as any)?.shelter_name ||
+                            "PawGuard Main Shelter";
+                          const scheduledTime =
+                            att.shift?.start_at && att.shift?.end_at
+                              ? `${new Date(att.shift.start_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} – ${new Date(att.shift.end_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                              : "Scheduled Shift";
+
+                          return (
+                            <div
+                              key={att.id}
+                              className="border border-border rounded-card p-4 flex flex-col gap-3 bg-card/60 hover:border-primary/30 transition-colors"
+                            >
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-2.5">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-bold text-foreground text-base">
+                                    {shiftRole}
+                                  </span>
+                                  <span className="text-2xs bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold uppercase">
+                                    {applicationInfo?.role_applied || volunteerProfile?.skills || "Transport"}
+                                  </span>
+                                </div>
+                                <Badge variant="neutral" className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20 text-2xs font-semibold uppercase self-start sm:self-auto">
+                                  <CheckCircle2 size={12} className="mr-1 inline text-emerald-600" />
+                                  COMPLETED
+                                </Badge>
+                              </div>
+
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-muted-foreground">
+                                <div>
+                                  <span className="font-semibold text-foreground block text-2xs uppercase tracking-wider mb-0.5">Date &amp; Location</span>
+                                  <span className="text-foreground font-medium">{shiftDate}</span>
+                                  <span className="block text-2xs">{locationText}</span>
+                                </div>
+                                <div>
+                                  <span className="font-semibold text-foreground block text-2xs uppercase tracking-wider mb-0.5">Scheduled</span>
+                                  <span>{scheduledTime}</span>
+                                </div>
+                                <div>
+                                  <span className="font-semibold text-foreground block text-2xs uppercase tracking-wider mb-0.5">Check In / Out</span>
+                                  <span>{checkInTime} – {checkOutTime}</span>
+                                </div>
+                                <div>
+                                  <span className="font-semibold text-foreground block text-2xs uppercase tracking-wider mb-0.5">Service Hours</span>
+                                  <span className="font-semibold text-foreground">{hoursText}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </Card>
+                </div>
+              </Reveal>
+
+              {/* 13. Official Service Certificate */}
               <Reveal>
                 <Card variant="default" className="p-6 flex flex-col gap-4">
                   <div className="flex items-center justify-between">
                     <h3 className="font-serif font-bold text-xl text-foreground flex items-center gap-2">
                       <FileText size={18} className="text-primary" />
-                      Volunteer Activity History &amp; Certificate
+                      Official Service Certificate
                     </h3>
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    Verified service logs and certificates are maintained directly on your PawGuard profile. Active volunteers who complete service shifts are eligible for an official verified certificate.
+                    Official volunteer service certificates are issued directly by the Admin / Volunteer Coordinator upon verification of your completed service shifts and logged hours.
                   </p>
                   {certData?.download_url ? (
-                    <a
-                      href={certData.download_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-2 self-start bg-primary text-primary-foreground font-semibold text-xs tracking-wider uppercase px-5 py-2.5 rounded-btn hover:bg-primary-hover transition-colors"
-                    >
-                      <Award size={16} />
-                      Download Verified Certificate
-                    </a>
+                    <div className="flex flex-col gap-2.5 items-start">
+                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded">
+                        Status: Certificate Available
+                      </span>
+                      <a
+                        href={certData.download_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold text-xs tracking-wider uppercase px-5 py-2.5 rounded-btn hover:bg-primary-hover transition-colors"
+                      >
+                        <Award size={16} />
+                        Download Verified Certificate
+                      </a>
+                    </div>
                   ) : (
-                    <div className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-card border border-border">
-                      Certificate generation unlocks automatically upon reaching active volunteer status and completion of initial service shifts.
+                    <div className="text-xs text-muted-foreground bg-muted/40 p-3.5 rounded-card border border-border flex items-center gap-2">
+                      <Clock size={15} className="text-amber-600 shrink-0" />
+                      <span>
+                        Status: <strong className="text-foreground font-semibold">Certificate Pending Admin Verification</strong>. Once approved by the shelter coordinator, your certificate will appear here for download.
+                      </span>
                     </div>
                   )}
                 </Card>
