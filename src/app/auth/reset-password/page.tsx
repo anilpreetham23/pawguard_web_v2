@@ -109,7 +109,6 @@ function ResetPasswordContent() {
         <Input
           label="New Password"
           type="password"
-          placeholder="••••••••"
           prefix={<Lock size={16} />}
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
@@ -119,7 +118,6 @@ function ResetPasswordContent() {
         <Input
           label="Confirm New Password"
           type="password"
-          placeholder="••••••••"
           prefix={<Key size={16} />}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}

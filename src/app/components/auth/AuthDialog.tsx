@@ -341,7 +341,6 @@ export default function AuthDialog() {
                         id="auth-password"
                         label="Password"
                         type="password"
-                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                         autoComplete={activeMode === "sign-in" ? "current-password" : "new-password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}

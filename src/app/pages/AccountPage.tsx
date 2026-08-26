@@ -955,7 +955,6 @@ export default function AccountPage() {
                         type="password"
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
-                        placeholder="••••••••"
                         prefix={<Lock size={16} />}
                         required
                       />
@@ -965,7 +964,6 @@ export default function AccountPage() {
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="••••••••"
                         prefix={<Key size={16} />}
                         helper="Minimum 6 characters long."
                         required
@@ -976,7 +974,6 @@ export default function AccountPage() {
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
                         prefix={<Key size={16} />}
                         required
                       />
