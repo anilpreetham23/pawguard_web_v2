@@ -8,11 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { Input, Button, Alert } from "../pawguard";
+import { Input, Button, Alert, PhoneInput } from "../pawguard";
 import { useApiErrorMessage, normalizeError } from "@/lib/api";
 import { authService } from "@/services/api/auth";
 import { useAuth, MFARequiredError } from "../../providers/auth-provider";
 import { cn } from "../ui/utils";
+import {
+  validatePhone,
+  getCountryByCode,
+  normalizePhonePayload,
+} from "@/lib/utils/validation";
 
 type Step = "credentials" | "mfa" | "forgot-password";
 
@@ -33,6 +38,8 @@ export default function AuthDialog() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneCountry, setPhoneCountry] = useState("IN");
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [isPending, setPending] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -60,6 +67,7 @@ export default function AuthDialog() {
     if (isPending) return;
     setMode(next);
     setError(null);
+    setPhoneError(null);
     setMfaRequired(null);
     setStep("credentials");
     setCode("");
@@ -103,8 +111,25 @@ export default function AuthDialog() {
           throw err;
         }
       } else {
-        if (!phone.trim()) {
-          setError("Phone number is required to create an account.");
+        if (!fullName.trim()) {
+          setError("Full Name is required to create an account.");
+          setPending(false);
+          return;
+        }
+        if (!email.trim()) {
+          setError("Email Address is required to create an account.");
+          setPending(false);
+          return;
+        }
+        const phoneErr = validatePhone(phone, phoneCountry, true);
+        if (phoneErr) {
+          setPhoneError(phoneErr);
+          setError(phoneErr);
+          setPending(false);
+          return;
+        }
+        if (!password) {
+          setError("Password is required to create an account.");
           setPending(false);
           return;
         }
@@ -112,7 +137,7 @@ export default function AuthDialog() {
           full_name: fullName.trim(),
           email: email.trim(),
           password,
-          phone: phone.trim(),
+          phone: normalizePhonePayload(phone.trim(), phoneCountry),
         });
         setMode("sign-in");
         setPassword("");
@@ -161,6 +186,7 @@ export default function AuthDialog() {
     setPassword("");
     setFullName("");
     setPhone("");
+    setPhoneError(null);
     setCode("");
     setError(null);
     setMfaRequired(null);
@@ -304,11 +330,12 @@ export default function AuthDialog() {
                 {activeMode === "sign-up" && step === "credentials" && (
                   <Input
                     id="auth-full-name"
-                    label="Full name"
+                    label="Full Name *"
                     placeholder="Jane Doe"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
+                    aria-required="true"
                   />
                 )}
 
@@ -316,35 +343,49 @@ export default function AuthDialog() {
                   <>
                     <Input
                       id="auth-email"
-                      label="Email address"
+                      label={activeMode === "sign-up" ? "Email Address *" : "Email address"}
                       type="email"
                       placeholder="you@example.com"
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      aria-required={activeMode === "sign-up" ? "true" : undefined}
                     />
                     {activeMode === "sign-up" && (
-                      <Input
+                      <PhoneInput
                         id="auth-phone"
-                        label="Phone number *"
-                        type="tel"
-                        placeholder="+91 98765 43210"
-                        autoComplete="tel"
+                        label="Mobile Number *"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        countryCode={phoneCountry}
+                        onCountryChange={(code) => {
+                          setPhoneCountry(code);
+                          if (phoneError) setPhoneError(null);
+                        }}
+                        onValueChange={(val, code) => {
+                          setPhone(val);
+                          if (phoneError) setPhoneError(null);
+                          if (error) setError(null);
+                          const c = getCountryByCode(code);
+                          if (val.length === c.maxLength) {
+                            const err = validatePhone(val, code, true);
+                            if (err) setPhoneError(err);
+                          }
+                        }}
+                        error={phoneError ?? undefined}
                         required
                       />
                     )}
                     <div className="flex flex-col gap-1.5">
                       <Input
                         id="auth-password"
-                        label="Password"
+                        label={activeMode === "sign-up" ? "Password *" : "Password"}
                         type="password"
                         autoComplete={activeMode === "sign-in" ? "current-password" : "new-password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        aria-required={activeMode === "sign-up" ? "true" : undefined}
                       />
                       {activeMode === "sign-in" && (
                         <div className="flex justify-end">

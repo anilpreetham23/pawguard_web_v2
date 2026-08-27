@@ -42,9 +42,10 @@ import {
   Alert,
   Button,
   Input,
+  PhoneInput,
 } from "../components/pawguard";
 import { PhotoUploadInput } from "../components/PhotoUploadInput";
-import { validateOptionalIndianPhone } from "@/lib/utils/validation";
+import { validatePhone, getCountryByCode, normalizePhonePayload } from "@/lib/utils/validation";
 import { useAuth } from "../providers/auth-provider";
 import { useFavorites } from "../hooks/useFavorites";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
@@ -200,6 +201,7 @@ export default function AccountPage() {
   // ── Profile Form State ──────────────────────────────────────────────────────
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneCountry, setPhoneCountry] = useState("IN");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
@@ -267,8 +269,8 @@ export default function AccountPage() {
       setProfileError("Full Name is required.");
       return;
     }
-    // Phone is optional, but if entered it must be a valid Indian mobile number
-    const phoneFormatError = validateOptionalIndianPhone(phone);
+    // Phone is optional, but if entered it must be valid for the selected country
+    const phoneFormatError = validatePhone(phone, phoneCountry, false);
     if (phoneFormatError) {
       setProfilePhoneError(phoneFormatError);
       return;
@@ -280,7 +282,7 @@ export default function AccountPage() {
     try {
       await authService.updateProfile({
         full_name: fullName.trim(),
-        phone: phone.trim() || null,
+        phone: phone.trim() ? normalizePhonePayload(phone.trim(), phoneCountry) : null,
         avatar_url: avatarUrl.trim() || null,
       });
       await refreshProfile();
@@ -681,19 +683,27 @@ export default function AccountPage() {
                         required
                       />
 
-                      <Input
+                      <PhoneInput
                         label="Phone Number"
                         value={phone}
-                        onChange={(e) => {
-                          setPhone(e.target.value);
+                        countryCode={phoneCountry}
+                        onCountryChange={(code) => {
+                          setPhoneCountry(code);
                           if (profilePhoneError) setProfilePhoneError(null);
                         }}
-                        placeholder="+91 98765 43210"
-                        prefix={<Phone size={16} />}
+                        onValueChange={(val, code) => {
+                          setPhone(val);
+                          if (profilePhoneError) setProfilePhoneError(null);
+                          if (val) {
+                            const c = getCountryByCode(code);
+                            if (val.length === c.maxLength) {
+                              const err = validatePhone(val, code, false);
+                              if (err) setProfilePhoneError(err);
+                            }
+                          }
+                        }}
                         helper="Used for emergency rescue coordination and volunteer contact. Optional."
                         error={profilePhoneError ?? undefined}
-                        inputMode="tel"
-                        type="tel"
                       />
 
                       <PhotoUploadInput

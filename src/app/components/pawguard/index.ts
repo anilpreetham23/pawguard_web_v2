@@ -21,3 +21,4 @@ export { EmptyState } from "./EmptyState";
 export { ErrorPage } from "./ErrorPage";
 export { MediaSkeleton, ProgressiveImage } from "./MediaSkeleton";
 export { SuccessState } from "./SuccessState";
+export { PhoneInput } from "./PhoneInput";

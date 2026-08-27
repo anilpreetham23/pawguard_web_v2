@@ -684,6 +684,8 @@ export default function VolunteerDashboardPage() {
               </div>
               <button
                 type="button"
+                aria-expanded={showShiftHistory}
+                aria-controls="shift-history"
                 onClick={() => {
                   setShowShiftHistory((prev) => !prev);
                   if (!showShiftHistory) {
@@ -897,109 +899,111 @@ export default function VolunteerDashboardPage() {
               </Reveal>
 
               {/* 12. Shift History & Service Records */}
-              <Reveal>
-                <div id="shift-history" className="scroll-mt-24">
-                  <Card variant="default" className="p-6 flex flex-col gap-5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
-                      <div className="flex flex-col gap-1">
-                        <h3 className="font-serif font-bold text-xl text-foreground flex items-center gap-2">
-                          <History size={18} className="text-primary" />
-                          Shift History &amp; Service Records
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          Detailed log of your completed volunteer assignments and verified service hours.
-                        </p>
+              {showShiftHistory && (
+                <Reveal>
+                  <div id="shift-history" className="scroll-mt-24">
+                    <Card variant="default" className="p-6 flex flex-col gap-5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+                        <div className="flex flex-col gap-1">
+                          <h3 className="font-serif font-bold text-xl text-foreground flex items-center gap-2">
+                            <History size={18} className="text-primary" />
+                            Shift History &amp; Service Records
+                          </h3>
+                          <p className="text-xs text-muted-foreground">
+                            Detailed log of your completed volunteer assignments and verified service hours.
+                          </p>
+                        </div>
+                        {certData?.download_url && (
+                          <a
+                            href={certData.download_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline shrink-0"
+                          >
+                            <Award size={14} /> Download Certificate
+                          </a>
+                        )}
                       </div>
-                      {certData?.download_url && (
-                        <a
-                          href={certData.download_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline shrink-0"
-                        >
-                          <Award size={14} /> Download Certificate
-                        </a>
+
+                      {completedAttendanceItems.length === 0 ? (
+                        <div className="text-center py-6 text-muted-foreground text-sm bg-muted/30 rounded-card border border-border/50">
+                          No completed volunteer shifts recorded yet. Complete your first scheduled shift to view your detailed service log here.
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-3">
+                          {completedAttendanceItems.map((att) => {
+                            const shiftRole = att.shift?.role_name || "Volunteer Shift";
+                            const checkInTime = att.check_in_at
+                              ? new Date(att.check_in_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                              : "N/A";
+                            const checkOutTime = att.check_out_at
+                              ? new Date(att.check_out_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                              : "N/A";
+                            const shiftDate = att.check_in_at
+                              ? new Date(att.check_in_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+                              : att.shift?.start_at
+                              ? new Date(att.shift.start_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+                              : "Completed Shift";
+                            const hoursText = att.hours_logged
+                              ? `${att.hours_logged.toFixed(2)} hours`
+                              : "0.00 hours";
+                            const locationText =
+                              (att.shift as any)?.location_name ||
+                              (att.shift as any)?.shelter_name ||
+                              "PawGuard Main Shelter";
+                            const scheduledTime =
+                              att.shift?.start_at && att.shift?.end_at
+                                ? `${new Date(att.shift.start_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} – ${new Date(att.shift.end_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                                : "Scheduled Shift";
+
+                            return (
+                              <div
+                                key={att.id}
+                                className="border border-border rounded-card p-4 flex flex-col gap-3 bg-card/60 hover:border-primary/30 transition-colors"
+                              >
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-2.5">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-bold text-foreground text-base">
+                                      {shiftRole}
+                                    </span>
+                                    <span className="text-2xs bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold uppercase">
+                                      {applicationInfo?.role_applied || volunteerProfile?.skills || "Transport"}
+                                    </span>
+                                  </div>
+                                  <Badge variant="neutral" className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20 text-2xs font-semibold uppercase self-start sm:self-auto">
+                                    <CheckCircle2 size={12} className="mr-1 inline text-emerald-600" />
+                                    COMPLETED
+                                  </Badge>
+                                </div>
+
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-muted-foreground">
+                                  <div>
+                                    <span className="font-semibold text-foreground block text-2xs uppercase tracking-wider mb-0.5">Date &amp; Location</span>
+                                    <span className="text-foreground font-medium">{shiftDate}</span>
+                                    <span className="block text-2xs">{locationText}</span>
+                                  </div>
+                                  <div>
+                                    <span className="font-semibold text-foreground block text-2xs uppercase tracking-wider mb-0.5">Scheduled</span>
+                                    <span>{scheduledTime}</span>
+                                  </div>
+                                  <div>
+                                    <span className="font-semibold text-foreground block text-2xs uppercase tracking-wider mb-0.5">Check In / Out</span>
+                                    <span>{checkInTime} – {checkOutTime}</span>
+                                  </div>
+                                  <div>
+                                    <span className="font-semibold text-foreground block text-2xs uppercase tracking-wider mb-0.5">Service Hours</span>
+                                    <span className="font-semibold text-foreground">{hoursText}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       )}
-                    </div>
-
-                    {completedAttendanceItems.length === 0 ? (
-                      <div className="text-center py-6 text-muted-foreground text-sm bg-muted/30 rounded-card border border-border/50">
-                        No completed volunteer shifts recorded yet. Complete your first scheduled shift to view your detailed service log here.
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-3">
-                        {completedAttendanceItems.map((att) => {
-                          const shiftRole = att.shift?.role_name || "Volunteer Shift";
-                          const checkInTime = att.check_in_at
-                            ? new Date(att.check_in_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                            : "N/A";
-                          const checkOutTime = att.check_out_at
-                            ? new Date(att.check_out_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                            : "N/A";
-                          const shiftDate = att.check_in_at
-                            ? new Date(att.check_in_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
-                            : att.shift?.start_at
-                            ? new Date(att.shift.start_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
-                            : "Completed Shift";
-                          const hoursText = att.hours_logged
-                            ? `${att.hours_logged.toFixed(2)} hours`
-                            : "0.00 hours";
-                          const locationText =
-                            (att.shift as any)?.location_name ||
-                            (att.shift as any)?.shelter_name ||
-                            "PawGuard Main Shelter";
-                          const scheduledTime =
-                            att.shift?.start_at && att.shift?.end_at
-                              ? `${new Date(att.shift.start_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} – ${new Date(att.shift.end_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-                              : "Scheduled Shift";
-
-                          return (
-                            <div
-                              key={att.id}
-                              className="border border-border rounded-card p-4 flex flex-col gap-3 bg-card/60 hover:border-primary/30 transition-colors"
-                            >
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-2.5">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-bold text-foreground text-base">
-                                    {shiftRole}
-                                  </span>
-                                  <span className="text-2xs bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold uppercase">
-                                    {applicationInfo?.role_applied || volunteerProfile?.skills || "Transport"}
-                                  </span>
-                                </div>
-                                <Badge variant="neutral" className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20 text-2xs font-semibold uppercase self-start sm:self-auto">
-                                  <CheckCircle2 size={12} className="mr-1 inline text-emerald-600" />
-                                  COMPLETED
-                                </Badge>
-                              </div>
-
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-muted-foreground">
-                                <div>
-                                  <span className="font-semibold text-foreground block text-2xs uppercase tracking-wider mb-0.5">Date &amp; Location</span>
-                                  <span className="text-foreground font-medium">{shiftDate}</span>
-                                  <span className="block text-2xs">{locationText}</span>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-foreground block text-2xs uppercase tracking-wider mb-0.5">Scheduled</span>
-                                  <span>{scheduledTime}</span>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-foreground block text-2xs uppercase tracking-wider mb-0.5">Check In / Out</span>
-                                  <span>{checkInTime} – {checkOutTime}</span>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-foreground block text-2xs uppercase tracking-wider mb-0.5">Service Hours</span>
-                                  <span className="font-semibold text-foreground">{hoursText}</span>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </Card>
-                </div>
-              </Reveal>
+                    </Card>
+                  </div>
+                </Reveal>
+              )}
 
               {/* 13. Official Service Certificate */}
               <Reveal>

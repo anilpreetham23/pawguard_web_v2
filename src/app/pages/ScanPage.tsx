@@ -31,6 +31,7 @@ import {
   Textarea,
   Badge,
   Skeleton,
+  PhoneInput,
 } from "../components/pawguard";
 import SectionHeading from "../components/SectionHeading";
 import QrScanner from "../components/scan/QrScanner";
@@ -47,7 +48,7 @@ import type {
   SafetyTagScanResponse,
   PetSightingCreate,
 } from "@/lib/api";
-import { validateIndianPhone } from "@/lib/utils/validation";
+import { validatePhone, getCountryByCode, normalizePhonePayload } from "@/lib/utils/validation";
 
 type ScanState =
   | { status: "idle" }
@@ -92,6 +93,7 @@ export default function ScanPage() {
   // Citizen Sighting Form State
   const [finderName, setFinderName] = useState("");
   const [finderPhone, setFinderPhone] = useState("");
+  const [finderPhoneCountry, setFinderPhoneCountry] = useState("IN");
   const [locationAddress, setLocationAddress] = useState("");
   const [finderAddress, setFinderAddress] = useState("");
   const [message, setMessage] = useState("");
@@ -275,7 +277,7 @@ export default function ScanPage() {
 
       // Validate all required fields before API call
       const fieldErrs: { phone?: string; location?: string } = {};
-      const phoneErr = validateIndianPhone(finderPhone);
+      const phoneErr = validatePhone(finderPhone, finderPhoneCountry, true);
       if (phoneErr) fieldErrs.phone = phoneErr;
       if (!locationAddress.trim()) fieldErrs.location = "Location address is required.";
       setSightingFieldErrors(fieldErrs);
@@ -292,7 +294,7 @@ export default function ScanPage() {
         pet_id: pet.pet_id || undefined,
         lost_report_id: pet.lost_report_id || undefined,
         finder_name: finderName.trim(),
-        finder_phone: finderPhone.trim(),
+        finder_phone: normalizePhonePayload(finderPhone.trim(), finderPhoneCountry),
         location_address: locationAddress.trim(),
         finder_address: finderAddress.trim() || undefined,
         latitude: latitude ?? undefined,
@@ -705,18 +707,26 @@ export default function ScanPage() {
                       onChange={(e) => setFinderName(e.target.value)}
                       required
                     />
-                    <Input
+                    <PhoneInput
                       id="finder-phone"
                       label="Your Mobile Number *"
-                      placeholder="e.g. +91 98765 43210"
                       value={finderPhone}
-                      required
-                      aria-required="true"
-                      onChange={(e) => {
-                        setFinderPhone(e.target.value);
+                      countryCode={finderPhoneCountry}
+                      onCountryChange={(code) => {
+                        setFinderPhoneCountry(code);
                         if (sightingFieldErrors.phone) setSightingFieldErrors((prev) => ({ ...prev, phone: undefined }));
                       }}
+                      onValueChange={(val, code) => {
+                        setFinderPhone(val);
+                        if (sightingFieldErrors.phone) setSightingFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                        const c = getCountryByCode(code);
+                        if (val.length === c.maxLength) {
+                          const err = validatePhone(val, code, true);
+                          if (err) setSightingFieldErrors((prev) => ({ ...prev, phone: err }));
+                        }
+                      }}
                       error={sightingFieldErrors.phone}
+                      required
                     />
                   </div>
 

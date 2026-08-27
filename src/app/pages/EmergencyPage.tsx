@@ -5,12 +5,12 @@ import { Phone, Upload, AlertTriangle, CheckCircle2, MapPin, ArrowRight, Timer, 
 import { toast } from "sonner";
 import { useFocusOnError } from "../hooks/useFocusOnError";
 import { useGeolocation } from "../hooks/useGeolocation";
-import { Button, Input, Textarea, Card, Skeleton, RescueTimelineGSAP, DispatchReveal, PageShell } from "../components/pawguard";
+import { Button, Input, Textarea, Card, Skeleton, RescueTimelineGSAP, DispatchReveal, PageShell, PhoneInput } from "../components/pawguard";
 import { PhotoUploadInput } from "../components/PhotoUploadInput";
 import { rescueService } from "@/services/api/rescue";
 import { getErrorMessage } from "@/lib/api";
 import type { RescuePhysicalCondition, RescueSeverity } from "@/lib/api";
-import { validateIndianPhone } from "@/lib/utils/validation";
+import { validatePhone, getCountryByCode, normalizePhonePayload } from "@/lib/utils/validation";
 
 type FormStep = "situation" | "details" | "review";
 
@@ -123,6 +123,7 @@ export default function EmergencyPage() {
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [contact, setContact] = useState("");
+  const [contactCountry, setContactCountry] = useState("IN");
   const [submitted, setSubmitted] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -189,8 +190,8 @@ export default function EmergencyPage() {
     if (advancingTo === "details" && !severity) e.severity = "Select the situation type";
     if (advancingTo === "review") {
       if (!reporterName.trim()) e.reporterName = "Your name is required";
-      // Phone: required + Indian format validation
-      const phoneError = validateIndianPhone(contact);
+      // Phone: required + country format validation
+      const phoneError = validatePhone(contact, contactCountry, true);
       if (phoneError) e.contact = phoneError;
       // Location: valid if manual text entered OR GPS coords present
       if (!location.trim() && lat === null) e.location = "Location is required";
@@ -211,7 +212,7 @@ export default function EmergencyPage() {
     rescueService
       .reportPublicCase({
         reporter_name: reporterName.trim(),
-        reporter_phone: contact.trim(),
+        reporter_phone: normalizePhonePayload(contact.trim(), contactCountry),
         location_address: location.trim(),
         latitude: lat,
         longitude: lng,
@@ -494,21 +495,26 @@ export default function EmergencyPage() {
                           error={errors.reporterName}
                           autoComplete="name"
                         />
-                        <Input
+                        <PhoneInput
                           label="Your Contact Number *"
-                          type="tel"
-                          placeholder="+91 98765 43210"
                           ref={setRef("contact")}
                           value={contact}
-                          required
-                          aria-required="true"
-                          onChange={(e) => {
-                            setContact(e.target.value);
+                          countryCode={contactCountry}
+                          onCountryChange={(code) => {
+                            setContactCountry(code);
                             if (errors.contact) setErrors((prev) => ({ ...prev, contact: "" }));
                           }}
+                          onValueChange={(val, code) => {
+                            setContact(val);
+                            if (errors.contact) setErrors((prev) => ({ ...prev, contact: "" }));
+                            const c = getCountryByCode(code);
+                            if (val.length === c.maxLength) {
+                              const err = validatePhone(val, code, true);
+                              if (err) setErrors((prev) => ({ ...prev, contact: err }));
+                            }
+                          }}
                           error={errors.contact}
-                          autoComplete="tel"
-                          inputMode="tel"
+                          required
                         />
                       </div>
 
