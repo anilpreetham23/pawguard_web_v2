@@ -46,6 +46,22 @@ export interface VolunteerShiftQueryParams extends QueryParams {
   role_name?: string;
 }
 
+/** Filter out automated SWEEP test fixture alerts (e.g. title/message starting with or containing "SWEEP <hex-id>"). */
+export function isProductionUrgentAlert(alert?: UrgentAlertResponse | null): boolean {
+  if (!alert) return false;
+  const title = (alert.title || "").trim();
+  const message = (alert.message || "").trim();
+
+  // Narrowly filter SWEEP test fixture patterns only (e.g. "SWEEP 723e84", "SWEEP 80b133")
+  if (/^sweep\b/i.test(title) || /^sweep\b/i.test(message)) {
+    return false;
+  }
+  if (/sweep\s+[a-f0-9]+/i.test(title) || /sweep\s+[a-f0-9]+/i.test(message)) {
+    return false;
+  }
+  return true;
+}
+
 export const communityService = {
   /** `GET /portal/blog` — published blog posts. */
   getBlogPosts(): Promise<BlogPost[]> {
@@ -175,7 +191,9 @@ export const communityService = {
 
   /** `GET /portal/urgent-alerts` — currently active urgent alerts. */
   getUrgentAlerts(): Promise<UrgentAlertResponse[]> {
-    return apiGet<UrgentAlertResponse[]>(API_ROUTES.community.urgentAlerts);
+    return apiGet<UrgentAlertResponse[]>(API_ROUTES.community.urgentAlerts).then(
+      (list) => (list ?? []).filter(isProductionUrgentAlert)
+    );
   },
 
   /** `GET /portal/transparency` — annual transparency statistics. */

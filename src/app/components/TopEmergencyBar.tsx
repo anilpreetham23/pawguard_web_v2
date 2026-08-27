@@ -11,6 +11,7 @@ import { cn } from "./ui/utils";
 import { EMERGENCY, SITE_STATS } from "../config/site";
 import { useImpactStats } from "../hooks/useImpactStats";
 import { useUrgentAlerts } from "../hooks/useUrgentAlerts";
+import { isProductionUrgentAlert } from "@/services/api/community";
 
 interface TopEmergencyBarProps {
   scrolled: boolean;
@@ -206,7 +207,7 @@ export default function TopEmergencyBar({ scrolled }: TopEmergencyBarProps) {
   const reduced = useMotionStore((s) => s.motionTier) !== "full";
   const compact = scrolled;
   const { data: alerts } = useUrgentAlerts();
-  const activeAlert = alerts.find((a) => a.is_active);
+  const activeAlert = alerts.find((a) => a.is_active && isProductionUrgentAlert(a));
 
   // Resolve strip heights once from the design tokens (kept in sync with CSS)
   const heights = useMemo(() => {
