@@ -676,6 +676,10 @@ export interface RescueRequestCreate {
   is_urgent?: boolean;
   /** Free-text notes from the reporter. */
   reporter_notes?: string | null;
+  /** Array of 0-5 photo S3/storage object keys */
+  photo_object_keys?: string[];
+  /** Optional video S3/storage object key */
+  video_object_key?: string | null;
 }
 
 /** `RescueSeverity` — operational priority for a rescue case (PRR 3.2). */
@@ -741,6 +745,31 @@ export interface RescueRequestResponse {
   updated_at: string;
   dispatch: RescueDispatchResponse | null;
   reports: RescueReportResponse[];
+  media?: ReportMediaResponse[];
+}
+
+/** Media item attached to a rescue, lost, or found report (`ReportMediaResponse`). */
+export interface ReportMediaResponse {
+  id: string;
+  media_type: "photo" | "video";
+  object_key: string;
+  url: string | null;
+  is_primary: boolean;
+  display_order: number;
+  created_at?: string;
+}
+
+/** `POST /rescue/media-upload-url` request body (`RescueMediaUploadRequest`). */
+export interface RescueMediaUploadRequest {
+  filename: string;
+  mime_type: string;
+  file_size: number;
+}
+
+/** `POST /rescue/media-upload-url` response payload (`RescueMediaUploadResponse`). */
+export interface RescueMediaUploadResponse {
+  upload_url: string;
+  object_key: string;
 }
 
 /** Query params accepted by `GET /rescue`. */
@@ -823,6 +852,8 @@ export interface LostReportCreate {
   lost_at: string;
   photo_url?: string | null;
   photo_object_key?: string | null;
+  photo_object_keys?: string[];
+  video_object_key?: string | null;
   companion_pet_id?: string | null;
 }
 
@@ -846,6 +877,7 @@ export interface LostReportResponse {
   photo_url: string | null;
   created_at: string;
   user: UserProfile | null;
+  media?: ReportMediaResponse[];
 }
 
 /** `POST /lost-found/found` request body (`FoundReportCreate`). */
@@ -861,6 +893,8 @@ export interface FoundReportCreate {
   found_at: string;
   photo_url?: string | null;
   photo_object_key?: string | null;
+  photo_object_keys?: string[];
+  video_object_key?: string | null;
 }
 
 /**
@@ -881,6 +915,7 @@ export interface FoundReportResponse {
   photo_url: string | null;
   created_at: string;
   user: UserProfile | null;
+  media?: ReportMediaResponse[];
 }
 
 /**

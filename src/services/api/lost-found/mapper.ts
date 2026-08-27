@@ -153,18 +153,55 @@ function buildDescription(
     : `A ${breed || "pet"} was found near ${location}.${colorClause}`;
 }
 
-/** Map a backend lost-pet report onto the display `LostFoundCase` model. */
-export function lostReportToCase(report: LostReportResponse): LostFoundCase {
-  const fallbacks = deriveFallbacks();
-  const { date, time } = splitDateTime(report.lost_at);
-  const photoUrl =
+import type { ReportMediaResponse } from "@/lib/api";
+
+function extractMediaInfo(report: {
+  photo_url?: string | null;
+  media?: ReportMediaResponse[];
+}): {
+  primaryPhotoUrl: string | null;
+  videoUrl: string | null;
+  galleryPhotoUrls: string[];
+  mediaItems: ReportMediaResponse[];
+} {
+  const mediaItems = report.media ? [...report.media].sort((a, b) => a.display_order - b.display_order) : [];
+
+  const videoItem = mediaItems.find((m) => m.media_type === "video");
+  const videoUrl = videoItem?.url || null;
+
+  const photoItems = mediaItems.filter((m) => m.media_type === "photo");
+  const primaryItem = photoItems.find((m) => m.is_primary) || photoItems[0];
+
+  const primaryPhotoUrl =
+    primaryItem?.url ||
     report.photo_url ||
     (report as Record<string, any>).image_url ||
     (report as Record<string, any>).photo ||
     (report as Record<string, any>).image ||
-    (report as Record<string, any>).image_urls?.[0] ||
-    (report as Record<string, any>).photo_gallery_urls?.[0] ||
     null;
+
+  const galleryPhotoUrls: string[] = [];
+  photoItems.forEach((m) => {
+    if (m.url) galleryPhotoUrls.push(m.url);
+  });
+
+  if (galleryPhotoUrls.length === 0 && primaryPhotoUrl) {
+    galleryPhotoUrls.push(primaryPhotoUrl);
+  }
+
+  return {
+    primaryPhotoUrl,
+    videoUrl,
+    galleryPhotoUrls,
+    mediaItems,
+  };
+}
+
+/** Map a backend lost-pet report onto the display `LostFoundCase` model. */
+export function lostReportToCase(report: LostReportResponse): LostFoundCase {
+  const fallbacks = deriveFallbacks();
+  const { date, time } = splitDateTime(report.lost_at);
+  const mediaInfo = extractMediaInfo(report);
 
   return {
     id: report.id,
@@ -199,8 +236,11 @@ export function lostReportToCase(report: LostReportResponse): LostFoundCase {
     timeline: buildTimeline("lost", report.created_at, report.lost_at, report.status),
     tone: deriveTone(report.id),
     emoji: deriveEmoji(report.species),
-    photosCount: photoUrl ? 1 : 0,
-    photoUrl,
+    photosCount: mediaInfo.galleryPhotoUrls.length,
+    photoUrl: mediaInfo.primaryPhotoUrl,
+    videoUrl: mediaInfo.videoUrl,
+    galleryPhotoUrls: mediaInfo.galleryPhotoUrls,
+    mediaItems: mediaInfo.mediaItems,
     latitude: report.latitude,
     longitude: report.longitude,
     microchipId: report.microchip_id,
@@ -212,14 +252,7 @@ export function lostReportToCase(report: LostReportResponse): LostFoundCase {
 export function foundReportToCase(report: FoundReportResponse): LostFoundCase {
   const fallbacks = deriveFallbacks();
   const { date, time } = splitDateTime(report.found_at);
-  const photoUrl =
-    report.photo_url ||
-    (report as Record<string, any>).image_url ||
-    (report as Record<string, any>).photo ||
-    (report as Record<string, any>).image ||
-    (report as Record<string, any>).image_urls?.[0] ||
-    (report as Record<string, any>).photo_gallery_urls?.[0] ||
-    null;
+  const mediaInfo = extractMediaInfo(report);
 
   return {
     id: report.id,
@@ -259,8 +292,11 @@ export function foundReportToCase(report: FoundReportResponse): LostFoundCase {
     ),
     tone: deriveTone(report.id),
     emoji: deriveEmoji(report.species),
-    photosCount: photoUrl ? 1 : 0,
-    photoUrl,
+    photosCount: mediaInfo.galleryPhotoUrls.length,
+    photoUrl: mediaInfo.primaryPhotoUrl,
+    videoUrl: mediaInfo.videoUrl,
+    galleryPhotoUrls: mediaInfo.galleryPhotoUrls,
+    mediaItems: mediaInfo.mediaItems,
     latitude: report.latitude,
     longitude: report.longitude,
     userId: report.user_id || report.user?.id,

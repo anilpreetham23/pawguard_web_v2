@@ -111,6 +111,7 @@ export const API_ROUTES = {
     base: "/rescue",
     report: "/rescue/report",
     publicReport: "/public/rescue/report",
+    mediaUploadUrl: "/rescue/media-upload-url",
     case: (id: string) => `/rescue/${id}`,
     status: "/rescue/status",
   },

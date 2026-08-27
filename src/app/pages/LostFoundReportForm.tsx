@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, LocateFixed, X, Phone, PawPrint, CheckCircle2 } from "lucide-react";
-import { PageShell, Card, Reveal, Alert, Button, Input, Textarea, SuccessState, Badge } from "../components/pawguard";
+import { PageShell, Card, Reveal, Alert, Button, Input, Textarea, SuccessState, Badge, MediaUpload, type MediaItem } from "../components/pawguard";
 import SectionHeading from "../components/SectionHeading";
 import { useApiMutation, useApiErrorMessage, QUERY_KEYS, toApiDateTime, getErrorMessage } from "@/lib/api";
 import { queryClient } from "@/lib/react-query";
@@ -12,7 +12,6 @@ import { lostFoundService } from "@/services/api/lost-found";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useAuth } from "../providers/auth-provider";
 import { useMyPets } from "../hooks/useMyPets";
-import { PhotoUploadInput } from "../components/PhotoUploadInput";
 import { LocationMapPicker } from "../components/LocationMapPicker";
 import type { Species, LostReportCreate, FoundReportCreate } from "@/lib/api";
 import type { LostFoundKind } from "@/types";
@@ -73,6 +72,8 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
   const [photoUrl, setPhotoUrl] = useState("");
   const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
   const [photoObjectKey, setPhotoObjectKey] = useState<string | null>(null);
+  const [mediaPhotos, setMediaPhotos] = useState<MediaItem[]>([]);
+  const [mediaVideo, setMediaVideo] = useState<MediaItem | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [uploadState, setUploadState] = useState<"idle" | "uploading" | "uploaded" | "error">("idle");
   const [eventAt, setEventAt] = useState("");
@@ -182,8 +183,8 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
       return;
     }
 
-    if (!selectedPhotoFile && !photoObjectKey) {
-      setPhotoError("Please upload a photo before submitting the report.");
+    if (mediaPhotos.length === 0 && !selectedPhotoFile && !photoObjectKey) {
+      setPhotoError("Please upload at least one photo before submitting the report.");
       return;
     }
     setPhotoError(null);
@@ -200,64 +201,99 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
     }
     setDateError(null);
 
-    let activeObjectKey = photoObjectKey;
+    setIsUploadingPhoto(true);
+    setUploadState("uploading");
 
-    // Step 1: Upload photo if file is selected and not yet uploaded
-    if (selectedPhotoFile && !activeObjectKey) {
-      setIsUploadingPhoto(true);
-      setUploadState("uploading");
-      try {
+    try {
+      // Step 1: Upload all selected photos to presigned storage
+      const uploadedPhotoKeys: string[] = [];
+      for (const photoItem of mediaPhotos) {
         const uploadData = await lostFoundService.getPhotoUploadUrl({
-          filename: selectedPhotoFile.name,
-          mime_type: selectedPhotoFile.type || "image/jpeg",
-          file_size: selectedPhotoFile.size,
+          filename: photoItem.name,
+          mime_type: photoItem.file.type || "image/jpeg",
+          file_size: photoItem.sizeBytes,
         });
 
         if (!uploadData || !uploadData.upload_url || !uploadData.object_key) {
           throw new Error("Failed to get photo upload URL from storage server.");
         }
 
-        await lostFoundService.uploadPhotoFile(uploadData.upload_url, selectedPhotoFile);
-        activeObjectKey = uploadData.object_key;
-        setPhotoObjectKey(activeObjectKey);
-        setUploadState("uploaded");
-      } catch (err: any) {
-        console.error("Photo upload error:", err);
-        setUploadState("error");
-        setPhotoError(getErrorMessage(err) || "Photo upload failed. Please try again.");
-        setIsUploadingPhoto(false);
-        return;
-      } finally {
-        setIsUploadingPhoto(false);
+        await lostFoundService.uploadPhotoFile(uploadData.upload_url, photoItem.file);
+        uploadedPhotoKeys.push(uploadData.object_key);
       }
-    }
 
-    // Step 2: Submit report with photo_object_key
-    if (kind === "lost") {
-      mutation.mutate({
-        species,
-        pet_name: petName.trim(),
-        breed: breed.trim(),
-        color: color.trim(),
-        microchip_id: microchipId.trim() === "" ? null : microchipId.trim(),
-        location_address: locationAddress.trim(),
-        latitude: cleanupCoords.latitude,
-        longitude: cleanupCoords.longitude,
-        lost_at: eventAt ? toApiDateTime(new Date(eventAt)) : "",
-        photo_object_key: activeObjectKey,
-        companion_pet_id: companionPetId.trim() === "" ? null : companionPetId.trim(),
-      });
-    } else {
-      mutation.mutate({
-        species,
-        breed_observed: breedObserved.trim(),
-        color_observed: colorObserved.trim(),
-        location_address: locationAddress.trim(),
-        latitude: cleanupCoords.latitude,
-        longitude: cleanupCoords.longitude,
-        found_at: eventAt ? toApiDateTime(new Date(eventAt)) : "",
-        photo_object_key: activeObjectKey,
-      });
+      // If single file selected via legacy/primary handler and not in mediaPhotos
+      if (uploadedPhotoKeys.length === 0 && selectedPhotoFile && !photoObjectKey) {
+        const uploadData = await lostFoundService.getPhotoUploadUrl({
+          filename: selectedPhotoFile.name,
+          mime_type: selectedPhotoFile.type || "image/jpeg",
+          file_size: selectedPhotoFile.size,
+        });
+        if (!uploadData || !uploadData.upload_url || !uploadData.object_key) {
+          throw new Error("Failed to get photo upload URL from storage server.");
+        }
+        await lostFoundService.uploadPhotoFile(uploadData.upload_url, selectedPhotoFile);
+        uploadedPhotoKeys.push(uploadData.object_key);
+      }
+
+      // Step 2: Upload video if present
+      let uploadedVideoKey: string | null = null;
+      if (mediaVideo) {
+        const uploadData = await lostFoundService.getPhotoUploadUrl({
+          filename: mediaVideo.name,
+          mime_type: mediaVideo.file.type || "video/mp4",
+          file_size: mediaVideo.sizeBytes,
+        });
+
+        if (!uploadData || !uploadData.upload_url || !uploadData.object_key) {
+          throw new Error("Failed to get video upload URL from storage server.");
+        }
+
+        await lostFoundService.uploadPhotoFile(uploadData.upload_url, mediaVideo.file);
+        uploadedVideoKey = uploadData.object_key;
+      }
+
+      const primaryPhotoKey = uploadedPhotoKeys[0] || photoObjectKey || null;
+      setPhotoObjectKey(primaryPhotoKey);
+      setUploadState("uploaded");
+
+      // Step 3: Submit report with photo_object_keys, video_object_key, and legacy primary photo_object_key
+      if (kind === "lost") {
+        mutation.mutate({
+          species,
+          pet_name: petName.trim(),
+          breed: breed.trim(),
+          color: color.trim(),
+          microchip_id: microchipId.trim() === "" ? null : microchipId.trim(),
+          location_address: locationAddress.trim(),
+          latitude: cleanupCoords.latitude,
+          longitude: cleanupCoords.longitude,
+          lost_at: eventAt ? toApiDateTime(new Date(eventAt)) : "",
+          photo_object_key: primaryPhotoKey,
+          photo_object_keys: uploadedPhotoKeys.length > 0 ? uploadedPhotoKeys : undefined,
+          video_object_key: uploadedVideoKey,
+          companion_pet_id: companionPetId.trim() === "" ? null : companionPetId.trim(),
+        });
+      } else {
+        mutation.mutate({
+          species,
+          breed_observed: breedObserved.trim(),
+          color_observed: colorObserved.trim(),
+          location_address: locationAddress.trim(),
+          latitude: cleanupCoords.latitude,
+          longitude: cleanupCoords.longitude,
+          found_at: eventAt ? toApiDateTime(new Date(eventAt)) : "",
+          photo_object_key: primaryPhotoKey,
+          photo_object_keys: uploadedPhotoKeys.length > 0 ? uploadedPhotoKeys : undefined,
+          video_object_key: uploadedVideoKey,
+        });
+      }
+    } catch (err: any) {
+      console.error("Media upload error:", err);
+      setUploadState("error");
+      setPhotoError(getErrorMessage(err) || "Media upload failed. Please try again.");
+    } finally {
+      setIsUploadingPhoto(false);
     }
   }
 
@@ -437,13 +473,24 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                   }}
                 />
 
-                <PhotoUploadInput
-                  label="Photo of Animal"
+                <MediaUpload
+                  label="Photos & Video of Animal"
                   required
-                  value={photoUrl}
+                  photos={mediaPhotos}
+                  video={mediaVideo}
                   isUploading={isUploadingPhoto}
-                  isUploaded={uploadState === "uploaded"}
-                  onChange={handlePhotoChange}
+                  onChangePhotos={(photos) => {
+                    setMediaPhotos(photos);
+                    if (photos.length > 0 && photoError) setPhotoError(null);
+                  }}
+                  onChangeVideo={(vid) => setMediaVideo(vid)}
+                  onPrimaryPhotoChange={(file, dataUrl) => {
+                    setSelectedPhotoFile(file);
+                    setPhotoUrl(dataUrl);
+                    setPhotoObjectKey(null);
+                    setUploadState("idle");
+                    if (dataUrl && photoError) setPhotoError(null);
+                  }}
                   error={photoError ?? undefined}
                 />
 

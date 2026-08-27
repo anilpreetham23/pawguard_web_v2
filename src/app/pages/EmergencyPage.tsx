@@ -5,8 +5,7 @@ import { Phone, Upload, AlertTriangle, CheckCircle2, MapPin, ArrowRight, Timer, 
 import { toast } from "sonner";
 import { useFocusOnError } from "../hooks/useFocusOnError";
 import { useGeolocation } from "../hooks/useGeolocation";
-import { Button, Input, Textarea, Card, Skeleton, RescueTimelineGSAP, DispatchReveal, PageShell, PhoneInput } from "../components/pawguard";
-import { PhotoUploadInput } from "../components/PhotoUploadInput";
+import { Button, Input, Textarea, Card, Skeleton, RescueTimelineGSAP, DispatchReveal, PageShell, PhoneInput, MediaUpload, type MediaItem } from "../components/pawguard";
 import { rescueService } from "@/services/api/rescue";
 import { getErrorMessage } from "@/lib/api";
 import type { RescuePhysicalCondition, RescueSeverity } from "@/lib/api";
@@ -131,6 +130,8 @@ export default function EmergencyPage() {
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string>("");
+  const [mediaPhotos, setMediaPhotos] = useState<MediaItem[]>([]);
+  const [mediaVideo, setMediaVideo] = useState<MediaItem | null>(null);
   const { setRef } = useFocusOnError(errors);
   const [fileName, setFileName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -203,14 +204,45 @@ export default function EmergencyPage() {
     return Object.keys(e).length === 0;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate("review")) return;
     setIsLoading(true);
     setHasError(false);
-    const severityValue: RescueSeverity = severity === "critical" ? "critical" : "medium";
-    rescueService
-      .reportPublicCase({
+
+    try {
+      // Step 1: Upload all selected photos to presigned storage
+      const uploadedPhotoKeys: string[] = [];
+      for (const photo of mediaPhotos) {
+        const uploadData = await rescueService.getMediaUploadUrl({
+          filename: photo.name,
+          mime_type: photo.file.type,
+          file_size: photo.sizeBytes,
+        });
+        if (!uploadData || !uploadData.upload_url || !uploadData.object_key) {
+          throw new Error("Failed to obtain media upload URL for photo.");
+        }
+        await rescueService.uploadMediaFile(uploadData.upload_url, photo.file);
+        uploadedPhotoKeys.push(uploadData.object_key);
+      }
+
+      // Step 2: Upload video if present
+      let uploadedVideoKey: string | null = null;
+      if (mediaVideo) {
+        const uploadData = await rescueService.getMediaUploadUrl({
+          filename: mediaVideo.name,
+          mime_type: mediaVideo.file.type,
+          file_size: mediaVideo.sizeBytes,
+        });
+        if (!uploadData || !uploadData.upload_url || !uploadData.object_key) {
+          throw new Error("Failed to obtain media upload URL for video.");
+        }
+        await rescueService.uploadMediaFile(uploadData.upload_url, mediaVideo.file);
+        uploadedVideoKey = uploadData.object_key;
+      }
+
+      const severityValue: RescueSeverity = severity === "critical" ? "critical" : "medium";
+      const res = await rescueService.reportPublicCase({
         reporter_name: reporterName.trim(),
         reporter_phone: normalizePhonePayload(contact.trim(), contactCountry),
         location_address: location.trim(),
@@ -221,16 +253,18 @@ export default function EmergencyPage() {
         severity: severityValue,
         is_urgent: severity === "critical",
         reporter_notes: description.trim(),
-      })
-      .then((res) => {
-        setTicketNumber(res.ticket_number);
-        setSubmitted(true);
-      })
-      .catch((err) => {
-        setHasError(true);
-        toast.error("Report failed to submit", { description: getErrorMessage(err) });
-      })
-      .finally(() => setIsLoading(false));
+        photo_object_keys: uploadedPhotoKeys.length > 0 ? uploadedPhotoKeys : undefined,
+        video_object_key: uploadedVideoKey,
+      });
+
+      setTicketNumber(res.ticket_number);
+      setSubmitted(true);
+    } catch (err) {
+      setHasError(true);
+      toast.error("Report failed to submit", { description: getErrorMessage(err) });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   // ETA is locally calculated from hardcoded maxWait values — no backend ETA contract exists.
@@ -590,13 +624,23 @@ export default function EmergencyPage() {
                         rows={5}
                       />
 
-                      <PhotoUploadInput
-                        label="Visual Evidence Photo"
+                      <MediaUpload
+                        label="Visual Evidence Photos & Video"
                         required
-                        value={photoUrl}
-                        onChange={(file, dataUrl) => {
+                        photos={mediaPhotos}
+                        video={mediaVideo}
+                        onChangePhotos={(photos) => {
+                          setMediaPhotos(photos);
+                          if (photos.length > 0 && errors.photoUrl) {
+                            setErrors((prev) => ({ ...prev, photoUrl: "" }));
+                          }
+                        }}
+                        onChangeVideo={(vid) => setMediaVideo(vid)}
+                        onPrimaryPhotoChange={(_file, dataUrl) => {
                           setPhotoUrl(dataUrl);
-                          if (errors.photoUrl) setErrors((prev) => ({ ...prev, photoUrl: "" }));
+                          if (dataUrl && errors.photoUrl) {
+                            setErrors((prev) => ({ ...prev, photoUrl: "" }));
+                          }
                         }}
                         error={errors.photoUrl}
                       />

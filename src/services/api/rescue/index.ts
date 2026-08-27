@@ -15,6 +15,8 @@ import { API_ROUTES, apiGet, apiGetPage, apiPost } from "@/lib/api";
 import type {
   Page,
   PublicRescueStatusResponse,
+  RescueMediaUploadRequest,
+  RescueMediaUploadResponse,
   RescueQueryParams,
   RescueRequestCreate,
   RescueRequestResponse,
@@ -61,6 +63,31 @@ export const rescueService = {
       data,
       { auth: false }
     );
+  },
+
+  /** `POST /rescue/media-upload-url` — request presigned upload URL and object_key for rescue photos/video. */
+  async getMediaUploadUrl(
+    data: RescueMediaUploadRequest
+  ): Promise<RescueMediaUploadResponse> {
+    const res = await apiPost<any>(API_ROUTES.rescue.mediaUploadUrl, data, { auth: false });
+    if (res && res.data && typeof res.data.upload_url === "string") {
+      return res.data as RescueMediaUploadResponse;
+    }
+    return res as RescueMediaUploadResponse;
+  },
+
+  /** Upload actual image/video File bytes directly to presigned storage upload_url using HTTP PUT. */
+  async uploadMediaFile(uploadUrl: string, file: File): Promise<void> {
+    const res = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type || "application/octet-stream",
+      },
+      body: file,
+    });
+    if (!res.ok) {
+      throw new Error(`Media upload failed with status ${res.status}`);
+    }
   },
 
   /**

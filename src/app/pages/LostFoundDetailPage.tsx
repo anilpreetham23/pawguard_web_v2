@@ -60,37 +60,100 @@ const SPECIES_LABEL: Record<string, string> = {
 };
 
 function PhotoPanel({ caseItem }: { caseItem: LostFoundCase }) {
+  const photos = caseItem.galleryPhotoUrls && caseItem.galleryPhotoUrls.length > 0
+    ? caseItem.galleryPhotoUrls
+    : caseItem.photoUrl ? [caseItem.photoUrl] : [];
+
+  const [activePhotoUrl, setActivePhotoUrl] = useState<string | null>(photos[0] || caseItem.photoUrl || null);
   const [photoFailed, setPhotoFailed] = useState(false);
-  const showPhoto = Boolean(caseItem.photoUrl) && !photoFailed;
+
+  useEffect(() => {
+    if (photos.length > 0) {
+      setActivePhotoUrl(photos[0]);
+    } else {
+      setActivePhotoUrl(caseItem.photoUrl || null);
+    }
+  }, [caseItem.photoUrl, caseItem.galleryPhotoUrls]);
+
+  const showPhoto = Boolean(activePhotoUrl) && !photoFailed;
+
   return (
-    <div
-      className={cn(
-        "aspect-[4/5] rounded-img shadow-lg overflow-hidden relative",
-        showPhoto ? "bg-card" : "bg-gradient-to-br",
-        !showPhoto && (TONE_GRADIENTS[caseItem.tone] ?? TONE_GRADIENTS.amber),
-      )}
-    >
-      {showPhoto ? (
-        <InteractiveImage
-          src={caseItem.photoUrl!}
-          alt={`${caseItem.petName} — ${caseItem.breed}`}
-          variant="hero"
-          className="absolute inset-0 w-full h-full"
-          noParallax
-          noFloat
-          onError={() => setPhotoFailed(true)}
-        />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[9rem] leading-none drop-shadow-sm select-none">{caseItem.emoji}</span>
+    <div className="flex flex-col gap-3 w-full">
+      {/* Main Hero Photo Container */}
+      <div
+        className={cn(
+          "aspect-[4/5] rounded-img shadow-lg overflow-hidden relative",
+          showPhoto ? "bg-card" : "bg-gradient-to-br",
+          !showPhoto && (TONE_GRADIENTS[caseItem.tone] ?? TONE_GRADIENTS.amber),
+        )}
+      >
+        {showPhoto ? (
+          <InteractiveImage
+            key={activePhotoUrl}
+            src={activePhotoUrl!}
+            alt={`${caseItem.petName} — ${caseItem.breed}`}
+            variant="hero"
+            className="absolute inset-0 w-full h-full"
+            noParallax
+            noFloat
+            onError={() => setPhotoFailed(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-[9rem] leading-none drop-shadow-sm select-none">{caseItem.emoji}</span>
+          </div>
+        )}
+        {caseItem.kind === "lost" && (
+          <div className="absolute bottom-4 left-4 z-10">
+            <span className="bg-destructive text-white text-xs font-bold tracking-wider uppercase px-3 py-1.5 rounded-sm shadow-sm">
+              Lost Pet
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Photo Gallery Thumbnails (if 2+ photos) */}
+      {photos.length > 1 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-thin">
+          {photos.map((url, idx) => (
+            <button
+              key={`${url}-${idx}`}
+              type="button"
+              onClick={() => {
+                setActivePhotoUrl(url);
+                setPhotoFailed(false);
+              }}
+              className={cn(
+                "w-16 h-16 rounded-md overflow-hidden border-2 shrink-0 transition-all cursor-pointer",
+                activePhotoUrl === url
+                  ? "border-primary ring-2 ring-primary/30 scale-105"
+                  : "border-border hover:border-primary/50 opacity-70 hover:opacity-100"
+              )}
+              aria-label={`View photo ${idx + 1}`}
+            >
+              <img src={url} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+            </button>
+          ))}
         </div>
       )}
-      {caseItem.kind === "lost" && (
-        <div className="absolute bottom-4 left-4">
-          <span className="bg-destructive text-white text-xs font-bold tracking-wider uppercase px-3 py-1.5 rounded-sm shadow-sm">
-            Lost Pet
+
+      {/* HTML5 Video Evidence Player (if video is attached) */}
+      {caseItem.videoUrl && (
+        <Card variant="elevated" className="p-3 bg-card border border-border flex flex-col gap-2 mt-2 shadow-sm">
+          <span className="text-foreground text-xs font-bold uppercase tracking-wider font-condensed flex items-center gap-1.5">
+            <Sparkles size={14} className="text-primary" /> Evidence Video
           </span>
-        </div>
+          <div className="rounded-md overflow-hidden bg-black aspect-video w-full">
+            <video
+              src={caseItem.videoUrl}
+              controls
+              preload="metadata"
+              className="w-full h-full object-contain"
+            >
+              Your browser does not support HTML5 video.
+            </video>
+          </div>
+        </Card>
       )}
     </div>
   );

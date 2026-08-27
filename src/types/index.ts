@@ -186,6 +186,8 @@ export interface LostFoundTimelineEvent {
   date: string;
 }
 
+import type { ReportMediaResponse } from "@/lib/api";
+
 export interface LostFoundCase {
   id: string;
   caseNumber: string;
@@ -216,6 +218,12 @@ export interface LostFoundCase {
   photosCount: number;
   /** Backend photo URL (rendered when present, falls back to the placeholder). */
   photoUrl?: string | null;
+  /** Presigned download URL for video playback (if video is attached). */
+  videoUrl?: string | null;
+  /** Array of photo URLs for gallery display. */
+  galleryPhotoUrls?: string[];
+  /** Full raw media attachments from backend. */
+  mediaItems?: ReportMediaResponse[];
   /** Backend coordinates for the report area (null-safe; renders a directions link when present). */
   latitude?: number | null;
   longitude?: number | null;
