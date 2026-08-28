@@ -26,11 +26,13 @@ export function PhotoUploadInput({
   const [fileName, setFileName] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string>(value || "");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [imageFailed, setImageFailed] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setPreviewUrl(value || "");
+    setImageFailed(false);
   }, [value]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,12 +124,17 @@ export function PhotoUploadInput({
         /* Image Preview Thumbnail Card */
         <Card variant="elevated" className="p-4 bg-primary/5 border border-primary/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-16 h-16 rounded-lg bg-card border border-border overflow-hidden shrink-0 relative shadow-sm">
-              <img
-                src={previewUrl}
-                alt="Selected preview"
-                className="w-full h-full object-cover"
-              />
+            <div className="w-16 h-16 rounded-lg bg-card border border-border overflow-hidden shrink-0 relative shadow-sm flex items-center justify-center">
+              {!imageFailed && previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt="Selected preview"
+                  className="w-full h-full object-cover"
+                  onError={() => setImageFailed(true)}
+                />
+              ) : (
+                <ImageIcon size={24} className="text-muted-foreground" />
+              )}
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-foreground font-bold text-sm truncate">

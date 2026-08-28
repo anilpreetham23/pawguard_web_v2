@@ -76,6 +76,9 @@ function applySession(session: LoginResponse): void {
       expiresIn: session.expires_in,
     });
   }
+  if (session.user) {
+    queryClient.setQueryData(QUERY_KEYS.auth.me, session.user);
+  }
 }
 
 /**

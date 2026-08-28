@@ -184,6 +184,8 @@ export {
   buildQueryString,
   buildUrl,
   getApiUrl,
+  resolveAvatarUrl,
+  getAvatarUrl,
 } from "./url";
 export {
   clampPage,

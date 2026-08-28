@@ -50,9 +50,11 @@ import { useAuth } from "../providers/auth-provider";
 import { useFavorites } from "../hooks/useFavorites";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
 import { useMyPets } from "../hooks/useMyPets";
-import { getErrorMessage } from "@/lib/api";
+import { getErrorMessage, getAvatarUrl, resolveAvatarUrl, QUERY_KEYS } from "@/lib/api";
+import { queryClient } from "@/lib/react-query";
 import { authService } from "@/services/api/auth";
 import { notificationsService } from "@/services/api/notifications";
+import { lostFoundService } from "@/services/api/lost-found";
 import { cn } from "../components/ui/utils";
 
 function initials(name: string): string {
@@ -208,14 +210,20 @@ export default function AccountPage() {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profilePhoneError, setProfilePhoneError] = useState<string | null>(null);
 
+  const [headerImageFailed, setHeaderImageFailed] = useState(false);
+
   // Sync user profile data into form state
   useEffect(() => {
     if (user) {
       setFullName(user.full_name ?? "");
-      setPhone((user as any).phone ?? "");
-      setAvatarUrl((user as any).avatar_url ?? "");
+      setPhone(user.phone ?? "");
+      setAvatarUrl(user.profile_picture_url ?? user.avatar_url ?? "");
     }
   }, [user]);
+
+  useEffect(() => {
+    setHeaderImageFailed(false);
+  }, [avatarUrl]);
 
   // ── Password / Security Form State ─────────────────────────────────────────
   const [currentPassword, setCurrentPassword] = useState("");
@@ -262,6 +270,8 @@ export default function AccountPage() {
     }
   }, [activeTab, isAuthenticated, loadNotificationPrefs]);
 
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
+
   // ── Form Handlers ──────────────────────────────────────────────────────────
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -280,11 +290,44 @@ export default function AccountPage() {
     setProfileSuccess(null);
     setProfileError(null);
     try {
-      await authService.updateProfile({
+      let finalAvatarUrl: string | null = avatarUrl.trim() || null;
+
+      // If user selected a new image file from their device, upload it to presigned storage to obtain a valid URL/key
+      if (selectedAvatarFile && avatarUrl.startsWith("data:")) {
+        try {
+          const uploadData = await lostFoundService.getPhotoUploadUrl({
+            filename: selectedAvatarFile.name,
+            mime_type: selectedAvatarFile.type || "image/jpeg",
+            file_size: selectedAvatarFile.size,
+          });
+          if (uploadData && uploadData.upload_url) {
+            await lostFoundService.uploadPhotoFile(uploadData.upload_url, selectedAvatarFile);
+            const cleanUrlFromPut = uploadData.upload_url.split("?")[0];
+            finalAvatarUrl =
+              (uploadData as any).url ||
+              (uploadData as any).download_url ||
+              cleanUrlFromPut ||
+              uploadData.object_key ||
+              null;
+          }
+        } catch (uploadErr) {
+          console.error("Profile avatar upload error:", uploadErr);
+          setProfileError(getErrorMessage(uploadErr) || "Photo upload failed. Please try again.");
+          setIsSavingProfile(false);
+          return;
+        }
+      }
+
+      const updatedUser = await authService.updateProfile({
         full_name: fullName.trim(),
         phone: phone.trim() ? normalizePhonePayload(phone.trim(), phoneCountry) : null,
-        avatar_url: avatarUrl.trim() || null,
+        avatar_url: finalAvatarUrl,
       });
+      if (updatedUser) {
+        queryClient.setQueryData(QUERY_KEYS.auth.me, updatedUser);
+        setAvatarUrl(updatedUser.profile_picture_url ?? updatedUser.avatar_url ?? "");
+      }
+      setSelectedAvatarFile(null);
       await refreshProfile();
       setProfileSuccess("Your profile information has been updated successfully.");
     } catch (err) {
@@ -297,9 +340,10 @@ export default function AccountPage() {
   function handleResetProfile() {
     if (user) {
       setFullName(user.full_name ?? "");
-      setPhone((user as any).phone ?? "");
-      setAvatarUrl((user as any).avatar_url ?? "");
+      setPhone(user.phone ?? "");
+      setAvatarUrl(user.profile_picture_url ?? user.avatar_url ?? "");
     }
+    setSelectedAvatarFile(null);
     setProfileError(null);
     setProfileSuccess(null);
     setProfilePhoneError(null);
@@ -422,11 +466,22 @@ export default function AccountPage() {
             <Card>
               <div className="p-6 lg:p-8 flex flex-col lg:flex-row lg:items-center gap-6">
                 <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-2xl font-bold uppercase overflow-hidden shadow-sm">
-                  {avatarUrl && avatarUrl.startsWith("http") ? (
-                    <img src={avatarUrl} alt={user?.full_name ?? "User"} className="w-full h-full object-cover" />
-                  ) : (
-                    user ? initials(user.full_name) || "U" : "U"
-                  )}
+                  {(() => {
+                    const activeAvatar = resolveAvatarUrl(avatarUrl) || getAvatarUrl(user);
+                    if (activeAvatar && !headerImageFailed) {
+                      return (
+                        <img
+                          src={activeAvatar}
+                          alt={user?.full_name ?? "User"}
+                          className="w-full h-full object-cover"
+                          onError={() => {
+                            setHeaderImageFailed(true);
+                          }}
+                        />
+                      );
+                    }
+                    return user ? initials(user.full_name) || "U" : "U";
+                  })()}
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-3">
@@ -710,7 +765,10 @@ export default function AccountPage() {
                         label="Profile Photo"
                         required={false}
                         value={avatarUrl}
-                        onChange={(_file, dataUrl) => setAvatarUrl(dataUrl)}
+                        onChange={(file, dataUrl) => {
+                          setSelectedAvatarFile(file);
+                          setAvatarUrl(dataUrl);
+                        }}
                       />
 
                       <div className="flex items-center gap-3 pt-2">

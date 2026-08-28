@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Bell, ChevronDown, FileText, LogIn, LogOut, PawPrint, User } from "lucide-react";
+import { getAvatarUrl } from "@/lib/api";
 import { useAuth } from "../providers/auth-provider";
 import { useUnreadCount } from "../hooks/useNotifications";
 import { NotificationBell } from "./NotificationBell";
@@ -88,6 +89,7 @@ export function AuthNavControls({ className }: { className?: string }) {
   }
 
   if (user) {
+    const avatarSrc = getAvatarUrl(user);
     return (
       <div className={cn("flex items-center gap-1.5", className)}>
         <NotificationBell />
@@ -101,8 +103,19 @@ export function AuthNavControls({ className }: { className?: string }) {
             title={user.email}
             className="flex items-center gap-2 rounded-full border border-border bg-background/70 pl-1 pr-2 py-1 hover:border-primary/40 transition-colors duration-fast"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold uppercase">
-              {initials(user.full_name) || "U"}
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold uppercase overflow-hidden">
+              {avatarSrc ? (
+                <img
+                  src={avatarSrc}
+                  alt={user.full_name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLElement).style.display = "none";
+                  }}
+                />
+              ) : (
+                initials(user.full_name) || "U"
+              )}
             </span>
             <span className="hidden lg:block text-xs font-semibold text-foreground max-w-[120px] truncate">
               {user.full_name}

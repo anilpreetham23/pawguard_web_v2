@@ -7,7 +7,7 @@
  */
 
 import { apiConfig } from "./config";
-import type { QueryParams } from "./types";
+import type { AuthUser, QueryParams } from "./types";
 
 /** Build a query string from a params object. Arrays become repeated keys. */
 export function buildQueryString(params: QueryParams = {}): string {
@@ -34,4 +34,29 @@ export function buildUrl(path: string, params?: QueryParams): string {
 export function getApiUrl(path: string, params?: QueryParams): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   return `${apiConfig.baseURL}${normalized}${buildQueryString(params)}`;
+}
+
+/** Resolve an avatar image path/URL to a browser-loadable image src. */
+export function resolveAvatarUrl(url: string | null | undefined): string | null {
+  if (!url || typeof url !== "string" || !url.trim()) return null;
+  const trimmed = url.trim();
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("blob:")
+  ) {
+    return trimmed;
+  }
+  if (trimmed.startsWith("/")) {
+    return trimmed;
+  }
+  return `${apiConfig.baseURL}/storage/${trimmed}`;
+}
+
+/** Get the resolved avatar image URL from an AuthUser profile object using the standard fallback hierarchy. */
+export function getAvatarUrl(user: AuthUser | null | undefined): string | null {
+  if (!user) return null;
+  const raw = user.profile_picture_url || user.avatar_url;
+  return resolveAvatarUrl(raw);
 }

@@ -114,6 +114,9 @@ export interface AuthUser {
   id: string;
   email: string;
   full_name: string;
+  phone?: string | null;
+  profile_picture_url?: string | null;
+  avatar_url?: string | null;
   is_verified: boolean;
   mfa_enabled: boolean;
   roles: string[];
