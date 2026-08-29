@@ -10,7 +10,7 @@
  * and must not be overwritten).
  */
 
-const RENDER_BACKEND_URL = "https://pawguard-backend-mqri.onrender.com/api/v1";
+const RENDER_BACKEND_URL = "https://pawguard-backend-dev.onrender.com/api/v1";
 const DEFAULT_SITE_URL = "https://pawguard.example.com";
 
 /** Trim trailing slashes so `baseURL + path` concatenation is predictable. */

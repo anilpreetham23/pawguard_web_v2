@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/v1/:path*",
-        destination: "https://pawguard-backend-mqri.onrender.com/api/v1/:path*",
+        destination: "https://pawguard-backend-dev.onrender.com/api/v1/:path*",
       },
     ];
   },
