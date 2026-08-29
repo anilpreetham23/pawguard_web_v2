@@ -181,11 +181,11 @@ export const SERVICES: ServiceData[] = [
     centerLabel: "Dogs Rescued",
     icon: Siren,
     color: {
-      text: "#c41a1a",
-      soft: "rgba(196,26,26,0.16)",
-      tint: "rgba(196,26,26,0.05)",
-      border: "rgba(196,26,26,0.35)",
-      glow: "rgba(196,26,26,0.28)",
+      text: "#DC2626",
+      soft: "rgba(220,38,38,0.16)",
+      tint: "rgba(220,38,38,0.05)",
+      border: "rgba(220,38,38,0.35)",
+      glow: "rgba(220,38,38,0.28)",
     },
     /** Top-right corner → line goes to ~(78, 22) in viewBox */
     connection: { lineEndX: 78, lineEndY: 22 },
@@ -362,8 +362,8 @@ export const MOCK_ACTIVITIES: Activity[] = [
 ];
 
 export const ACTIVITY_META: Record<ActivityEventType, { emoji: string; label: string; color: string }> = {
-  rescue:    { emoji: "🐶", label: "Rescued",           color: "#c41a1a" },
+  rescue:    { emoji: "🐶", label: "Rescued",           color: "#DC2626" },
   adoption:  { emoji: "❤️", label: "Adopted",           color: "#b45309" },
-  treatment: { emoji: "🏥", label: "Received Treatment", color: "#1d4ed8" },
-  foster:    { emoji: "🏠", label: "Entered Foster Care", color: "#15803d" },
+  treatment: { emoji: "🏥", label: "Received Treatment", color: "#1E3A8A" },
+  foster:    { emoji: "🏠", label: "Entered Foster Care", color: "#16A34A" },
 };

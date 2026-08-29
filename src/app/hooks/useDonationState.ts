@@ -211,7 +211,7 @@ export function useDonationState({
         particleCount: 4,
         spread: 60,
         origin: { y: 0.6 },
-        colors: ["#00236f", "#c41a1a", "#faf6ef"],
+        colors: ["#1E3A8A", "#DC2626", "#F8FAFC"],
       });
     }, 80);
     return () => clearInterval(interval);
@@ -274,7 +274,7 @@ export function useDonationState({
               name: userName ?? undefined,
               email: userEmail ?? undefined,
             },
-            theme: { color: "#00236f" },
+            theme: { color: "#1E3A8A" },
             modal: {
               ondismiss: () => {
                 setIsLoading(false);

@@ -33,8 +33,8 @@ const NAV_LINKS = [
 ];
 
 // Adaptive glass constants
-const GLASS_BASE   = "rgba(248,245,239,0.72)";
-const GLASS_SCROLL = "rgba(248,245,239,0.95)";
+const GLASS_BASE   = "rgba(255,255,255,0.85)";
+const GLASS_SCROLL = "rgba(255,255,255,0.95)";
 const TRANSITION   = "background 350ms cubic-bezier(.22,1,.36,1), box-shadow 350ms cubic-bezier(.22,1,.36,1), border-color 350ms cubic-bezier(.22,1,.36,1)";
 const TRANSITION_REDUCED = undefined;
 
@@ -185,7 +185,7 @@ export default function Navbar() {
             aria-hidden="true"
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: "linear-gradient(to bottom, rgba(248,245,239,0.22) 0%, rgba(248,245,239,0.72) 100%)",
+              background: "linear-gradient(to bottom, rgba(248,250,252,0.22) 0%, rgba(248,250,252,0.72) 100%)",
             }}
           />
 
@@ -237,7 +237,7 @@ export default function Navbar() {
                           style={{
                             color: isServiceActive ? "var(--primary)" : "var(--foreground)",
                             letterSpacing: "0.02em",
-                            background: isServiceActive ? "rgba(37,99,235,0.08)" : "transparent",
+                            background: isServiceActive ? "rgba(30,58,138,0.08)" : "transparent",
                           }}
                         >
                           {link.label}
@@ -294,7 +294,7 @@ export default function Navbar() {
                         color:                  active ? "var(--primary)" : "var(--foreground)",
                         letterSpacing:          "0.02em",
                         WebkitFontSmoothing:    "subpixel-antialiased",
-                        background:             active ? "rgba(37,99,235,0.08)" : "transparent",
+                        background:             active ? "rgba(30,58,138,0.08)" : "transparent",
                       }}
                       onMouseEnter={(e) => {
                         const el = e.currentTarget as HTMLElement;
@@ -436,7 +436,7 @@ export default function Navbar() {
                             <motion.span
                               layoutId="mobile-active"
                               className="h-[2px] w-6 rounded-full bg-primary"
-                              style={{ boxShadow: "0 0 8px rgba(0,35,111,0.45)" }}
+                              style={{ boxShadow: "0 0 8px rgba(30,58,138,0.45)" }}
                               transition={{ type: "spring", stiffness: 380, damping: 32 }}
                             />
                           )}

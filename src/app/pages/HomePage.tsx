@@ -34,10 +34,10 @@ const ANIMALS = [
 const STEPS = [
   { num: "01", title: "Emergency Report", desc: "Submit a rescue report with location, dog details, and situation type. Our dispatch center captures everything instantly.", time: "Immediate", color: "#6b7280", icon: "phone" as const },
   { num: "02", title: "Dispatch & Verify", desc: "Our team verifies the report, assesses priority, and mobilizes the nearest trained rescue volunteer.", time: "~30 sec", color: "#f59e0b", icon: "check" as const },
-  { num: "03", title: "Rescue Deployed", desc: "A trained volunteer team en route with live ETA. GPS tracking keeps dispatch and reporters informed.", time: "< 12 min", color: "#3b82f6", icon: "team" as const },
-  { num: "04", title: "On-Scene Rescue", desc: "Professional extraction, immediate first aid, and safe transport to our partner veterinary clinic.", time: "Varies", color: "#8b5cf6", icon: "shield" as const },
-  { num: "05", title: "Care & Recovery", desc: "Veterinary assessment, treatment, and foster placement. Every dog receives a full recovery plan.", time: "1–14 days", color: "#ef4444", icon: "heart" as const },
-  { num: "06", title: "Permanent Home", desc: "Matched dogs are placed in thoroughly vetted homes with ongoing support and follow-up.", time: "3–7 days", color: "#22c55e", icon: "home" as const },
+  { num: "03", title: "Rescue Deployed", desc: "A trained volunteer team en route with live ETA. GPS tracking keeps dispatch and reporters informed.", time: "< 12 min", color: "#1E3A8A", icon: "team" as const },
+  { num: "04", title: "On-Scene Rescue", desc: "Professional extraction, immediate first aid, and safe transport to our partner veterinary clinic.", time: "Varies", color: "#6366f1", icon: "shield" as const },
+  { num: "05", title: "Care & Recovery", desc: "Veterinary assessment, treatment, and foster placement. Every dog receives a full recovery plan.", time: "1–14 days", color: "#DC2626", icon: "heart" as const },
+  { num: "06", title: "Permanent Home", desc: "Matched dogs are placed in thoroughly vetted homes with ongoing support and follow-up.", time: "3–7 days", color: "#16A34A", icon: "home" as const },
 ];
 
 const FAQS = [

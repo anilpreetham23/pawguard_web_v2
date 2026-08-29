@@ -62,7 +62,7 @@ export function DonationTransparencyLedger({
                   className="h-full rounded-full transition-all duration-narrative ease-gentle"
                   style={{
                     width: r.pct,
-                    background: r.label.includes("Direct") ? "linear-gradient(90deg, #00236f, #1a56db)" : "linear-gradient(90deg, #64748b, #94a3b8)",
+                    background: r.label.includes("Direct") ? "linear-gradient(90deg, #1E3A8A, #2563eb)" : "linear-gradient(90deg, #64748b, #94a3b8)",
                   }}
                 />
               </div>

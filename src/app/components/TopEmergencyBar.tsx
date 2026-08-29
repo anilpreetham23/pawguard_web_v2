@@ -197,7 +197,7 @@ function DonationCard({ compact }: { compact: boolean }) {
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0 right-0 w-5"
-        style={{ background: "linear-gradient(to right, transparent, var(--rescue))" }}
+        style={{ background: "linear-gradient(to right, transparent, var(--donate))" }}
       />
     </motion.div>
   );

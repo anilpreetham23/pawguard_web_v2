@@ -18,37 +18,37 @@
   --z-toast: 110;
   --z-skip: 120;
 
-  --background: #faf6ef;
-  --foreground: #1a1b1e;
-  --card: #f5f1e9;
-  --card-foreground: #1a1b1e;
-  --popover: #faf6ef;
-  --popover-foreground: #1a1b1e;
-  --primary: #00236f;
-  --primary-foreground: #faf6ef;
-  --secondary: #eceae3;
-  --secondary-foreground: #1a1b1e;
-  --muted: #eceae3;
-  --muted-foreground: #444651;
-  --accent: #eceae3;
-  --accent-foreground: #1a1b1e;
-  --destructive: #c41a1a;
-  --destructive-foreground: #ffffff;
-  --emergency: #c41a1a;
-  --emergency-foreground: #ffffff;
-  --rescue: #14507e;
-  --rescue-foreground: #ffffff;
-  --donate: #1d6b3c;
-  --donate-foreground: #ffffff;
-  --border: #e2ddd4;
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --primary: #1E3A8A;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0F172A;
+  --muted: #F1F5F9;
+  --muted-foreground: #475569;
+  --accent: #F1F5F9;
+  --accent-foreground: #0F172A;
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --emergency: #DC2626;
+  --emergency-foreground: #FFFFFF;
+  --rescue: #1E3A8A;
+  --rescue-foreground: #FFFFFF;
+  --donate: #16A34A;
+  --donate-foreground: #FFFFFF;
+  --border: #E2E8F0;
   --input: transparent;
-  --input-background: #ffffff;
-  --switch-background: #c5c5d3;
-  --ring: #00236f;
-  --primary-hover: #001850;
-  --destructive-hover: #a01515;
-  --destructive-active: #8a1212;
-  --footer-bg: #0b0c10;
+  --input-background: #FFFFFF;
+  --switch-background: #CBD5E1;
+  --ring: #1E3A8A;
+  --primary-hover: #172554;
+  --destructive-hover: #B91C1C;
+  --destructive-active: #991B1B;
+  --footer-bg: #0B0F19;
   --radius: 0.625rem;
 
   /* ── Emotional palette ──
@@ -57,16 +57,16 @@
      carries a distinct emotional temperature. */
   --emotion-hope:           255 196 120;  /* warm amber      — Hero */
   --emotion-trust:          255 214 150;  /* warm peach      — TrustBar */
-  --emotion-urgency:        196 26 26;    /* signal red      — EmergencyStory */
+  --emotion-urgency:        220 38 38;    /* signal red      — EmergencyStory */
   --emotion-compassion:     255 224 178;  /* soft cream      — Mission */
   --emotion-reality:        15 23 42;     /* deep navy       — VideoSection */
   --emotion-proof:          255 180 96;   /* amber           — ImpactSection */
-  --emotion-guidance:       0 35 111;     /* navy            — HowItWorks / Services */
+  --emotion-guidance:       30 58 138;    /* navy            — HowItWorks / Services */
   --emotion-transformation: 16 137 124;   /* teal            — RescueJourney */
   --emotion-joy:            180 83 9;     /* warm amber      — FeaturedAnimals */
-  --emotion-action:         0 35 111;     /* navy            — VolunteerDonate */
+  --emotion-action:         30 58 138;    /* navy            — VolunteerDonate */
   --emotion-belonging:      255 154 130;  /* soft coral      — CommunityStories */
-  --emotion-promise:        0 35 111;     /* navy            — Footer */
+  --emotion-promise:        30 58 138;    /* navy            — Footer */
 
   --space-1: 4px;
   --space-2: 8px;
@@ -267,13 +267,13 @@
   --shadow-hover-card: var(--shadow-hover-card);
   --shadow-btn-glow-primary: var(--shadow-btn-glow-primary);
   --shadow-btn-glow-destructive: var(--shadow-btn-glow-destructive);
-  --shadow-glow-primary: 0 0 20px -4px rgba(0, 35, 111, 0.35);
-  --shadow-glow-destructive: 0 0 20px -4px rgba(186, 26, 26, 0.35);
-  --shadow-glow-soft: 0 0 12px -4px rgba(0, 35, 111, 0.12);
+  --shadow-glow-primary: 0 0 20px -4px rgba(30, 58, 138, 0.35);
+  --shadow-glow-destructive: 0 0 20px -4px rgba(220, 38, 38, 0.35);
+  --shadow-glow-soft: 0 0 12px -4px rgba(30, 58, 138, 0.12);
   --shadow-glow-card: var(--shadow-lg);
   --shadow-hover-card: var(--shadow-lg);
-  --shadow-btn-glow-primary: 0 0 20px -6px rgba(0, 35, 111, 0.4);
-  --shadow-btn-glow-destructive: 0 0 24px -6px rgba(186, 26, 26, 0.4);
+  --shadow-btn-glow-primary: 0 0 20px -6px rgba(30, 58, 138, 0.4);
+  --shadow-btn-glow-destructive: 0 0 24px -6px rgba(220, 38, 38, 0.4);
 
   --duration-fast: 150ms;
   --duration-standard: 200ms;
@@ -980,7 +980,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: radial-gradient(ellipse at 50% 0%, rgba(0, 35, 111, 0.08) 0%, transparent 60%);
+    background: radial-gradient(ellipse at 50% 0%, rgba(30, 58, 138, 0.08) 0%, transparent 60%);
   }
 
   /* Hide scrollbars on carousels/scroll-spy tracks (Chrome/WebKit + Firefox) */

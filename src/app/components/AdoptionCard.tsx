@@ -56,7 +56,7 @@ function NewBadge() {
     <span
       className="text-primary-foreground text-2xs font-bold tracking-wider uppercase px-2.5 py-1 rounded-sm shadow-sm relative overflow-hidden"
       style={{
-        background: "linear-gradient(90deg,#00236f 0%,#1D4ED8 40%,#00236f 60%,#00236f 100%)",
+        background: "linear-gradient(90deg,#1E3A8A 0%,#2563EB 40%,#1E3A8A 60%,#1E3A8A 100%)",
         backgroundSize: "200% auto",
         animation: "badge-new-shimmer 3s linear infinite",
       }}
