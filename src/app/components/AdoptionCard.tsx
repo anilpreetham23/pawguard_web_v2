@@ -2,13 +2,12 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import { CheckCircle2, Heart, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "motion/react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "../components/ui/hover-card";
 import { InteractiveImage } from "../../motion/components/InteractiveImage";
 import { useMotionStore } from "../../motion/motion-store";
 import { cn } from "./ui/utils";
-import { useFavorites } from "../hooks/useFavorites";
 
 // ─── Springs ──────────────────────────────────────────────────────────────────
 const TILT_SPRING  = { stiffness: 180, damping: 22, mass: 0.6 };
@@ -67,47 +66,6 @@ function NewBadge() {
   );
 }
 
-// ─── Heart burst ──────────────────────────────────────────────────────────────
-function HeartButton({ saved, onToggle }: { saved?: boolean; onToggle?: () => void }) {
-  const [burst, setBurst] = useState(false);
-  const handle = useCallback((e: React.MouseEvent) => {
-    e.preventDefault(); e.stopPropagation();
-    setBurst(true);
-    setTimeout(() => setBurst(false), 600);
-    onToggle?.();
-  }, [onToggle]);
-
-  return (
-    <button onClick={handle} aria-label={saved ? "Remove from saved" : "Save to favourites"}
-      className="relative flex items-center justify-center w-6 h-6 shrink-0"
-      type="button"
-      aria-pressed={saved}
-    >
-      <motion.div animate={burst ? { scale: 1.2 } : { scale: 1 }}
-        transition={{ duration: 0.18, ease: [0.22,1,0.36,1] }}>
-        <Heart size={12} className={cn("transition-colors duration-200",
-          saved ? "text-destructive fill-destructive" : "text-muted-foreground/40")} />
-      </motion.div>
-      <AnimatePresence>
-        {burst && [0,60,120,180,240,300].map((deg) => (
-          <motion.div key={deg}
-            className="absolute w-1 h-1 rounded-full bg-destructive/70"
-            initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
-            animate={{
-              scale: [0,1,0],
-              x: Math.cos((deg*Math.PI)/180)*10,
-              y: Math.sin((deg*Math.PI)/180)*10,
-              opacity: [1,1,0],
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
-        ))}
-      </AnimatePresence>
-    </button>
-  );
-}
-
 // ─── Main card ────────────────────────────────────────────────────────────────
 export default function AdoptionCard({
   name, breed, age, gender, img,
@@ -129,9 +87,6 @@ export default function AdoptionCard({
   const [imageFailed, setImageFailed] = useState(false);
   const mainImage = img || image_urls?.[0] || photo_gallery_urls?.[0];
   const showImage = Boolean(mainImage) && !imageFailed;
-
-  const { isFavorited, toggleFavorite } = useFavorites();
-  const saved = slug ? isFavorited(slug) : false;
 
   const tier = useMotionStore((s) => s.motionTier);
   const isReduced = tier === "reduced" || tier === "none";
@@ -282,10 +237,6 @@ export default function AdoptionCard({
                   <h3 className="text-foreground font-bold text-base sm:text-lg group-hover:text-primary transition-colors duration-ui truncate">
                     {name}
                   </h3>
-                  <HeartButton
-                    saved={saved}
-                    onToggle={slug ? () => toggleFavorite({ id: slug, name, breed, age, gender, emoji, tone }) : undefined}
-                  />
                 </div>
               </HoverCardTrigger>
               <HoverCardContent className="w-72" side="top" align="start">

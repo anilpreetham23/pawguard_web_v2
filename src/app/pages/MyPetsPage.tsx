@@ -12,6 +12,8 @@ import {
   AlertTriangle,
   Pencil,
   Trash2,
+  Plus,
+  QrCode,
   X,
 } from "lucide-react";
 import PageHeader from "../components/PageHeader";
@@ -42,10 +44,13 @@ import { useSafetyTag } from "../hooks/useSafetyTag";
 import { getErrorMessage, isApiError, useApiMutation, QUERY_KEYS } from "@/lib/api";
 import { queryClient } from "@/lib/react-query";
 import { companionPetsService } from "@/services/api/pets";
+import { safetyTagService } from "@/services/api/safety-tag";
 import type {
   AdoptionApplicationResponse,
+  CompanionPetCreate,
   CompanionPetResponse,
   CompanionPetUpdate,
+  SafetyTagProvisionResponse,
 } from "@/lib/api";
 
 /** Adoptions that have reached an approved/completed (owned) state. */
@@ -158,12 +163,28 @@ function CompanionPetCard({
   pet,
   onEdit,
   onDelete,
+  onTagSuccess,
 }: {
   pet: CompanionPetResponse;
   onEdit: (pet: CompanionPetResponse) => void;
   onDelete: (pet: CompanionPetResponse) => void;
+  onTagSuccess: (msg: string) => void;
 }) {
-  const { data: safetyTag, isLoading: tagLoading, isError: tagError } = useSafetyTag(pet.id);
+  const { data: safetyTag, isLoading: tagLoading, isError: tagError, refetch: refetchTag } = useSafetyTag(pet.id);
+
+  const provisionMutation = useApiMutation<SafetyTagProvisionResponse, void>({
+    mutationFn: () => safetyTagService.provisionSafetyTag(pet.id),
+    onSuccess: async (res) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.safetyTag.petTag(pet.id) }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.companionPets.pets }),
+      ]);
+      onTagSuccess(`QR Safety Tag provisioned successfully for ${pet.name}. Token prefix: ${res.token_prefix}`);
+      refetchTag();
+    },
+  });
+
+  const provisionError = provisionMutation.error ? getErrorMessage(provisionMutation.error) : null;
 
   return (
     <Card className="justify-between">
@@ -233,31 +254,54 @@ function CompanionPetCard({
               <span className="h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" />
               Loading safety tag…
             </div>
-          ) : tagError ? (
-            <p className="text-destructive text-xs">
-              {isApiError(tagError) && tagError.isNotFound
-                ? "No safety tag provisioned yet."
-                : "We couldn't load the safety tag."}
-            </p>
-          ) : safetyTag ? (
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
+          ) : tagError || !safetyTag ? (
+            <div className="flex flex-col items-start gap-2 bg-secondary/40 p-3 rounded-lg border border-border/60">
+              <p className="text-xs text-muted-foreground">
+                {isApiError(tagError) && tagError.isNotFound
+                  ? "No QR Safety Tag provisioned yet."
+                  : "Safety Tag is not active."}
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                isLoading={provisionMutation.isPending}
+                onClick={() => provisionMutation.mutate()}
+                className="gap-1.5"
+              >
+                <QrCode size={14} className="text-primary" />
+                Generate QR Safety Tag
+              </Button>
+              {provisionError && (
+                <span className="text-xs text-destructive">{provisionError}</span>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 bg-secondary/40 p-3 rounded-lg border border-border/60">
+              <div className="flex items-center justify-between">
                 <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${safetyTag.is_active ? "text-emerald-700" : "text-muted-foreground"}`}>
                   <span className={`h-2 w-2 rounded-full ${safetyTag.is_active ? "bg-emerald-500" : "bg-muted-foreground/50"}`} />
-                  {safetyTag.is_active ? "Active" : "Inactive"}
+                  {safetyTag.is_active ? "Tag Active" : "Inactive"}
+                </span>
+                <span className="text-[11px] font-mono text-muted-foreground">
+                  Prefix: <span className="text-foreground font-semibold">{safetyTag.token_prefix}</span>
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Token prefix: <span className="font-mono text-foreground">{safetyTag.token_prefix}</span>
+                Scans: <span className="font-semibold text-foreground">{safetyTag.scan_count}</span> · Last scanned: {safetyTag.last_scanned_at ? new Date(safetyTag.last_scanned_at).toLocaleString() : "Never"}
               </p>
-              <p className="text-xs text-muted-foreground">
-                Scans: {safetyTag.scan_count} · Last scanned: {safetyTag.last_scanned_at ? new Date(safetyTag.last_scanned_at).toLocaleString() : "Never"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                The QR code image can be printed from the admin dashboard.
-              </p>
+              <div className="flex items-center gap-2 pt-1 border-t border-border/50">
+                <Link
+                  href={`/scan?token=${safetyTag.token_prefix}`}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                >
+                  <QrCode size={13} />
+                  Test Scanner Route
+                  <ArrowRight size={12} />
+                </Link>
+              </div>
             </div>
-          ) : null}
+          )}
         </div>
       )}
 
@@ -292,6 +336,228 @@ function CompanionPetCard({
         </Link>
       </div>
     </Card>
+  );
+}
+
+function RegisterPersonalPetModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: (msg: string) => void;
+}) {
+  const [name, setName] = useState("");
+  const [species, setSpecies] = useState("dog");
+  const [breed, setBreed] = useState("");
+  const [sex, setSex] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [color, setColor] = useState("");
+  const [microchipId, setMicrochipId] = useState("");
+  const [emergencyNotes, setEmergencyNotes] = useState("");
+  const [isScanEnabled, setIsScanEnabled] = useState(true);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const mutation = useApiMutation<CompanionPetResponse, CompanionPetCreate>({
+    mutationFn: (data) => companionPetsService.createPet(data),
+    onSuccess: async (newPet) => {
+      await queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.companionPets.pets,
+      });
+      onSuccess(`${newPet.name} was registered successfully as your personal pet.`);
+      setName("");
+      setSpecies("dog");
+      setBreed("");
+      setSex("");
+      setBirthDate("");
+      setColor("");
+      setMicrochipId("");
+      setEmergencyNotes("");
+      setIsScanEnabled(true);
+      onClose();
+    },
+  });
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setValidationError("Pet name is required.");
+      return;
+    }
+    setValidationError(null);
+
+    const payload: CompanionPetCreate = {
+      name: name.trim(),
+      species: species.trim() || "dog",
+      breed: breed.trim() || null,
+      sex: sex || null,
+      birth_date: birthDate ? new Date(birthDate).toISOString() : null,
+      color: color.trim() || null,
+      microchip_id: microchipId.trim() || null,
+      emergency_notes: emergencyNotes.trim() || null,
+      is_scan_enabled: isScanEnabled,
+    };
+
+    mutation.mutate(payload);
+  };
+
+  const apiError = mutation.error ? getErrorMessage(mutation.error) : null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-[600px] w-full p-6 sm:p-8 rounded-card border-border bg-card shadow-2xl gap-6 max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="text-left gap-1">
+          <div className="flex items-center gap-2 mb-1">
+            <Badge variant="neutral">External / Personal Pet</Badge>
+          </div>
+          <DialogTitle className="font-serif font-bold text-2xl text-foreground">
+            Register My Personal Pet
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Register a pet you already own outside PawGuard to use PawGuard veterinary, reminders, and QR Safety Tag features.
+          </DialogDescription>
+        </DialogHeader>
+
+        {(validationError || apiError) && (
+          <Alert variant="error" title="Could not register pet">
+            {validationError || apiError}
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Pet Name <span className="text-destructive">*</span>
+              </label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Max"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Species
+              </label>
+              <Input
+                value={species}
+                onChange={(e) => setSpecies(e.target.value)}
+                placeholder="e.g. dog, cat"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Breed
+              </label>
+              <Input
+                value={breed}
+                onChange={(e) => setBreed(e.target.value)}
+                placeholder="e.g. Golden Retriever"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Sex
+              </label>
+              <select
+                value={sex}
+                onChange={(e) => setSex(e.target.value)}
+                className="w-full h-11 px-3 rounded-btn border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">Select sex</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Birth Date
+              </label>
+              <Input
+                type="date"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Color / Markings
+              </label>
+              <Input
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                placeholder="e.g. Brown and white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">
+              Microchip ID
+            </label>
+            <Input
+              value={microchipId}
+              onChange={(e) => setMicrochipId(e.target.value)}
+              placeholder="e.g. 985141000123456"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">
+              Emergency & Care Notes
+            </label>
+            <Textarea
+              value={emergencyNotes}
+              onChange={(e) => setEmergencyNotes(e.target.value)}
+              placeholder="Allergies, medications, special care instructions..."
+              rows={3}
+            />
+          </div>
+
+          <div className="flex items-center gap-3 pt-2">
+            <input
+              type="checkbox"
+              id="reg_is_scan_enabled"
+              checked={isScanEnabled}
+              onChange={(e) => setIsScanEnabled(e.target.checked)}
+              className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+            />
+            <label htmlFor="reg_is_scan_enabled" className="text-xs font-semibold text-foreground cursor-pointer">
+              Enable QR Safety Tag scanning for this pet
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={mutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={mutation.isPending}
+            >
+              Register Pet
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -585,6 +851,7 @@ export default function MyPetsPage() {
 
   const [editingPet, setEditingPet] = useState<CompanionPetResponse | null>(null);
   const [deletingPet, setDeletingPet] = useState<CompanionPetResponse | null>(null);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const {
@@ -757,7 +1024,7 @@ export default function MyPetsPage() {
 
               {/* ── My Pets ───────────────────────────────────────────────────── */}
               <section aria-labelledby="companion-heading" className="flex flex-col gap-5">
-                <div className="flex items-end justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                   <div>
                     <h2 id="companion-heading" className="text-foreground font-bold text-2xl">
                       My Pets
@@ -769,13 +1036,16 @@ export default function MyPetsPage() {
                       Pets you can use to book veterinary visits, manage reminders, and use the QR safety tag.
                     </p>
                   </div>
-                  <Link
-                    href="/appointments/book"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setIsRegisterModalOpen(true)}
+                    className="shrink-0 gap-1.5"
                   >
-                    Book a vet visit
-                    <ArrowRight size={13} />
-                  </Link>
+                    <Plus size={15} />
+                    Register My Personal Pet
+                  </Button>
                 </div>
 
                 {petsLoading ? (
@@ -786,9 +1056,12 @@ export default function MyPetsPage() {
                   <Card>
                     <EmptyState
                       icon="heart"
-                      title="No pets yet"
-                      description="Once an adoption is approved you can add your pet from My Applications."
-                      action={{ label: "Go to My Applications", to: "/applications" }}
+                      title="No registered pets yet"
+                      description="Register a dog you already own outside PawGuard or add your pet from an approved adoption."
+                      action={{
+                        label: "+ Register My Personal Pet",
+                        onClick: () => setIsRegisterModalOpen(true),
+                      }}
                     />
                   </Card>
                 ) : (
@@ -799,6 +1072,7 @@ export default function MyPetsPage() {
                         pet={pet}
                         onEdit={(p) => setEditingPet(p)}
                         onDelete={(p) => setDeletingPet(p)}
+                        onTagSuccess={(msg) => setToastMessage(msg)}
                       />
                     ))}
                   </div>
@@ -808,6 +1082,13 @@ export default function MyPetsPage() {
           )}
         </div>
       </main>
+
+      {/* Register Personal Pet Modal */}
+      <RegisterPersonalPetModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+        onSuccess={(msg) => setToastMessage(msg)}
+      />
 
       {/* Edit Pet Modal */}
       <EditPetModal

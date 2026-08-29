@@ -61,6 +61,7 @@ export type {
   DogQueryParams,
   DogStatus,
   PublicDogScanResponse,
+  SafetyTagProvisionResponse,
   SafetyTagResponse,
   SafetyTagScanRequest,
   SafetyTagScanResponse,

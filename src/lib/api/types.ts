@@ -378,6 +378,11 @@ export interface SafetyTagResponse {
   updated_at: string;
 }
 
+/** `POST /companion-pets/{pet_id}/safety-tag` response payload. */
+export interface SafetyTagProvisionResponse extends SafetyTagResponse {
+  raw_token: string;
+}
+
 /** Breed classification enum for public dog scans. */
 export type DogBreedClassification = "pure" | "mix" | "unknown";
 

@@ -11,9 +11,10 @@
  * harmless for public routes.
  */
 
-import { API_ROUTES, apiGet, apiPost } from "@/lib/api";
+import { API_ROUTES, apiDelete, apiGet, apiPost } from "@/lib/api";
 import type {
   PublicDogScanResponse,
+  SafetyTagProvisionResponse,
   SafetyTagResponse,
   SafetyTagScanRequest,
   SafetyTagScanResponse,
@@ -39,6 +40,24 @@ export const safetyTagService = {
   },
 
   /**
+   * `POST /companion-pets/{pet_id}/safety-tag` — provision or rotate a QR
+   * safety tag for the authenticated owner's pet.
+   */
+  provisionSafetyTag(petId: string): Promise<SafetyTagProvisionResponse> {
+    return apiPost<SafetyTagProvisionResponse>(
+      API_ROUTES.safetyTag.petTag(petId),
+      {}
+    );
+  },
+
+  /**
+   * `DELETE /companion-pets/{pet_id}/safety-tag` — deactivate or revoke a QR safety tag.
+   */
+  deactivateSafetyTag(petId: string): Promise<void> {
+    return apiDelete(API_ROUTES.safetyTag.petTag(petId));
+  },
+
+  /**
    * `GET /dogs/{dog_id}/public-scan` — fetch the privacy-safe public profile
    * of a rescue dog (used when a scan resolves to a dog in care).
    */
@@ -51,6 +70,7 @@ export const safetyTagService = {
 
 export type {
   PublicDogScanResponse,
+  SafetyTagProvisionResponse,
   SafetyTagResponse,
   SafetyTagScanResponse,
 } from "@/lib/api";
