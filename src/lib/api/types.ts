@@ -503,6 +503,19 @@ export interface CompanionPetCreate {
   is_scan_enabled?: boolean;
 }
 
+/** `PATCH /companion-pets/{pet_id}` request body (`CompanionPetUpdate`). */
+export interface CompanionPetUpdate {
+  name?: string;
+  species?: string;
+  breed?: string | null;
+  sex?: string | null;
+  birth_date?: string | null;
+  color?: string | null;
+  microchip_id?: string | null;
+  emergency_notes?: string | null;
+  is_scan_enabled?: boolean;
+}
+
 /** Query params accepted by `GET /companion-pets`. */
 export interface CompanionPetsQueryParams
   extends PaginationParams,

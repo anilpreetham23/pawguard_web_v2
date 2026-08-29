@@ -11,11 +11,12 @@
  * checkpoint — only the list method required by appointment booking is added.
  */
 
-import { API_ROUTES, apiGetPage, apiPost } from "@/lib/api";
+import { API_ROUTES, apiDelete, apiGetPage, apiPatch, apiPost } from "@/lib/api";
 import type {
   CompanionPetCreate,
   CompanionPetsQueryParams,
   CompanionPetResponse,
+  CompanionPetUpdate,
   Page,
 } from "@/lib/api";
 
@@ -52,11 +53,32 @@ export const companionPetsService = {
       {}
     );
   },
+
+  /**
+   * `PATCH /companion-pets/{pet_id}` — update fields of an existing companion pet.
+   */
+  updatePet(
+    petId: string,
+    data: CompanionPetUpdate
+  ): Promise<CompanionPetResponse> {
+    return apiPatch<CompanionPetResponse>(
+      API_ROUTES.companionPets.pet(petId),
+      data
+    );
+  },
+
+  /**
+   * `DELETE /companion-pets/{pet_id}` — delete/remove a companion pet.
+   */
+  deletePet(petId: string): Promise<void> {
+    return apiDelete(API_ROUTES.companionPets.pet(petId));
+  },
 };
 
 export type {
   CompanionPetCreate,
   CompanionPetsQueryParams,
   CompanionPetResponse,
+  CompanionPetUpdate,
   Page,
 };

@@ -51,6 +51,7 @@ export type {
   CompanionPetCreate,
   CompanionPetsQueryParams,
   CompanionPetResponse,
+  CompanionPetUpdate,
   ContactLocationResponse,
   ContactMessageCreate,
   ContentStatus,

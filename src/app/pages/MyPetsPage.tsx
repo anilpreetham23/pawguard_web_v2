@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -9,6 +10,9 @@ import {
   Stethoscope,
   ArrowRight,
   AlertTriangle,
+  Pencil,
+  Trash2,
+  X,
 } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import {
@@ -19,14 +23,30 @@ import {
   EmptyState,
   Alert,
   Badge,
+  Button,
+  Input,
+  Textarea,
 } from "../components/pawguard";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
 import { AddCompanionPetButton } from "../components/AddCompanionPetButton";
 import { useAuth } from "../providers/auth-provider";
 import { useMyPets } from "../hooks/useMyPets";
 import { useAdoptionApplicationsAll } from "../hooks/useAdoptionApplicationsAll";
 import { useSafetyTag } from "../hooks/useSafetyTag";
-import { getErrorMessage, isApiError } from "@/lib/api";
-import type { AdoptionApplicationResponse, CompanionPetResponse } from "@/lib/api";
+import { getErrorMessage, isApiError, useApiMutation, QUERY_KEYS } from "@/lib/api";
+import { queryClient } from "@/lib/react-query";
+import { companionPetsService } from "@/services/api/pets";
+import type {
+  AdoptionApplicationResponse,
+  CompanionPetResponse,
+  CompanionPetUpdate,
+} from "@/lib/api";
 
 /** Adoptions that have reached an approved/completed (owned) state. */
 const ADOPTED_STATUSES: ReadonlyArray<AdoptionApplicationResponse["status"]> = [
@@ -134,7 +154,15 @@ function AdoptedPetCard({ app }: { app: AdoptionApplicationResponse }) {
   );
 }
 
-function CompanionPetCard({ pet }: { pet: CompanionPetResponse }) {
+function CompanionPetCard({
+  pet,
+  onEdit,
+  onDelete,
+}: {
+  pet: CompanionPetResponse;
+  onEdit: (pet: CompanionPetResponse) => void;
+  onDelete: (pet: CompanionPetResponse) => void;
+}) {
   const { data: safetyTag, isLoading: tagLoading, isError: tagError } = useSafetyTag(pet.id);
 
   return (
@@ -152,7 +180,27 @@ function CompanionPetCard({ pet }: { pet: CompanionPetResponse }) {
             </p>
           </div>
         </div>
-        <Badge variant="neutral">My Pet</Badge>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => onEdit(pet)}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+            title="Edit pet details"
+            aria-label={`Edit ${pet.name}`}
+          >
+            <Pencil size={15} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(pet)}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            title="Remove pet"
+            aria-label={`Remove ${pet.name}`}
+          >
+            <Trash2 size={15} />
+          </button>
+          <Badge variant="neutral">My Pet</Badge>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
@@ -161,10 +209,21 @@ function CompanionPetCard({ pet }: { pet: CompanionPetResponse }) {
           <span>Born: <span className="text-foreground font-medium">{formatBirthDate(pet.birth_date)}</span></span>
         )}
         {pet.breed && <span>Breed: <span className="text-foreground font-medium">{pet.breed}</span></span>}
+        {pet.color && <span>Color: <span className="text-foreground font-medium">{pet.color}</span></span>}
+        {pet.microchip_id && (
+          <span>Microchip: <span className="text-foreground font-medium font-mono text-xs">{pet.microchip_id}</span></span>
+        )}
         <span>
           {pet.is_scan_enabled ? "QR safety tag: On" : "QR safety tag: Off"}
         </span>
       </div>
+
+      {pet.emergency_notes && (
+        <div className="text-xs text-muted-foreground bg-secondary/50 p-2.5 rounded-lg border border-border/50">
+          <span className="font-semibold text-foreground block mb-0.5">Emergency / Care Notes</span>
+          <p className="line-clamp-2">{pet.emergency_notes}</p>
+        </div>
+      )}
 
       {pet.is_scan_enabled && (
         <div className="flex flex-col gap-2 border-t border-border pt-4">
@@ -236,9 +295,297 @@ function CompanionPetCard({ pet }: { pet: CompanionPetResponse }) {
   );
 }
 
+function EditPetModal({
+  pet,
+  onClose,
+  onSuccess,
+}: {
+  pet: CompanionPetResponse | null;
+  onClose: () => void;
+  onSuccess: (msg: string) => void;
+}) {
+  const [name, setName] = useState(pet?.name ?? "");
+  const [species, setSpecies] = useState(pet?.species ?? "dog");
+  const [breed, setBreed] = useState(pet?.breed ?? "");
+  const [sex, setSex] = useState(pet?.sex ?? "");
+  const [birthDate, setBirthDate] = useState(
+    pet?.birth_date ? pet.birth_date.split("T")[0] : ""
+  );
+  const [color, setColor] = useState(pet?.color ?? "");
+  const [microchipId, setMicrochipId] = useState(pet?.microchip_id ?? "");
+  const [emergencyNotes, setEmergencyNotes] = useState(pet?.emergency_notes ?? "");
+  const [isScanEnabled, setIsScanEnabled] = useState(pet?.is_scan_enabled ?? true);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const mutation = useApiMutation<CompanionPetResponse, CompanionPetUpdate>({
+    mutationFn: (data) => {
+      if (!pet) throw new Error("No pet specified");
+      return companionPetsService.updatePet(pet.id, data);
+    },
+    onSuccess: async (updated) => {
+      await queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.companionPets.pets,
+      });
+      onSuccess(`${updated.name}'s profile was updated successfully.`);
+      onClose();
+    },
+  });
+
+  if (!pet) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setValidationError("Pet name is required.");
+      return;
+    }
+    setValidationError(null);
+
+    const payload: CompanionPetUpdate = {
+      name: name.trim(),
+      species: species.trim() || "dog",
+      breed: breed.trim() || null,
+      sex: sex || null,
+      birth_date: birthDate ? new Date(birthDate).toISOString() : null,
+      color: color.trim() || null,
+      microchip_id: microchipId.trim() || null,
+      emergency_notes: emergencyNotes.trim() || null,
+      is_scan_enabled: isScanEnabled,
+    };
+
+    mutation.mutate(payload);
+  };
+
+  const apiError = mutation.error ? getErrorMessage(mutation.error) : null;
+
+  return (
+    <Dialog open={Boolean(pet)} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-[600px] w-full p-6 sm:p-8 rounded-card border-border bg-card shadow-2xl gap-6 max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="text-left gap-1">
+          <DialogTitle className="font-serif font-bold text-2xl text-foreground">
+            Edit Pet Profile
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Update details for <span className="font-semibold text-foreground">{pet.name}</span>.
+          </DialogDescription>
+        </DialogHeader>
+
+        {(validationError || apiError) && (
+          <Alert variant="error" title="Could not update pet">
+            {validationError || apiError}
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Pet Name <span className="text-destructive">*</span>
+              </label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Max"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Species
+              </label>
+              <Input
+                value={species}
+                onChange={(e) => setSpecies(e.target.value)}
+                placeholder="e.g. dog, cat"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Breed
+              </label>
+              <Input
+                value={breed}
+                onChange={(e) => setBreed(e.target.value)}
+                placeholder="e.g. Golden Retriever"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Sex
+              </label>
+              <select
+                value={sex}
+                onChange={(e) => setSex(e.target.value)}
+                className="w-full h-11 px-3 rounded-btn border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">Select sex</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Birth Date
+              </label>
+              <Input
+                type="date"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                Color / Markings
+              </label>
+              <Input
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                placeholder="e.g. Brown and white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">
+              Microchip ID
+            </label>
+            <Input
+              value={microchipId}
+              onChange={(e) => setMicrochipId(e.target.value)}
+              placeholder="e.g. 985141000123456"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">
+              Emergency & Medical Notes
+            </label>
+            <Textarea
+              value={emergencyNotes}
+              onChange={(e) => setEmergencyNotes(e.target.value)}
+              placeholder="Allergies, medications, special care instructions..."
+              rows={3}
+            />
+          </div>
+
+          <div className="flex items-center gap-3 pt-2">
+            <input
+              type="checkbox"
+              id="is_scan_enabled"
+              checked={isScanEnabled}
+              onChange={(e) => setIsScanEnabled(e.target.checked)}
+              className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+            />
+            <label htmlFor="is_scan_enabled" className="text-xs font-semibold text-foreground cursor-pointer">
+              Enable QR Safety Tag scanning for this pet
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={mutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={mutation.isPending}
+            >
+              Save Changes
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DeletePetDialog({
+  pet,
+  onClose,
+  onSuccess,
+}: {
+  pet: CompanionPetResponse | null;
+  onClose: () => void;
+  onSuccess: (msg: string) => void;
+}) {
+  const mutation = useApiMutation<void, void>({
+    mutationFn: () => {
+      if (!pet) throw new Error("No pet specified");
+      return companionPetsService.deletePet(pet.id);
+    },
+    onSuccess: async () => {
+      const removedName = pet?.name ?? "Pet";
+      await queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.companionPets.pets,
+      });
+      onSuccess(`${removedName} was removed from your pets.`);
+      onClose();
+    },
+  });
+
+  if (!pet) return null;
+
+  const apiError = mutation.error ? getErrorMessage(mutation.error) : null;
+
+  return (
+    <Dialog open={Boolean(pet)} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-[480px] w-full p-6 sm:p-8 rounded-card border-border bg-card shadow-2xl gap-6">
+        <DialogHeader className="text-left gap-1">
+          <DialogTitle className="font-serif font-bold text-2xl text-foreground">
+            Remove Pet Profile?
+          </DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Are you sure you want to remove <span className="font-semibold text-foreground">{pet.name}</span> from your pets? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+
+        {apiError && (
+          <Alert variant="error" title="Could not remove pet">
+            {apiError}
+          </Alert>
+        )}
+
+        <div className="flex justify-end gap-3 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={mutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            isLoading={mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
+            Remove Pet
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function MyPetsPage() {
   const { isAuthenticated, status: authStatus, openAuthDialog } = useAuth();
   const isAuthReady = authStatus !== "loading";
+
+  const [editingPet, setEditingPet] = useState<CompanionPetResponse | null>(null);
+  const [deletingPet, setDeletingPet] = useState<CompanionPetResponse | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const {
     pets,
@@ -315,6 +662,21 @@ export default function MyPetsPage() {
         />
 
         <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md lg:py-section-lg flex flex-col gap-12">
+          {toastMessage && (
+            <Alert variant="success" title="Success">
+              <div className="flex items-center justify-between gap-4">
+                <span>{toastMessage}</span>
+                <button
+                  type="button"
+                  onClick={() => setToastMessage(null)}
+                  className="p-1 text-emerald-800 hover:text-emerald-950 transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </Alert>
+          )}
+
           {loading ? (
             <div className="flex flex-col gap-10">
               <p className="text-sm font-semibold text-muted-foreground" role="status">
@@ -337,7 +699,7 @@ export default function MyPetsPage() {
                 </button>
               </Alert>
             ) : (
-                <Alert variant="error" title="We couldn't load your pets">
+              <Alert variant="error" title="We couldn't load your pets">
                 {petsError ? getErrorMessage(petsErrorObj) : appsError ? getErrorMessage(appsErrorObj) : ""}{" "}
                 <button
                   onClick={() => {
@@ -432,7 +794,12 @@ export default function MyPetsPage() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md">
                     {pets.map((pet) => (
-                      <CompanionPetCard key={pet.id} pet={pet} />
+                      <CompanionPetCard
+                        key={pet.id}
+                        pet={pet}
+                        onEdit={(p) => setEditingPet(p)}
+                        onDelete={(p) => setDeletingPet(p)}
+                      />
                     ))}
                   </div>
                 )}
@@ -441,6 +808,22 @@ export default function MyPetsPage() {
           )}
         </div>
       </main>
+
+      {/* Edit Pet Modal */}
+      <EditPetModal
+        key={editingPet?.id ?? "edit-modal"}
+        pet={editingPet}
+        onClose={() => setEditingPet(null)}
+        onSuccess={(msg) => setToastMessage(msg)}
+      />
+
+      {/* Delete Pet Dialog */}
+      <DeletePetDialog
+        key={deletingPet?.id ?? "delete-dialog"}
+        pet={deletingPet}
+        onClose={() => setDeletingPet(null)}
+        onSuccess={(msg) => setToastMessage(msg)}
+      />
     </PageShell>
   );
 }
