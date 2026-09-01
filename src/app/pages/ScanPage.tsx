@@ -85,6 +85,45 @@ function formatDate(isoString: string | null | undefined): string {
   }
 }
 
+export function sanitizeScanToken(input: string): string {
+  if (!input) return "";
+  let clean = input.trim();
+  clean = clean.replace(/^["']|["']$/g, "").trim();
+
+  if (clean.startsWith("http://") || clean.startsWith("https://") || clean.includes("/scan")) {
+    try {
+      const parsedUrl = new URL(
+        clean.startsWith("http")
+          ? clean
+          : `https://pawguard-public-web.vercel.app${clean.startsWith("/") ? "" : "/"}${clean}`
+      );
+      const tokenParam =
+        parsedUrl.searchParams.get("token") ||
+        parsedUrl.searchParams.get("raw_token") ||
+        parsedUrl.searchParams.get("code") ||
+        parsedUrl.searchParams.get("tag");
+      if (tokenParam) {
+        clean = tokenParam.trim();
+      } else {
+        const parts = parsedUrl.pathname.split("/").filter(Boolean);
+        const lastPart = parts[parts.length - 1];
+        if (lastPart && lastPart !== "scan" && lastPart !== "scan-pet") {
+          clean = lastPart.trim();
+        }
+      }
+    } catch {
+      // keep original string if parsing fails
+    }
+  }
+
+  if (clean.startsWith("token=")) {
+    clean = clean.substring(6).trim();
+  }
+
+  clean = clean.replace(/["'&?#].*$/, "").trim();
+  return clean;
+}
+
 export default function ScanPage() {
   const [state, setState] = useState<ScanState>({ status: "idle" });
   const [manualToken, setManualToken] = useState("");
@@ -141,7 +180,7 @@ export default function ScanPage() {
 
   const submitToken = useCallback(
     async (token: string) => {
-      let clean = token.trim();
+      const clean = sanitizeScanToken(token);
       if (clean.length === 0) {
         setScanNotice(
           "Please enter the safety-tag token from the back of the tag."
@@ -149,28 +188,13 @@ export default function ScanPage() {
         return;
       }
 
-      // If a full URL is scanned or pasted (e.g. https://pawguard.org/scan?token=raw_token or /scan/raw_token),
-      // extract the actual raw token value.
-      if (clean.startsWith("http://") || clean.startsWith("https://")) {
-        try {
-          const parsedUrl = new URL(clean);
-          const tokenParam =
-            parsedUrl.searchParams.get("token") ||
-            parsedUrl.searchParams.get("raw_token");
-          if (tokenParam) {
-            clean = tokenParam.trim();
-          } else {
-            const parts = parsedUrl.pathname.split("/").filter(Boolean);
-            if (parts.length > 0) {
-              const lastPart = parts[parts.length - 1];
-              if (lastPart && lastPart !== "scan" && lastPart !== "scan-pet") {
-                clean = lastPart.trim();
-              }
-            }
-          }
-        } catch {
-          // keep original clean string if URL parsing fails
-        }
+      if (typeof window !== "undefined") {
+        console.log("[PawGuard SafetyTag Scan Diagnostic]", {
+          tokenExists: Boolean(clean),
+          tokenLength: clean.length,
+          tokenPrefix: `${clean.substring(0, 8)}...`,
+          requestEndpoint: "/api/v1/companion-pets/safety-tag/scan",
+        });
       }
 
       setScanNotice(null);
@@ -180,11 +204,26 @@ export default function ScanPage() {
 
       try {
         const pet = await safetyTagService.scanToken(clean);
+        if (typeof window !== "undefined") {
+          console.log("[PawGuard SafetyTag Scan Success]", {
+            petId: pet.pet_id || pet.id,
+            petName: pet.name,
+            status: pet.status,
+          });
+        }
         setState({ status: "success", pet });
         if (pet.status?.toLowerCase() === "lost" && pet.lost_location) {
           setLocationAddress(pet.lost_location);
         }
-      } catch {
+      } catch (err) {
+        if (typeof window !== "undefined") {
+          console.error("[PawGuard SafetyTag Scan Error]", {
+            tokenPrefix: `${clean.substring(0, 8)}...`,
+            status: isApiError(err) ? err.status : "NETWORK_OR_UNKNOWN",
+            code: isApiError(err) ? err.code : undefined,
+            message: isApiError(err) ? err.message : (err as Error)?.message,
+          });
+        }
         if (isUuid(clean)) {
           try {
             const dog = await safetyTagService.getDogPublicScan(clean);
@@ -204,13 +243,13 @@ export default function ScanPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
-    const tokenParam =
+    const rawParam =
       urlParams.get("token") ||
       urlParams.get("raw_token") ||
       urlParams.get("code") ||
       urlParams.get("tag");
-    if (tokenParam && tokenParam.trim()) {
-      submitToken(tokenParam.trim());
+    if (rawParam && rawParam.trim()) {
+      submitToken(rawParam.trim());
     }
   }, [submitToken]);
 
