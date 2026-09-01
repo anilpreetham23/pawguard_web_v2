@@ -14,6 +14,10 @@ import {
   Trash2,
   Plus,
   QrCode,
+  ExternalLink,
+  Upload,
+  Image as ImageIcon,
+  Loader2,
   X,
 } from "lucide-react";
 import PageHeader from "../components/PageHeader";
@@ -36,6 +40,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../components/ui/dialog";
+import { SafetyTagModal, extractRawToken } from "../components/pawguard/SafetyTagModal";
 import { AddCompanionPetButton } from "../components/AddCompanionPetButton";
 import { useAuth } from "../providers/auth-provider";
 import { useMyPets } from "../hooks/useMyPets";
@@ -171,6 +176,8 @@ function CompanionPetCard({
   onTagSuccess: (msg: string) => void;
 }) {
   const { data: safetyTag, isLoading: tagLoading, isError: tagError, refetch: refetchTag } = useSafetyTag(pet.id);
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [provisionedToken, setProvisionedToken] = useState<string | null>(null);
 
   const provisionMutation = useApiMutation<SafetyTagProvisionResponse, void>({
     mutationFn: () => safetyTagService.provisionSafetyTag(pet.id),
@@ -179,6 +186,8 @@ function CompanionPetCard({
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.safetyTag.petTag(pet.id) }),
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.companionPets.pets }),
       ]);
+      setProvisionedToken(res.raw_token);
+      setIsTagModalOpen(true);
       onTagSuccess(`QR Safety Tag provisioned successfully for ${pet.name}. Token prefix: ${res.token_prefix}`);
       refetchTag();
     },
@@ -190,9 +199,18 @@ function CompanionPetCard({
     <Card className="justify-between">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="w-11 h-11 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center">
-            <PawPrint size={20} className="text-primary" />
-          </span>
+          {pet.photo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={pet.photo_url}
+              alt={pet.name}
+              className="w-11 h-11 shrink-0 rounded-xl object-cover border border-border"
+            />
+          ) : (
+            <span className="w-11 h-11 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center">
+              <PawPrint size={20} className="text-primary" />
+            </span>
+          )}
           <div className="min-w-0">
             <p className="text-foreground font-bold text-base truncate">{pet.name}</p>
             <p className="text-muted-foreground text-xs">
@@ -277,7 +295,7 @@ function CompanionPetCard({
               )}
             </div>
           ) : (
-            <div className="flex flex-col gap-2 bg-secondary/40 p-3 rounded-lg border border-border/60">
+            <div className="flex flex-col gap-2.5 bg-secondary/40 p-3 rounded-lg border border-border/60">
               <div className="flex items-center justify-between">
                 <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${safetyTag.is_active ? "text-emerald-700" : "text-muted-foreground"}`}>
                   <span className={`h-2 w-2 rounded-full ${safetyTag.is_active ? "bg-emerald-500" : "bg-muted-foreground/50"}`} />
@@ -290,20 +308,38 @@ function CompanionPetCard({
               <p className="text-xs text-muted-foreground">
                 Scans: <span className="font-semibold text-foreground">{safetyTag.scan_count}</span> · Last scanned: {safetyTag.last_scanned_at ? new Date(safetyTag.last_scanned_at).toLocaleString() : "Never"}
               </p>
-              <div className="flex items-center gap-2 pt-1 border-t border-border/50">
-                <Link
-                  href={`/scan?token=${safetyTag.token_prefix}`}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+              <div className="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-border/50">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsTagModalOpen(true)}
+                  className="gap-1.5 text-xs"
                 >
-                  <QrCode size={13} />
-                  Test Scanner Route
-                  <ArrowRight size={12} />
+                  <QrCode size={14} className="text-primary" />
+                  View QR Safety Tag
+                </Button>
+                <Link
+                  href={`/scan?token=${encodeURIComponent(extractRawToken((safetyTag as any)?.raw_token || (safetyTag as any)?.token || safetyTag.token_prefix))}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-primary hover:underline"
+                >
+                  <ExternalLink size={12} />
+                  Test Scanner
                 </Link>
               </div>
             </div>
           )}
         </div>
       )}
+
+      <SafetyTagModal
+        isOpen={isTagModalOpen}
+        onClose={() => setIsTagModalOpen(false)}
+        pet={pet}
+        safetyTag={safetyTag}
+        provisionedToken={provisionedToken}
+      />
 
       <div className="flex flex-wrap gap-2 border-t border-border pt-4">
         <Link
@@ -357,15 +393,90 @@ function RegisterPersonalPetModal({
   const [microchipId, setMicrochipId] = useState("");
   const [emergencyNotes, setEmergencyNotes] = useState("");
   const [isScanEnabled, setIsScanEnabled] = useState(true);
+
+  // Photo Upload State
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const mutation = useApiMutation<CompanionPetResponse, CompanionPetCreate>({
-    mutationFn: (data) => companionPetsService.createPet(data),
-    onSuccess: async (newPet) => {
+  if (!isOpen) return null;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Please select a valid image file (.jpg, .png, .webp).");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setPhotoError("Image file size must be under 10MB.");
+      return;
+    }
+
+    setPhotoError(null);
+    setSelectedFile(file);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleClearPhoto = () => {
+    setSelectedFile(null);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPhotoError(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setValidationError("Pet name is required.");
+      return;
+    }
+    setValidationError(null);
+    setPhotoError(null);
+    setIsSubmitting(true);
+
+    try {
+      // 1. Create Pet record first
+      const payload: CompanionPetCreate = {
+        name: name.trim(),
+        species: species.trim() || "dog",
+        breed: breed.trim() || null,
+        sex: sex || null,
+        birth_date: birthDate ? new Date(birthDate).toISOString() : null,
+        color: color.trim() || null,
+        microchip_id: microchipId.trim() || null,
+        emergency_notes: emergencyNotes.trim() || null,
+        is_scan_enabled: isScanEnabled,
+      };
+
+      const newPet = await companionPetsService.createPet(payload);
+
+      // 2. Upload photo via S3 presigned URL architecture if selected
+      let photoUploaded = false;
+      if (selectedFile) {
+        try {
+          await companionPetsService.uploadPetPhoto(newPet.id, selectedFile);
+          photoUploaded = true;
+        } catch (uploadErr) {
+          console.error("Photo upload failed:", uploadErr);
+        }
+      }
+
       await queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.companionPets.pets,
       });
-      onSuccess(`${newPet.name} was registered successfully as your personal pet.`);
+
+      if (selectedFile && !photoUploaded) {
+        onSuccess(`${newPet.name} was registered, but photo upload failed. You can re-upload the photo by editing the pet.`);
+      } else {
+        onSuccess(`${newPet.name} was registered successfully as your personal pet.`);
+      }
+
+      // Reset form
       setName("");
       setSpecies("dog");
       setBreed("");
@@ -374,40 +485,18 @@ function RegisterPersonalPetModal({
       setColor("");
       setMicrochipId("");
       setEmergencyNotes("");
+      handleClearPhoto();
       setIsScanEnabled(true);
       onClose();
-    },
-  });
-
-  if (!isOpen) return null;
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      setValidationError("Pet name is required.");
-      return;
+    } catch (err) {
+      setValidationError(getErrorMessage(err));
+    } finally {
+      setIsSubmitting(false);
     }
-    setValidationError(null);
-
-    const payload: CompanionPetCreate = {
-      name: name.trim(),
-      species: species.trim() || "dog",
-      breed: breed.trim() || null,
-      sex: sex || null,
-      birth_date: birthDate ? new Date(birthDate).toISOString() : null,
-      color: color.trim() || null,
-      microchip_id: microchipId.trim() || null,
-      emergency_notes: emergencyNotes.trim() || null,
-      is_scan_enabled: isScanEnabled,
-    };
-
-    mutation.mutate(payload);
   };
 
-  const apiError = mutation.error ? getErrorMessage(mutation.error) : null;
-
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && !isSubmitting && onClose()}>
       <DialogContent className="max-w-[600px] w-full p-6 sm:p-8 rounded-card border-border bg-card shadow-2xl gap-6 max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-left gap-1">
           <div className="flex items-center gap-2 mb-1">
@@ -421,13 +510,65 @@ function RegisterPersonalPetModal({
           </DialogDescription>
         </DialogHeader>
 
-        {(validationError || apiError) && (
+        {validationError && (
           <Alert variant="error" title="Could not register pet">
-            {validationError || apiError}
+            {validationError}
           </Alert>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Pet Photo Section */}
+          <div className="flex flex-col gap-2 p-3 bg-secondary/30 rounded-xl border border-border">
+            <label className="block text-xs font-semibold text-foreground uppercase tracking-wider font-condensed">
+              Pet Photo (Optional)
+            </label>
+            <div className="flex items-center gap-3">
+              {previewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={previewUrl}
+                  alt="Pet photo preview"
+                  className="w-14 h-14 rounded-xl object-cover border border-border shrink-0"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 border border-primary/20">
+                  <ImageIcon size={22} />
+                </div>
+              )}
+              <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <label className="cursor-pointer inline-flex items-center gap-1.5 bg-card border border-border text-foreground hover:bg-muted text-xs font-semibold px-3 py-2 rounded-btn transition-colors">
+                    <Upload size={14} className="text-primary" />
+                    {selectedFile ? "Change Photo" : "Choose Photo"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      disabled={isSubmitting}
+                    />
+                  </label>
+                  {selectedFile && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleClearPhoto}
+                      disabled={isSubmitting}
+                      className="text-xs text-destructive hover:bg-destructive/10"
+                    >
+                      Remove Selection
+                    </Button>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground truncate">
+                  {selectedFile ? selectedFile.name : "JPEG, PNG, WebP or GIF up to 10MB."}
+                </p>
+              </div>
+            </div>
+            {photoError && <span className="text-xs text-destructive">{photoError}</span>}
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">
@@ -438,6 +579,7 @@ function RegisterPersonalPetModal({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Max"
                 required
+                disabled={isSubmitting}
               />
             </div>
             <div>
@@ -448,6 +590,7 @@ function RegisterPersonalPetModal({
                 value={species}
                 onChange={(e) => setSpecies(e.target.value)}
                 placeholder="e.g. dog, cat"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -461,6 +604,7 @@ function RegisterPersonalPetModal({
                 value={breed}
                 onChange={(e) => setBreed(e.target.value)}
                 placeholder="e.g. Golden Retriever"
+                disabled={isSubmitting}
               />
             </div>
             <div>
@@ -470,6 +614,7 @@ function RegisterPersonalPetModal({
               <select
                 value={sex}
                 onChange={(e) => setSex(e.target.value)}
+                disabled={isSubmitting}
                 className="w-full h-11 px-3 rounded-btn border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">Select sex</option>
@@ -488,6 +633,7 @@ function RegisterPersonalPetModal({
                 type="date"
                 value={birthDate}
                 onChange={(e) => setBirthDate(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div>
@@ -498,6 +644,7 @@ function RegisterPersonalPetModal({
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 placeholder="e.g. Brown and white"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -510,6 +657,7 @@ function RegisterPersonalPetModal({
               value={microchipId}
               onChange={(e) => setMicrochipId(e.target.value)}
               placeholder="e.g. 985141000123456"
+              disabled={isSubmitting}
             />
           </div>
 
@@ -522,6 +670,7 @@ function RegisterPersonalPetModal({
               onChange={(e) => setEmergencyNotes(e.target.value)}
               placeholder="Allergies, medications, special care instructions..."
               rows={3}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -531,6 +680,7 @@ function RegisterPersonalPetModal({
               id="reg_is_scan_enabled"
               checked={isScanEnabled}
               onChange={(e) => setIsScanEnabled(e.target.checked)}
+              disabled={isSubmitting}
               className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
             />
             <label htmlFor="reg_is_scan_enabled" className="text-xs font-semibold text-foreground cursor-pointer">
@@ -543,14 +693,14 @@ function RegisterPersonalPetModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={mutation.isPending}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               variant="primary"
-              isLoading={mutation.isPending}
+              isLoading={isSubmitting}
             >
               Register Pet
             </Button>
@@ -581,51 +731,100 @@ function EditPetModal({
   const [microchipId, setMicrochipId] = useState(pet?.microchip_id ?? "");
   const [emergencyNotes, setEmergencyNotes] = useState(pet?.emergency_notes ?? "");
   const [isScanEnabled, setIsScanEnabled] = useState(pet?.is_scan_enabled ?? true);
-  const [validationError, setValidationError] = useState<string | null>(null);
 
-  const mutation = useApiMutation<CompanionPetResponse, CompanionPetUpdate>({
-    mutationFn: (data) => {
-      if (!pet) throw new Error("No pet specified");
-      return companionPetsService.updatePet(pet.id, data);
-    },
-    onSuccess: async (updated) => {
-      await queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.companionPets.pets,
-      });
-      onSuccess(`${updated.name}'s profile was updated successfully.`);
-      onClose();
-    },
-  });
+  // Photo Upload State
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   if (!pet) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Please select a valid image file (.jpg, .png, .webp).");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setPhotoError("Image file size must be less than 10MB.");
+      return;
+    }
+
+    setPhotoError(null);
+    setSelectedFile(file);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleClearPhoto = () => {
+    setSelectedFile(null);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPhotoError(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       setValidationError("Pet name is required.");
       return;
     }
     setValidationError(null);
+    setPhotoError(null);
+    setIsSubmitting(true);
 
-    const payload: CompanionPetUpdate = {
-      name: name.trim(),
-      species: species.trim() || "dog",
-      breed: breed.trim() || null,
-      sex: sex || null,
-      birth_date: birthDate ? new Date(birthDate).toISOString() : null,
-      color: color.trim() || null,
-      microchip_id: microchipId.trim() || null,
-      emergency_notes: emergencyNotes.trim() || null,
-      is_scan_enabled: isScanEnabled,
-    };
+    try {
+      // 1. Update text/data fields
+      const payload: CompanionPetUpdate = {
+        name: name.trim(),
+        species: species.trim() || "dog",
+        breed: breed.trim() || null,
+        sex: sex || null,
+        birth_date: birthDate ? new Date(birthDate).toISOString() : null,
+        color: color.trim() || null,
+        microchip_id: microchipId.trim() || null,
+        emergency_notes: emergencyNotes.trim() || null,
+        is_scan_enabled: isScanEnabled,
+      };
 
-    mutation.mutate(payload);
+      await companionPetsService.updatePet(pet.id, payload);
+
+      // 2. Upload replacement photo via S3 presigned URL architecture if selected
+      let photoUploaded = false;
+      if (selectedFile) {
+        try {
+          await companionPetsService.uploadPetPhoto(pet.id, selectedFile);
+          photoUploaded = true;
+        } catch (uploadErr) {
+          console.error("Photo upload failed:", uploadErr);
+        }
+      }
+
+      await queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.companionPets.pets,
+      });
+
+      if (selectedFile && !photoUploaded) {
+        onSuccess(`${name}'s profile was updated, but photo upload failed. Please try again.`);
+      } else {
+        onSuccess(`${name}'s profile was updated successfully.`);
+      }
+
+      handleClearPhoto();
+      onClose();
+    } catch (err) {
+      setValidationError(getErrorMessage(err));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const apiError = mutation.error ? getErrorMessage(mutation.error) : null;
-
   return (
-    <Dialog open={Boolean(pet)} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={Boolean(pet)} onOpenChange={(open) => !open && !isSubmitting && onClose()}>
       <DialogContent className="max-w-[600px] w-full p-6 sm:p-8 rounded-card border-border bg-card shadow-2xl gap-6 max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-left gap-1">
           <DialogTitle className="font-serif font-bold text-2xl text-foreground">
@@ -636,13 +835,65 @@ function EditPetModal({
           </DialogDescription>
         </DialogHeader>
 
-        {(validationError || apiError) && (
+        {validationError && (
           <Alert variant="error" title="Could not update pet">
-            {validationError || apiError}
+            {validationError}
           </Alert>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Pet Photo Section */}
+          <div className="flex flex-col gap-2 p-3 bg-secondary/30 rounded-xl border border-border">
+            <label className="block text-xs font-semibold text-foreground uppercase tracking-wider font-condensed">
+              Pet Photo
+            </label>
+            <div className="flex items-center gap-3">
+              {previewUrl || pet.photo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={previewUrl || pet.photo_url || ""}
+                  alt={`${pet.name} photo`}
+                  className="w-14 h-14 rounded-xl object-cover border border-border shrink-0"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 border border-primary/20">
+                  <ImageIcon size={22} />
+                </div>
+              )}
+              <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <label className="cursor-pointer inline-flex items-center gap-1.5 bg-card border border-border text-foreground hover:bg-muted text-xs font-semibold px-3 py-2 rounded-btn transition-colors">
+                    <Upload size={14} className="text-primary" />
+                    {selectedFile ? "Replace Photo" : pet.photo_url ? "Change Photo" : "Upload Photo"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      disabled={isSubmitting}
+                    />
+                  </label>
+                  {selectedFile && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleClearPhoto}
+                      disabled={isSubmitting}
+                      className="text-xs text-destructive hover:bg-destructive/10"
+                    >
+                      Cancel Selection
+                    </Button>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground truncate">
+                  {selectedFile ? selectedFile.name : pet.photo_url ? "Current photo stored on PawGuard backend." : "Select JPEG, PNG, WebP or GIF up to 10MB."}
+                </p>
+              </div>
+            </div>
+            {photoError && <span className="text-xs text-destructive">{photoError}</span>}
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">
@@ -653,6 +904,7 @@ function EditPetModal({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Max"
                 required
+                disabled={isSubmitting}
               />
             </div>
             <div>
@@ -663,6 +915,7 @@ function EditPetModal({
                 value={species}
                 onChange={(e) => setSpecies(e.target.value)}
                 placeholder="e.g. dog, cat"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -676,6 +929,7 @@ function EditPetModal({
                 value={breed}
                 onChange={(e) => setBreed(e.target.value)}
                 placeholder="e.g. Golden Retriever"
+                disabled={isSubmitting}
               />
             </div>
             <div>
@@ -685,6 +939,7 @@ function EditPetModal({
               <select
                 value={sex}
                 onChange={(e) => setSex(e.target.value)}
+                disabled={isSubmitting}
                 className="w-full h-11 px-3 rounded-btn border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">Select sex</option>
@@ -703,6 +958,7 @@ function EditPetModal({
                 type="date"
                 value={birthDate}
                 onChange={(e) => setBirthDate(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div>
@@ -713,6 +969,7 @@ function EditPetModal({
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 placeholder="e.g. Brown and white"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -725,6 +982,7 @@ function EditPetModal({
               value={microchipId}
               onChange={(e) => setMicrochipId(e.target.value)}
               placeholder="e.g. 985141000123456"
+              disabled={isSubmitting}
             />
           </div>
 
@@ -737,18 +995,20 @@ function EditPetModal({
               onChange={(e) => setEmergencyNotes(e.target.value)}
               placeholder="Allergies, medications, special care instructions..."
               rows={3}
+              disabled={isSubmitting}
             />
           </div>
 
           <div className="flex items-center gap-3 pt-2">
             <input
               type="checkbox"
-              id="is_scan_enabled"
+              id="edit_is_scan_enabled"
               checked={isScanEnabled}
               onChange={(e) => setIsScanEnabled(e.target.checked)}
+              disabled={isSubmitting}
               className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
             />
-            <label htmlFor="is_scan_enabled" className="text-xs font-semibold text-foreground cursor-pointer">
+            <label htmlFor="edit_is_scan_enabled" className="text-xs font-semibold text-foreground cursor-pointer">
               Enable QR Safety Tag scanning for this pet
             </label>
           </div>
@@ -758,14 +1018,14 @@ function EditPetModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={mutation.isPending}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               variant="primary"
-              isLoading={mutation.isPending}
+              isLoading={isSubmitting}
             >
               Save Changes
             </Button>

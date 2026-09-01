@@ -485,6 +485,7 @@ export interface CompanionPetResponse {
   color: string | null;
   microchip_id: string | null;
   emergency_notes: string | null;
+  photo_url?: string | null;
   is_scan_enabled: boolean;
   original_dog_id?: string | null;
   adoption_application_id?: string | null;
@@ -504,6 +505,7 @@ export interface CompanionPetCreate {
   color?: string | null;
   microchip_id?: string | null;
   emergency_notes?: string | null;
+  photo_url?: string | null;
   /** Defaults to `true` on the backend (enables QR safety-tag scanning). */
   is_scan_enabled?: boolean;
 }
@@ -518,7 +520,28 @@ export interface CompanionPetUpdate {
   color?: string | null;
   microchip_id?: string | null;
   emergency_notes?: string | null;
+  photo_url?: string | null;
   is_scan_enabled?: boolean;
+}
+
+/** `POST /companion-pets/{pet_id}/photo-upload-url` request body. */
+export interface CompanionPetPhotoUploadRequest {
+  original_filename: string;
+  mime_type: string;
+  file_size: number;
+  folder?: string;
+}
+
+/** `POST /companion-pets/{pet_id}/photo-upload-url` response payload. */
+export interface CompanionPetPhotoUploadResponse {
+  file_id: string;
+  upload_url: string;
+  object_key: string;
+}
+
+/** `POST /companion-pets/{pet_id}/photo/confirm` request params/body. */
+export interface CompanionPetPhotoConfirmRequest {
+  file_id: string;
 }
 
 /** Query params accepted by `GET /companion-pets`. */

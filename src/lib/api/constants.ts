@@ -30,6 +30,21 @@ export const AUTH_TOKEN_STORAGE_KEYS = {
 } as const;
 
 /* -------------------------------------------------------------------------- */
+/* Public Site URL                                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Authoritative Canonical Production Public Web Base URL.
+ * All scannable physical QR tags, printed QR tags, and downloadable QR PNGs MUST ALWAYS
+ * encode this canonical production origin so physical tags resolve on mobile devices.
+ */
+export const PUBLIC_SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.NEXT_PUBLIC_PUBLIC_WEB_URL ||
+  process.env.VITE_PUBLIC_FRONTEND_URL ||
+  "https://pawguard-public-web.vercel.app";
+
+/* -------------------------------------------------------------------------- */
 /* Headers                                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -105,6 +120,8 @@ export const API_ROUTES = {
     reminders: (petId: string) => `/companion-pets/${petId}/reminders`,
     reminder: (petId: string, reminderId: string) =>
       `/companion-pets/${petId}/reminders/${reminderId}`,
+    photoUploadUrl: (petId: string) => `/companion-pets/${petId}/photo-upload-url`,
+    confirmPhoto: (petId: string) => `/companion-pets/${petId}/photo/confirm`,
   },
 
   rescue: {

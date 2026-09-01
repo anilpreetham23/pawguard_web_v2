@@ -21,6 +21,7 @@ export {
   API_TIMEOUT_MS,
   API_UPLOAD_TIMEOUT_MS,
   AUTH_TOKEN_STORAGE_KEYS,
+  PUBLIC_SITE_URL,
   QUERY_KEYS,
 } from "./constants";
 export {
@@ -49,6 +50,9 @@ export type {
   CampaignStatus,
   CampaignType,
   CompanionPetCreate,
+  CompanionPetPhotoUploadRequest,
+  CompanionPetPhotoUploadResponse,
+  CompanionPetPhotoConfirmRequest,
   CompanionPetsQueryParams,
   CompanionPetResponse,
   CompanionPetUpdate,

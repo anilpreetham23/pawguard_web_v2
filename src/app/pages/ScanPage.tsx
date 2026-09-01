@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -199,6 +199,20 @@ export default function ScanPage() {
     },
     [scan]
   );
+
+  // Auto-scan token from URL query params (e.g. /scan?token=st_raw_token_xyz) on page load
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenParam =
+      urlParams.get("token") ||
+      urlParams.get("raw_token") ||
+      urlParams.get("code") ||
+      urlParams.get("tag");
+    if (tokenParam && tokenParam.trim()) {
+      submitToken(tokenParam.trim());
+    }
+  }, [submitToken]);
 
   const handleDetected = useCallback(
     (token: string) => {

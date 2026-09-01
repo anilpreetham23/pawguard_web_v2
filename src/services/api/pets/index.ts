@@ -11,9 +11,10 @@
  * checkpoint — only the list method required by appointment booking is added.
  */
 
-import { API_ROUTES, apiDelete, apiGetPage, apiPatch, apiPost } from "@/lib/api";
+import { API_ROUTES, apiDelete, apiGet, apiGetPage, apiPatch, apiPost } from "@/lib/api";
 import type {
   CompanionPetCreate,
+  CompanionPetPhotoUploadRequest,
   CompanionPetsQueryParams,
   CompanionPetResponse,
   CompanionPetUpdate,
@@ -32,6 +33,13 @@ export const companionPetsService = {
       API_ROUTES.companionPets.base,
       params
     );
+  },
+
+  /**
+   * `GET /companion-pets/{pet_id}` — fetch single companion pet by ID.
+   */
+  getPet(petId: string): Promise<CompanionPetResponse> {
+    return apiGet<CompanionPetResponse>(API_ROUTES.companionPets.pet(petId));
   },
 
   /**
@@ -72,6 +80,54 @@ export const companionPetsService = {
    */
   deletePet(petId: string): Promise<void> {
     return apiDelete(API_ROUTES.companionPets.pet(petId));
+  },
+
+  /**
+   * Upload a pet photo to presigned S3 storage and confirm backend record:
+   * 1. POST /companion-pets/{pet_id}/photo-upload-url -> get file_id & upload_url
+   * 2. PUT upload_url -> upload File bytes to S3
+   * 3. POST /companion-pets/{pet_id}/photo/confirm?file_id={file_id} -> confirm file
+   */
+  async uploadPetPhoto(petId: string, file: File): Promise<CompanionPetResponse> {
+    const uploadReq: CompanionPetPhotoUploadRequest = {
+      original_filename: file.name,
+      mime_type: file.type || "image/jpeg",
+      file_size: file.size,
+      folder: "companion_pets",
+    };
+
+    // 1. Get presigned upload URL
+    const res = await apiPost<any>(
+      API_ROUTES.companionPets.photoUploadUrl(petId),
+      uploadReq
+    );
+    const data = res?.data || res;
+    const uploadUrl = data?.upload_url;
+    const fileId = data?.file_id;
+
+    if (!uploadUrl || !fileId) {
+      throw new Error("Failed to obtain photo upload URL from backend.");
+    }
+
+    // 2. Upload image file directly to presigned S3 URL
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type || "image/jpeg",
+      },
+      body: file,
+    });
+
+    if (!uploadRes.ok) {
+      throw new Error(`Photo S3 upload failed with status ${uploadRes.status}`);
+    }
+
+    // 3. Confirm uploaded file with backend
+    const confirmUrl = `${API_ROUTES.companionPets.confirmPhoto(petId)}?file_id=${encodeURIComponent(fileId)}`;
+    await apiPost(confirmUrl, { file_id: fileId });
+
+    // 4. Fetch updated pet profile with authoritative photo_url
+    return this.getPet(petId);
   },
 };
 
