@@ -29,9 +29,11 @@ import {
   Clock,
   Check,
   AlertCircle,
+  AlertTriangle,
   Smartphone,
   Sliders,
 } from "lucide-react";
+import { toast } from "sonner";
 import PageHeader from "../components/PageHeader";
 import {
   PageShell,
@@ -44,6 +46,13 @@ import {
   Input,
   PhoneInput,
 } from "../components/pawguard";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
 import { PhotoUploadInput } from "../components/PhotoUploadInput";
 import { validatePhone, getCountryByCode, normalizePhonePayload } from "@/lib/utils/validation";
 import { useAuth } from "../providers/auth-provider";
@@ -186,7 +195,7 @@ function SavedDogCard({
 type SettingsTab = "overview" | "profile" | "notifications" | "security";
 
 export default function AccountPage() {
-  const { user, isAuthenticated, status: authStatus, openAuthDialog, refreshProfile } = useAuth();
+  const { user, isAuthenticated, status: authStatus, openAuthDialog, refreshProfile, deleteAccount } = useAuth();
   const { favorites, removeFavorite, clearFavorites } = useFavorites();
   const {
     summary,
@@ -199,6 +208,12 @@ export default function AccountPage() {
 
   // ── Navigation Tab State ───────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<SettingsTab>("overview");
+
+  // ── Account Deletion State ──────────────────────────────────────────────────
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null);
 
   // ── Profile Form State ──────────────────────────────────────────────────────
   const [fullName, setFullName] = useState("");
@@ -1102,11 +1117,148 @@ export default function AccountPage() {
                     </Alert>
                   </div>
                 </Card>
+
+                {/* ── DANGER ZONE: ACCOUNT DELETION ───────────────────────────── */}
+                <Card className="p-6 lg:p-8 border-destructive/30 bg-destructive/5 flex flex-col gap-5">
+                  <div>
+                    <h3 className="text-destructive font-bold text-xl flex items-center gap-2">
+                      <AlertTriangle size={20} />
+                      Danger Zone
+                    </h3>
+                    <p className="text-muted-foreground text-xs mt-1">
+                      Irreversible account management actions.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-3 pt-3 border-t border-destructive/20">
+                    <div>
+                      <h4 className="text-foreground font-semibold text-sm">Delete PawGuard Account</h4>
+                      <p className="text-muted-foreground text-xs mt-0.5">
+                        Permanently disable and delete your PawGuard account. All active sessions will be revoked and you will be signed out immediately.
+                      </p>
+                    </div>
+
+                    <div className="pt-2">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="md"
+                        onClick={() => {
+                          setDeleteConfirmText("");
+                          setDeleteAccountError(null);
+                          setIsDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 size={15} />
+                        Delete Account
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
               </div>
             </div>
           )}
         </div>
       </main>
+
+      {/* ── DELETE ACCOUNT CONFIRMATION DIALOG ───────────────────────────── */}
+      <Dialog
+        open={isDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!isDeletingAccount) {
+            setIsDeleteDialogOpen(open);
+            if (!open) {
+              setDeleteConfirmText("");
+              setDeleteAccountError(null);
+            }
+          }
+        }}
+      >
+        <DialogContent className="max-w-[500px] w-full p-6 sm:p-8 rounded-card border-border bg-card shadow-2xl gap-6 max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="text-left gap-2">
+            <div className="w-12 h-12 rounded-full bg-destructive/10 text-destructive flex items-center justify-center shrink-0">
+              <AlertTriangle size={24} />
+            </div>
+            <DialogTitle className="font-serif font-bold text-2xl text-foreground mt-2">
+              Delete your account?
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground space-y-2 pt-1">
+              <span className="block font-medium text-foreground">
+                Are you sure you want to delete your PawGuard account?
+              </span>
+              <span className="block">
+                • This action will permanently disable and delete your PawGuard user account.
+                <br />
+                • Your account will no longer be usable.
+                <br />
+                • All active login sessions will be revoked.
+                <br />
+                • You will be signed out immediately.
+                <br />
+                • This action should be treated as <strong>irreversible</strong> from your perspective.
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+
+          {deleteAccountError && (
+            <Alert variant="error" title="Account deletion failed">
+              {deleteAccountError}
+            </Alert>
+          )}
+
+          <div className="flex flex-col gap-3 pt-2 border-t border-border">
+            <label className="text-xs font-semibold text-foreground uppercase tracking-wider font-condensed">
+              To confirm, type <span className="font-mono text-destructive font-bold">DELETE</span> below
+            </label>
+            <Input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="DELETE"
+              disabled={isDeletingAccount}
+              autoFocus
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setDeleteConfirmText("");
+                setDeleteAccountError(null);
+              }}
+              disabled={isDeletingAccount}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleteConfirmText.trim() !== "DELETE" || isDeletingAccount}
+              isLoading={isDeletingAccount}
+              onClick={async () => {
+                if (deleteConfirmText.trim() !== "DELETE" || isDeletingAccount) return;
+                setIsDeletingAccount(true);
+                setDeleteAccountError(null);
+                try {
+                  await deleteAccount();
+                  setIsDeleteDialogOpen(false);
+                  setDeleteConfirmText("");
+                  toast.success("Your PawGuard account has been deleted successfully.");
+                } catch (err) {
+                  setDeleteAccountError(getErrorMessage(err));
+                } finally {
+                  setIsDeletingAccount(false);
+                }
+              }}
+            >
+              {isDeletingAccount ? "Deleting account..." : "Delete Account"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </PageShell>
   );
 }

@@ -63,6 +63,7 @@ interface AuthContextValue {
   /** Complete OAuth provider authentication (e.g. Google). */
   signInWithOAuth: (provider: string, providerToken: string) => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -220,6 +221,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [pathname, router]);
 
+  const deleteAccount = useCallback(async () => {
+    await authService.deleteAccount();
+    queryClient.setQueryData(QUERY_KEYS.auth.me, null);
+    queryClient.removeQueries({ queryKey: QUERY_KEYS.auth.me });
+    clearUserScopedCache();
+
+    const PROTECTED_ROUTES = [
+      "/account",
+      "/applications",
+      "/appointments",
+      "/notifications",
+      "/reminders",
+      "/volunteer/dashboard",
+      "/foster/dashboard",
+    ];
+    const isProtectedRoute = PROTECTED_ROUTES.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`)
+    );
+
+    if (isProtectedRoute) {
+      router.push("/");
+    }
+  }, [pathname, router]);
+
   const refreshProfile = useCallback(async () => {
     await meQuery.refetch();
   }, [meQuery]);
@@ -238,6 +263,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signInWithOAuth,
       signOut,
+      deleteAccount,
       refreshProfile,
     }),
     [
@@ -252,6 +278,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signInWithOAuth,
       signOut,
+      deleteAccount,
       refreshProfile,
     ],
   );

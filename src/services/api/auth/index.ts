@@ -87,6 +87,16 @@ export const authService = {
     return apiPut<AuthUser>(API_ROUTES.auth.me, body);
   },
 
+  /**
+   * `DELETE /auth/me` — soft-delete the authenticated user's account,
+   * revoke all active sessions, and clear local session state.
+   */
+  async deleteAccount(): Promise<null> {
+    const res = await apiDelete<null>(API_ROUTES.auth.me);
+    await clearSessionAndNotify({ notifyServer: false });
+    return res;
+  },
+
   /** `GET /auth/sessions` — list the current user's active sessions. */
   getSessions(): Promise<SessionInfo[]> {
     return apiGet<SessionInfo[]>(API_ROUTES.auth.sessions);

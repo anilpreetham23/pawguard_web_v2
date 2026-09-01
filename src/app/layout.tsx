@@ -90,7 +90,11 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   icons: {
-    icon: "/images/rescue-process/assets/Logo.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/images/rescue-process/assets/Logo.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
     apple: "/images/rescue-process/assets/Logo.png",
   },
 };

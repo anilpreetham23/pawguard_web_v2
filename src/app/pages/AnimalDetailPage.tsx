@@ -118,7 +118,7 @@ function AdoptionApplicationModal({
     residentialStatus: "owned",
     hasLandlordApproval: true,
     hasYardFence: true,
-    householdMembersCount: 1,
+    householdMembersCount: "1",
     existingPetsMedicalDetails: "",
     petCareExperience: "",
   });
@@ -138,7 +138,7 @@ function AdoptionApplicationModal({
           has_landlord_approval:
             form.residentialStatus === "rented" ? form.hasLandlordApproval : undefined,
           has_yard_fence: form.hasYardFence,
-          household_members_count: Number(form.householdMembersCount) || 1,
+          household_members_count: Math.min(20, Math.max(1, parseInt(String(form.householdMembersCount), 10) || 1)),
           existing_pets_medical_details: form.existingPetsMedicalDetails.trim() || null,
           pet_care_experience: form.petCareExperience.trim() || null,
         })
@@ -227,7 +227,25 @@ function AdoptionApplicationModal({
               min={1}
               max={20}
               value={form.householdMembersCount}
-              onChange={(e) => setForm({ ...form, householdMembersCount: parseInt(e.target.value) || 1 })}
+              onFocus={(e) => e.currentTarget.select()}
+              onMouseUp={(e) => {
+                if (e.currentTarget.selectionStart === e.currentTarget.selectionEnd) {
+                  e.currentTarget.select();
+                }
+              }}
+              onChange={(e) => {
+                setForm({ ...form, householdMembersCount: e.target.value });
+              }}
+              onBlur={() => {
+                const parsed = parseInt(String(form.householdMembersCount), 10);
+                if (isNaN(parsed) || parsed < 1) {
+                  setForm({ ...form, householdMembersCount: "1" });
+                } else if (parsed > 20) {
+                  setForm({ ...form, householdMembersCount: "20" });
+                } else {
+                  setForm({ ...form, householdMembersCount: String(parsed) });
+                }
+              }}
               className="w-full bg-background border border-border rounded-btn px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
             />
           </div>
