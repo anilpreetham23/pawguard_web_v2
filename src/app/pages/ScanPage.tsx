@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -35,12 +35,7 @@ import {
 } from "../components/pawguard";
 import SectionHeading from "../components/SectionHeading";
 import QrScanner from "../components/scan/QrScanner";
-import {
-  useApiMutation,
-  useApiErrorMessage,
-  isRetryableError,
-  isApiError,
-} from "@/lib/api";
+import { isRetryableError, isApiError } from "@/lib/api";
 import { safetyTagService } from "@/services/api/safety-tag";
 import { lostFoundService } from "@/services/api/lost-found";
 import type {
@@ -55,7 +50,7 @@ type ScanState =
   | { status: "loading"; token: string }
   | { status: "success"; pet: SafetyTagScanResponse }
   | { status: "success-dog"; dog: PublicDogScanResponse }
-  | { status: "error"; token: string };
+  | { status: "error"; token: string; errorMessage?: string | null };
 
 const SPECIES_LABEL: Record<string, string> = {
   dog: "Dog",
@@ -147,21 +142,9 @@ export default function ScanPage() {
   const [sightingError, setSightingError] = useState<string | null>(null);
   const [sightingFieldErrors, setSightingFieldErrors] = useState<{ phone?: string; location?: string }>({});
 
-  const scan = useApiMutation<SafetyTagScanResponse, string>({
-    mutationFn: (token: string) => safetyTagService.scanToken(token),
-    onSuccess: (pet) => {
-      setState({ status: "success", pet });
-      resetSightingForm();
-      if (pet.status?.toLowerCase() === "lost" && pet.lost_location) {
-        setLocationAddress(pet.lost_location);
-      }
-    },
-    onError: (_err, token) => setState({ status: "error", token }),
-  });
+  const hasAutoScannedRef = useRef<string | null>(null);
 
-  const errorText = useApiErrorMessage(scan.error);
-
-  const resetSightingForm = () => {
+  const resetSightingForm = useCallback(() => {
     setFinderName("");
     setFinderPhone("");
     setLocationAddress("");
@@ -176,7 +159,7 @@ export default function ScanPage() {
     setSightingSubmitted(false);
     setSightingError(null);
     setSightingFieldErrors({});
-  };
+  }, []);
 
   const submitToken = useCallback(
     async (token: string) => {
@@ -199,7 +182,6 @@ export default function ScanPage() {
 
       setScanNotice(null);
       setState({ status: "loading", token: clean });
-      scan.reset();
       resetSightingForm();
 
       try {
@@ -216,12 +198,13 @@ export default function ScanPage() {
           setLocationAddress(pet.lost_location);
         }
       } catch (err) {
+        const errMsg = isApiError(err) ? err.message : (err as Error)?.message;
         if (typeof window !== "undefined") {
           console.error("[PawGuard SafetyTag Scan Error]", {
             tokenPrefix: `${clean.substring(0, 8)}...`,
             status: isApiError(err) ? err.status : "NETWORK_OR_UNKNOWN",
             code: isApiError(err) ? err.code : undefined,
-            message: isApiError(err) ? err.message : (err as Error)?.message,
+            message: errMsg,
           });
         }
         if (isUuid(clean)) {
@@ -233,10 +216,10 @@ export default function ScanPage() {
             // fall through to error state
           }
         }
-        setState({ status: "error", token: clean });
+        setState({ status: "error", token: clean, errorMessage: errMsg });
       }
     },
-    [scan]
+    [resetSightingForm]
   );
 
   // Auto-scan token from URL query params (e.g. /scan?token=st_raw_token_xyz) on page load
@@ -249,7 +232,11 @@ export default function ScanPage() {
       urlParams.get("code") ||
       urlParams.get("tag");
     if (rawParam && rawParam.trim()) {
-      submitToken(rawParam.trim());
+      const cleanToken = rawParam.trim();
+      if (hasAutoScannedRef.current !== cleanToken) {
+        hasAutoScannedRef.current = cleanToken;
+        submitToken(cleanToken);
+      }
     }
   }, [submitToken]);
 
@@ -263,9 +250,9 @@ export default function ScanPage() {
   const reset = useCallback(() => {
     setState({ status: "idle" });
     setScanNotice(null);
-    scan.reset();
+    hasAutoScannedRef.current = null;
     resetSightingForm();
-  }, [scan]);
+  }, [resetSightingForm]);
 
   // Geolocation Handler (Part 5)
   const handleGetLocation = useCallback(() => {
@@ -1116,7 +1103,7 @@ export default function ScanPage() {
                         variant="error"
                         title="Safety Tag Verification Failed"
                       >
-                        {formatScanError(errorText)}
+                        {formatScanError(state.status === "error" ? state.errorMessage ?? null : null)}
                       </Alert>
                     )}
 
@@ -1131,7 +1118,7 @@ export default function ScanPage() {
                         <ScanLine size={16} />
                         Verify Safety Tag
                       </Button>
-                      {isError && isRetryableError(scan.error) && (
+                      {isError && state.status === "error" && (
                         <button
                           type="button"
                           onClick={() => submitToken(state.token)}
