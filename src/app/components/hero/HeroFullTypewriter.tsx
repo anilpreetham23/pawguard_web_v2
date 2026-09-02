@@ -146,7 +146,23 @@ export function HeroFullTypewriter({ className }: { className?: string }) {
     };
   }, [enabled]);
 
-  if (!enabled) return null;
+  if (!enabled) {
+    return (
+      <div className={cn("hero-full-typewriter flex flex-col", className)}>
+        <span className={HEADLINE_CLS}>{HERO_HEADLINE_TOP}</span>
+        <span className={HEADLINE_CLS}>{HERO_HEADLINE_MIDDLE}</span>
+        <span className={cn(HEADLINE_CLS, "italic text-amber-200")}>
+          {HERO_HEADLINE_HIGHLIGHT}
+        </span>
+        <p className="hero-deck mt-5 lg:mt-6 font-serif text-lg lg:text-xl italic text-white/70 max-w-[52ch] font-normal leading-relaxed">
+          {HERO_DECK}
+        </p>
+        <p className="hero-support text-lg lg:text-xl leading-relaxed text-white/65 max-w-[44ch] font-normal text-pretty mt-4 lg:mt-5">
+          {HERO_SUPPORT}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className={cn("hero-full-typewriter flex flex-col", className)}>

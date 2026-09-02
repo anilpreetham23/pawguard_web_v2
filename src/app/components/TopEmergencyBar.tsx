@@ -258,9 +258,9 @@ export default function TopEmergencyBar({ scrolled }: TopEmergencyBarProps) {
           }
         `}</style>
 
-        {/* Desktop 3-column layout */}
+        {/* Desktop 3-column layout — full width edge-to-edge */}
         <motion.div
-          className="hidden sm:grid mx-auto h-full max-w-[1280px] grid-cols-3"
+          className="hidden sm:grid w-full h-full grid-cols-3"
           initial={reduced ? false : "hidden"}
           animate={reduced ? undefined : "visible"}
           variants={{

@@ -113,7 +113,22 @@ export function HeroTypewriter({ className }: { className?: string }) {
     };
   }, [enabled]);
 
-  if (!enabled) return null;
+  if (!enabled) {
+    return (
+      <p className={cn("hero-typewriter flex items-center gap-2 text-sm text-white/70", className)}>
+        <span
+          aria-hidden="true"
+          className="h-2 w-2 shrink-0 rounded-full bg-emerald-400"
+        />
+        <span aria-hidden="true" className="font-mono tracking-wide min-h-[1.25rem]">
+          {TICKER_PHRASES[0]}
+        </span>
+        <span className="sr-only">
+          Live rescue updates: {TICKER_PHRASES.join(". ")}
+        </span>
+      </p>
+    );
+  }
 
   return (
     <p ref={containerRef} className={cn("hero-typewriter flex items-center gap-2 text-sm text-white/70", className)}>

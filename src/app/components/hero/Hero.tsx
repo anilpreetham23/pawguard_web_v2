@@ -98,7 +98,7 @@ export default function Hero() {
       onMouseMove={handleMouseMove}
     >
       {/* ── Layer 0-20: Cinematic Backdrop (Video + Lighting + Particles) ── */}
-      <HeroScene className="hero-scene absolute z-0 top-[var(--header-height)] left-0 right-0 bottom-0" />
+      <HeroScene className="hero-scene absolute inset-0 z-0 pointer-events-none" />
 
       {/* ── Layer 10: Living Atmosphere (orbs + particles) ── */}
       <Atmosphere
@@ -129,7 +129,7 @@ export default function Hero() {
 
       {/* ── Layer 40: Editorial Foreground ── */}
       <div
-        className="relative z-40 mx-auto flex min-h-[calc(100svh-var(--header-height))] max-w-[1280px] flex-col justify-center px-6 pb-section-lg lg:pb-section-xl pt-[clamp(72px,8vw+10px,116px)] lg:px-8"
+        className="relative z-40 mx-auto flex min-h-[calc(100svh-var(--header-height))] max-w-[1440px] 2xl:max-w-[1536px] flex-col justify-center px-4 sm:px-6 lg:px-8 xl:px-12 pb-section-lg lg:pb-section-xl pt-[clamp(72px,8vw+10px,116px)]"
       >
         <div className="hero-content max-w-3xl flex flex-col">
           <HeroContent />

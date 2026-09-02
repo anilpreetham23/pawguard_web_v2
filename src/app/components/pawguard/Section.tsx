@@ -30,7 +30,7 @@ export function Section({
     <section
       ref={ref}
       className={cn(
-        "py-section-md lg:py-section-lg px-6 lg:px-8 relative",
+        "py-section-md lg:py-section-lg px-4 sm:px-6 lg:px-8 xl:px-12 relative",
         bgStyles[bg],
         bg === "dark" && "noise-overlay",
         className,
@@ -40,7 +40,7 @@ export function Section({
       <div
         className={cn(
           "mx-auto",
-          containerWidth === "wide" && "max-w-[1280px]",
+          containerWidth === "wide" && "max-w-[1440px] 2xl:max-w-[1536px]",
           containerWidth === "narrow" && "max-w-[720px]",
         )}
       >

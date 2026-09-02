@@ -219,7 +219,7 @@ export default function Navbar() {
               </Link>
 
               {/* Desktop nav links — center column, mathematically centered */}
-              <nav aria-label="Main navigation" className="hidden md:flex items-center gap-0.5 lg:gap-1">
+              <nav aria-label="Main navigation" className="hidden lg:flex items-center gap-0.5 xl:gap-1">
                 {NAV_LINKS.map((link) => {
                   if (link.isDropdown) {
                     const isServiceActive = SERVICE_ITEMS.some((item) => pathname === item.to);
@@ -336,14 +336,14 @@ export default function Navbar() {
               </nav>
 
               {/* Right column — empty, balances logo for true center */}
-              <div className="hidden md:flex items-center justify-end h-full">
+              <div className="hidden lg:flex items-center justify-end h-full">
                 <AuthNavControls />
               </div>
 
-              {/* Mobile hamburger — visible only on mobile */}
+              {/* Mobile hamburger — visible on mobile & tablet */}
               <button
                 ref={toggleRef}
-                className="md:hidden ml-auto md:ml-0 p-2 rounded-btn hover:bg-secondary transition-all duration-fast ease-gentle min-h-[44px] min-w-[44px] flex items-center justify-center relative z-10"
+                className="lg:hidden ml-auto lg:ml-0 p-2 rounded-btn hover:bg-secondary transition-all duration-fast ease-gentle min-h-[44px] min-w-[44px] flex items-center justify-center relative z-10"
                 style={{ color: "var(--foreground)" }}
                 onClick={() => setMenuOpen(!menuOpen)}
                 aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -361,7 +361,7 @@ export default function Navbar() {
           {menuOpen && (
             <>
               <motion.div
-                className="fixed inset-0 z-[var(--z-drawer)] bg-black/30 backdrop-blur-sm md:hidden"
+                className="fixed inset-0 z-[var(--z-drawer)] bg-black/30 backdrop-blur-sm lg:hidden"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -372,7 +372,7 @@ export default function Navbar() {
               <motion.div
                 id="mobile-menu-panel"
                 ref={menuRef}
-                className="fixed left-0 right-0 top-[calc(var(--navbar-height)+var(--top-strip-compact-height))] bottom-0 z-[var(--z-drawer)] md:hidden bg-background/90 backdrop-blur-xl border-t border-border flex flex-col overflow-hidden"
+                className="fixed left-0 right-0 top-[calc(var(--navbar-height)+var(--top-strip-compact-height))] bottom-0 z-[var(--z-drawer)] lg:hidden bg-background/90 backdrop-blur-xl border-t border-border flex flex-col overflow-hidden"
                 initial={{ opacity: 0, y: -12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
