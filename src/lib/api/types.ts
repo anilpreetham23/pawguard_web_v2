@@ -935,6 +935,7 @@ export interface FoundReportCreate {
   longitude?: number | null;
   /** ISO-8601 datetime when the animal was found. */
   found_at: string;
+  notes?: string | null;
   photo_url?: string | null;
   photo_object_key?: string | null;
   photo_object_keys?: string[];

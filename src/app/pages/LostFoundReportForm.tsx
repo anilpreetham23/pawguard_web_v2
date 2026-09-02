@@ -257,35 +257,54 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
       setPhotoObjectKey(primaryPhotoKey);
       setUploadState("uploaded");
 
-      // Step 3: Submit report with photo_object_keys, video_object_key, and legacy primary photo_object_key
+      // Validate UUID format for companion_pet_id (must be a valid UUID or null to prevent 422 errors)
+      const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      const validCompanionPetId =
+        companionPetId && UUID_REGEX.test(companionPetId.trim())
+          ? companionPetId.trim()
+          : null;
+
+      // Guarantee valid ISO-8601 date-time string (fallback to current ISO string if omitted or invalid)
+      const formattedDate =
+        eventAt && !isNaN(new Date(eventAt).getTime())
+          ? new Date(eventAt).toISOString()
+          : new Date().toISOString();
+
+      const sanitizedPhotoKeys =
+        uploadedPhotoKeys.length > 0
+          ? uploadedPhotoKeys.slice(0, 5)
+          : undefined;
+
+      // Step 3: Submit report with sanitized contract payload
       if (kind === "lost") {
         mutation.mutate({
-          species,
-          pet_name: petName.trim(),
-          breed: breed.trim(),
-          color: color.trim(),
+          species: species || "dog",
+          pet_name: petName.trim() || "Unknown",
+          breed: breed.trim() || "Mixed / Unknown",
+          color: color.trim() || "Unknown",
           microchip_id: microchipId.trim() === "" ? null : microchipId.trim(),
-          location_address: locationAddress.trim(),
+          location_address: locationAddress.trim() || "Location provided on map",
           latitude: cleanupCoords.latitude,
           longitude: cleanupCoords.longitude,
-          lost_at: eventAt ? toApiDateTime(new Date(eventAt)) : "",
+          lost_at: formattedDate,
           photo_object_key: primaryPhotoKey,
-          photo_object_keys: uploadedPhotoKeys.length > 0 ? uploadedPhotoKeys : undefined,
+          photo_object_keys: sanitizedPhotoKeys,
           video_object_key: uploadedVideoKey,
-          companion_pet_id: companionPetId.trim() === "" ? null : companionPetId.trim(),
+          companion_pet_id: validCompanionPetId,
         });
       } else {
         mutation.mutate({
-          species,
-          breed_observed: breedObserved.trim(),
-          color_observed: colorObserved.trim(),
-          location_address: locationAddress.trim(),
+          species: species || "dog",
+          breed_observed: breedObserved.trim() || "Mixed / Unknown",
+          color_observed: colorObserved.trim() || "Unknown",
+          location_address: locationAddress.trim() || "Location provided on map",
           latitude: cleanupCoords.latitude,
           longitude: cleanupCoords.longitude,
-          found_at: eventAt ? toApiDateTime(new Date(eventAt)) : "",
+          found_at: formattedDate,
           photo_object_key: primaryPhotoKey,
-          photo_object_keys: uploadedPhotoKeys.length > 0 ? uploadedPhotoKeys : undefined,
+          photo_object_keys: sanitizedPhotoKeys,
           video_object_key: uploadedVideoKey,
+          notes: description.trim() === "" ? null : description.trim(),
         });
       }
     } catch (err: any) {
