@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -732,12 +732,29 @@ function EditPetModal({
   const [emergencyNotes, setEmergencyNotes] = useState(pet?.emergency_notes ?? "");
   const [isScanEnabled, setIsScanEnabled] = useState(pet?.is_scan_enabled ?? true);
 
-  // Photo Upload State
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (pet) {
+      setName(pet.name ?? "");
+      setSpecies(pet.species ?? "dog");
+      setBreed(pet.breed ?? "");
+      setSex(pet.sex ?? "");
+      setBirthDate(pet.birth_date ? pet.birth_date.split("T")[0] : "");
+      setColor(pet.color ?? "");
+      setMicrochipId(pet.microchip_id ?? "");
+      setEmergencyNotes(pet.emergency_notes ?? "");
+      setIsScanEnabled(pet.is_scan_enabled ?? true);
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setPhotoError(null);
+      setValidationError(null);
+    }
+  }, [pet]);
 
   if (!pet) return null;
 

@@ -86,7 +86,7 @@ export const companionPetsService = {
    * Upload a pet photo to presigned S3 storage and confirm backend record:
    * 1. POST /companion-pets/{pet_id}/photo-upload-url -> get file_id & upload_url
    * 2. PUT upload_url -> upload File bytes to S3
-   * 3. POST /companion-pets/{pet_id}/photo/confirm?file_id={file_id} -> confirm file
+   * 3. POST /companion-pets/{pet_id}/photo/confirm -> confirm file
    */
   async uploadPetPhoto(petId: string, file: File): Promise<CompanionPetResponse> {
     const uploadReq: CompanionPetPhotoUploadRequest = {
@@ -97,13 +97,12 @@ export const companionPetsService = {
     };
 
     // 1. Get presigned upload URL
-    const res = await apiPost<any>(
+    const res = await apiPost<{ file_id?: string; upload_url?: string; data?: { file_id?: string; upload_url?: string } }>(
       API_ROUTES.companionPets.photoUploadUrl(petId),
       uploadReq
     );
-    const data = res?.data || res;
-    const uploadUrl = data?.upload_url;
-    const fileId = data?.file_id;
+    const uploadUrl = res.upload_url || res.data?.upload_url;
+    const fileId = res.file_id || res.data?.file_id;
 
     if (!uploadUrl || !fileId) {
       throw new Error("Failed to obtain photo upload URL from backend.");
@@ -123,8 +122,10 @@ export const companionPetsService = {
     }
 
     // 3. Confirm uploaded file with backend
-    const confirmUrl = `${API_ROUTES.companionPets.confirmPhoto(petId)}?file_id=${encodeURIComponent(fileId)}`;
-    await apiPost(confirmUrl, { file_id: fileId });
+    await apiPost(
+      API_ROUTES.companionPets.confirmPhoto(petId),
+      { file_id: fileId }
+    );
 
     // 4. Fetch updated pet profile with authoritative photo_url
     return this.getPet(petId);
