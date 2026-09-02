@@ -16,6 +16,7 @@ interface TrustItem {
   backBadge: string;
   backTitle: string;
   backDescription: string;
+  accentVariant: "green" | "navy" | "amber" | "community";
   icon: React.ReactNode;
 }
 
@@ -38,23 +39,21 @@ export default function TrustBar() {
       backTitle: "Verified & Accountable",
       backDescription:
         "PawGuard operates with a commitment to transparent rescue and community support, with every contribution accounted for.",
+      accentVariant: "green",
       icon: (
         <svg
-          width="32"
-          height="32"
-          viewBox="0 0 32 32"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
           fill="none"
-          strokeWidth="2"
+          stroke="currentColor"
+          strokeWidth="2.2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-primary"
           aria-hidden="true"
         >
-          <path
-            d="M16 4L6 8v10c0 5.5 3.5 9 10 10 6.5-1 10-4.5 10-10V8L16 4z"
-            stroke="currentColor"
-          />
-          <path d="M10 16l3.5 3.5L22 12" stroke="currentColor" strokeWidth="2.5" />
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <path d="m9 12 2 2 4-4" strokeWidth="2.5" />
         </svg>
       ),
     },
@@ -67,22 +66,24 @@ export default function TrustBar() {
       backTitle: "Every Rescue Matters",
       backDescription:
         "Behind every rescue statistic is a companion who received care, protection and a chance to find safety.",
+      accentVariant: "navy",
       icon: (
         <svg
-          width="32"
-          height="32"
-          viewBox="0 0 32 32"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
           fill="none"
-          strokeWidth="2"
+          stroke="currentColor"
+          strokeWidth="2.2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-primary"
           aria-hidden="true"
         >
-          <path
-            d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-            stroke="currentColor"
-          />
+          <path d="M12 10c-1.5 0-3 1.2-3 2.8 0 2.2 2.2 4.2 3 4.2s3-2 3-4.2c0-1.6-1.5-2.8-3-2.8z" fill="currentColor" />
+          <circle cx="7" cy="8.5" r="2" fill="currentColor" />
+          <circle cx="17" cy="8.5" r="2" fill="currentColor" />
+          <circle cx="4" cy="14" r="1.8" fill="currentColor" />
+          <circle cx="20" cy="14" r="1.8" fill="currentColor" />
         </svg>
       ),
     },
@@ -95,20 +96,21 @@ export default function TrustBar() {
       backTitle: "Rapid Response",
       backDescription:
         "Our dispatch system prioritizes calls by severity and routes them to the nearest available team.",
+      accentVariant: "amber",
       icon: (
         <svg
-          width="32"
-          height="32"
-          viewBox="0 0 32 32"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
           fill="none"
-          strokeWidth="2"
+          stroke="currentColor"
+          strokeWidth="2.2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-primary"
           aria-hidden="true"
         >
-          <circle cx="16" cy="16" r="12" stroke="currentColor" />
-          <polyline points="16 8 16 16 22 20" stroke="currentColor" />
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" strokeWidth="2.5" />
         </svg>
       ),
     },
@@ -121,23 +123,23 @@ export default function TrustBar() {
       backTitle: "Community Powered",
       backDescription:
         "Our volunteers help transform reports into real-world action by supporting rescues, reunification and community outreach.",
+      accentVariant: "community",
       icon: (
         <svg
-          width="32"
-          height="32"
-          viewBox="0 0 32 32"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
           fill="none"
-          strokeWidth="2"
+          stroke="currentColor"
+          strokeWidth="2.2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-primary"
           aria-hidden="true"
         >
-          <path d="M16 16a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" stroke="currentColor" />
-          <path
-            d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10"
-            stroke="currentColor"
-          />
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       ),
     },
@@ -201,6 +203,7 @@ export default function TrustBar() {
                 backBadge={item.backBadge}
                 backTitle={item.backTitle}
                 backDescription={item.backDescription}
+                accentVariant={item.accentVariant}
                 index={i}
               />
             </motion.div>
