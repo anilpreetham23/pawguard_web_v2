@@ -187,6 +187,7 @@ export type {
   VolunteerLifecycleStatus,
   VolunteerMeStatusResponse,
 } from "./types";
+export { normalizeVolunteerLifecycleStatus } from "./types";
 export {
   buildQueryString,
   buildUrl,

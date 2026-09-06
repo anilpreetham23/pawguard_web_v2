@@ -1118,6 +1118,7 @@ export interface PublicHeroStats {
 export interface VolunteerProfileCreate {
   emergency_contact_name: string;
   emergency_contact_phone: string;
+  applied_role?: string | null;
   skills?: string | null;
   availability?: string | null;
   notes?: string | null;
@@ -1651,10 +1652,12 @@ export type VolunteerLifecycleStatus =
 export interface VolunteerApplicationInfo {
   id: string;
   status: string;
-  submitted_at: string;
+  submitted_at?: string | null;
+  created_at?: string | null;
   reviewed_at?: string | null;
   rejection_reason?: string | null;
   role_applied?: string | null;
+  applied_role?: string | null;
 }
 
 export interface VolunteerMeStatusResponse {
@@ -1663,6 +1666,78 @@ export interface VolunteerMeStatusResponse {
   profile: VolunteerProfileResponse | null;
   can_apply: boolean;
   can_reapply: boolean;
+}
+
+/**
+ * Authoritatively normalizes any backend volunteer status string (or profile/application presence)
+ * into one of the 5 canonical `VolunteerLifecycleStatus` values:
+ * NOT_APPLIED | PENDING | ACTIVE | REJECTED | INACTIVE.
+ *
+ * Prevents case-sensitivity mismatches ("active" vs "ACTIVE", "approved" vs "APPROVED") and guarantees
+ * that an existing volunteer profile object is NEVER misclassified as NOT_APPLIED.
+ */
+export function normalizeVolunteerLifecycleStatus(
+  rawStatus?: string | null,
+  profile?: VolunteerProfileResponse | Record<string, unknown> | null,
+  application?: VolunteerApplicationInfo | Record<string, unknown> | null
+): VolunteerLifecycleStatus {
+  const statusStr = (
+    rawStatus ||
+    (profile as any)?.status ||
+    (application as any)?.status ||
+    ""
+  )
+    .toString()
+    .trim()
+    .toUpperCase();
+
+  if (
+    statusStr === "ACTIVE" ||
+    statusStr === "APPROVED" ||
+    statusStr === "ONBOARDED" ||
+    statusStr === "COMPLETED" ||
+    statusStr === "PASSED"
+  ) {
+    return "ACTIVE";
+  }
+
+  if (
+    statusStr === "PENDING" ||
+    statusStr === "APPLIED" ||
+    statusStr === "UNDER_REVIEW" ||
+    statusStr === "SUBMITTED" ||
+    statusStr === "REVIEWING"
+  ) {
+    return "PENDING";
+  }
+
+  if (
+    statusStr === "REJECTED" ||
+    statusStr === "DECLINED" ||
+    statusStr === "DENIED"
+  ) {
+    return "REJECTED";
+  }
+
+  if (
+    statusStr === "INACTIVE" ||
+    statusStr === "DISABLED" ||
+    statusStr === "SUSPENDED"
+  ) {
+    return "INACTIVE";
+  }
+
+  // If a profile object is present, default to ACTIVE (or PENDING if pending flag)
+  if (profile) {
+    return "ACTIVE";
+  }
+
+  // If an application object is present, default to PENDING
+  if (application) {
+    return "PENDING";
+  }
+
+  return "NOT_APPLIED";
 }
 
 /* -------------------------------------------------------------------------- */

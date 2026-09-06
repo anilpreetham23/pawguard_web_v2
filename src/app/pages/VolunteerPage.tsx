@@ -28,7 +28,8 @@ import {
 import { scrollTo } from "../../motion/scroll";
 import { useAuth } from "../providers/auth-provider";
 import { communityService } from "@/services/api/community";
-import { getErrorMessage } from "@/lib/api";
+import { getErrorMessage, QUERY_KEYS, normalizeVolunteerLifecycleStatus } from "@/lib/api";
+import { queryClient } from "@/lib/react-query";
 import type { VolunteerProfileResponse, VolunteerStatus } from "@/lib/api";
 
 const VOLUNTEER_STATUS_META: Record<
@@ -164,18 +165,11 @@ export default function VolunteerPage() {
     volunteerStatus?.profile ??
     null) as VolunteerProfileResponse | null;
   const applicationInfo = volunteerStatus?.application;
-
-  const vLifecycleStatus =
-    volunteerStatus?.status ??
-    (volunteerProfile
-      ? volunteerProfile.status === "active"
-        ? "ACTIVE"
-        : volunteerProfile.status === "rejected"
-        ? "REJECTED"
-        : volunteerProfile.status === "inactive"
-        ? "INACTIVE"
-        : "PENDING"
-      : "NOT_APPLIED");
+  const vLifecycleStatus = normalizeVolunteerLifecycleStatus(
+    volunteerStatus?.status,
+    volunteerProfile,
+    applicationInfo
+  );
 
   const canApply = volunteerStatus ? volunteerStatus.can_apply : !volunteerProfile;
   const canReapply = volunteerStatus ? volunteerStatus.can_reapply : false;
@@ -235,6 +229,7 @@ export default function VolunteerPage() {
       .applyVolunteer({
         emergency_contact_name: form.emergencyContactName.trim(),
         emergency_contact_phone: form.emergencyContactPhone.trim(),
+        applied_role: form.role ? form.role.trim() : null,
         availability: form.availability.trim() || null,
         notes: form.message.trim() || null,
         skills: form.role ? `Role: ${form.role}` : null,
@@ -245,6 +240,12 @@ export default function VolunteerPage() {
       .then(() => {
         clearInterval(interval);
         setProgress(100);
+        void queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.community.volunteerStatus,
+        });
+        void queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.community.meDashboard,
+        });
         setTimeout(() => {
           setIsLoading(false);
           setSubmitted(true);

@@ -35,7 +35,7 @@ import {
 import { useAuth } from "../providers/auth-provider";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
 import { useVolunteerStatus } from "../hooks/useVolunteerStatus";
-import { useApiQuery, getErrorMessage, QUERY_KEYS } from "@/lib/api";
+import { useApiQuery, getErrorMessage, QUERY_KEYS, normalizeVolunteerLifecycleStatus } from "@/lib/api";
 import { communityService } from "@/services/api/community";
 import { queryClient } from "@/lib/react-query";
 import type {
@@ -143,6 +143,18 @@ function isShiftEligible(
 
   // If user has no skills specified, do not block open shifts
   if (userSkills.size === 0) return true;
+
+  // General support / general volunteer roles are eligible for all shifts
+  for (const skill of userSkills) {
+    if (
+      skill.includes("general") ||
+      skill.includes("all") ||
+      skill.includes("supporter") ||
+      skill === "support"
+    ) {
+      return true;
+    }
+  }
 
   const normalizedRole = shiftRoleName.trim().toLowerCase();
 
@@ -287,17 +299,11 @@ export default function VolunteerDashboardPage() {
     (summary?.volunteer_profile as VolunteerProfileResponse | null);
 
   const applicationInfo = volunteerStatus?.application;
-  const vLifecycleStatus =
-    volunteerStatus?.status ??
-    (volunteerProfile
-      ? volunteerProfile.status === "active"
-        ? "ACTIVE"
-        : volunteerProfile.status === "rejected"
-        ? "REJECTED"
-        : volunteerProfile.status === "inactive"
-        ? "INACTIVE"
-        : "PENDING"
-      : "NOT_APPLIED");
+  const vLifecycleStatus = normalizeVolunteerLifecycleStatus(
+    volunteerStatus?.status,
+    volunteerProfile,
+    applicationInfo
+  );
 
   const canApply = volunteerStatus ? volunteerStatus.can_apply : !volunteerProfile;
   const canReapply = volunteerStatus ? volunteerStatus.can_reapply : false;
@@ -311,7 +317,7 @@ export default function VolunteerDashboardPage() {
   } = useApiQuery({
     queryKey: QUERY_KEYS.community.volunteerShifts,
     queryFn: () => communityService.listVolunteerShifts({ page_size: 10 }),
-    enabled: isAuthenticated && Boolean(volunteerProfile) && vLifecycleStatus === "ACTIVE",
+    enabled: isAuthenticated && vLifecycleStatus === "ACTIVE",
   });
 
   // Query attendance / claimed shifts for the current volunteer
@@ -322,7 +328,7 @@ export default function VolunteerDashboardPage() {
   } = useApiQuery({
     queryKey: QUERY_KEYS.community.myAttendance,
     queryFn: () => communityService.getMyAttendance(),
-    enabled: isAuthenticated && Boolean(volunteerProfile) && vLifecycleStatus === "ACTIVE",
+    enabled: isAuthenticated && vLifecycleStatus === "ACTIVE",
   });
 
   const attendanceItems = useMemo(() => {
@@ -533,7 +539,7 @@ export default function VolunteerDashboardPage() {
   }
 
   // 3. Dashboard summary & status loading state
-  if (isSummaryLoading && isStatusLoading) {
+  if (isSummaryLoading || isStatusLoading) {
     return (
       <PageShell>
         <main id="main-content" className="flex-1 max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-[calc(var(--header-height)+2rem)] pb-12">
@@ -548,8 +554,8 @@ export default function VolunteerDashboardPage() {
   }
 
   // 4. API Error state (e.g. HTTP 500 database error)
-  if (isSummaryError && isStatusError) {
-    const errorObj = summaryError || statusError;
+  if (isStatusError || isSummaryError) {
+    const errorObj = statusError || summaryError;
     return (
       <PageShell>
         <main id="main-content" className="flex-1 max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-[calc(var(--header-height)+2rem)] pb-12">

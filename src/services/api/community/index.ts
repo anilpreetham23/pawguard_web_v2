@@ -102,7 +102,23 @@ export const communityService = {
   getVolunteerStatus(): Promise<VolunteerMeStatusResponse> {
     return apiGet<VolunteerMeStatusResponse>(
       API_ROUTES.community.volunteerStatus
-    );
+    ).catch((err) => {
+      // 404 Not Found indicates the user has not submitted a volunteer application yet
+      if (
+        err?.status === 404 ||
+        err?.statusCode === 404 ||
+        err?.response?.status === 404
+      ) {
+        return {
+          status: "NOT_APPLIED",
+          application: null,
+          profile: null,
+          can_apply: true,
+          can_reapply: false,
+        };
+      }
+      throw err;
+    });
   },
 
   /** `POST /volunteers/apply` — submit an auth-gated volunteer application. */
