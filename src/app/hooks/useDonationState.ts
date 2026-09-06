@@ -152,11 +152,14 @@ export interface DonationState {
   confirmedDonation: DonationResponse | null;
   receiptUrl: string | null;
   isReceiptLoading: boolean;
+  receiptError: boolean;
   setFrequency: (f: DonationFrequency) => void;
   selectPreset: (amount: number) => void;
   setCustom: (value: string) => void;
   getImpactLine: (amount: number | null) => string;
   handleSubmit: (e: React.FormEvent) => void;
+  fetchReceipt: (donationId?: string) => Promise<void>;
+  viewReceipt: () => Promise<void>;
   downloadReceipt: () => Promise<void>;
   makeAnotherDonation: () => void;
   clearError: () => void;
@@ -187,6 +190,7 @@ export function useDonationState({
     useState<DonationResponse | null>(null);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [isReceiptLoading, setIsReceiptLoading] = useState(false);
+  const [receiptError, setReceiptError] = useState(false);
 
   const customValidation = useMemo(() => {
     if (!customAmount || customAmount.trim() === "") {
@@ -281,6 +285,24 @@ export function useDonationState({
     }
   }
 
+  const fetchReceipt = useCallback(
+    async (donationIdOverride?: string) => {
+      const targetId = donationIdOverride || confirmedDonation?.id;
+      if (!targetId) return;
+      setIsReceiptLoading(true);
+      setReceiptError(false);
+      try {
+        const res = await donationService.getReceiptUrl(targetId);
+        setReceiptUrl(res.download_url);
+      } catch (err) {
+        setReceiptError(true);
+      } finally {
+        setIsReceiptLoading(false);
+      }
+    },
+    [confirmedDonation],
+  );
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -353,6 +375,8 @@ export function useDonationState({
                 toast.success("Donation received", {
                   description: `Your ${frequency === "monthly" ? "monthly " : ""}donation of ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount)} is helping dogs in need.`,
                 });
+                // Immediately request official receipt from backend
+                void fetchReceipt(donation.id);
               } catch (verifyErr) {
                 setIsLoading(false);
                 setHasError(true);
@@ -379,24 +403,69 @@ export function useDonationState({
       openAuthDialog,
       userName,
       userEmail,
+      fetchReceipt,
     ],
   );
 
-  const downloadReceipt = useCallback(async () => {
+  const viewReceipt = useCallback(async () => {
+    if (receiptUrl) {
+      window.open(receiptUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
     if (!confirmedDonation) return;
     setIsReceiptLoading(true);
+    setReceiptError(false);
     try {
       const res = await donationService.getReceiptUrl(confirmedDonation.id);
       setReceiptUrl(res.download_url);
       window.open(res.download_url, "_blank", "noopener,noreferrer");
     } catch (err) {
-      toast.error("Receipt not ready yet", {
-        description: "Your tax receipt will be emailed to you within 24 hours.",
+      setReceiptError(true);
+      toast.error("Receipt preparation in progress", {
+        description:
+          "Could not load receipt at this moment. Please click retry below.",
       });
     } finally {
       setIsReceiptLoading(false);
     }
-  }, [confirmedDonation]);
+  }, [confirmedDonation, receiptUrl]);
+
+  const downloadReceipt = useCallback(async () => {
+    if (receiptUrl) {
+      const link = document.createElement("a");
+      link.href = receiptUrl;
+      link.target = "_blank";
+      link.rel = "noopener,noreferrer";
+      link.download = `PawGuard_Donation_Receipt_${confirmedDonation?.id || "official"}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+    if (!confirmedDonation) return;
+    setIsReceiptLoading(true);
+    setReceiptError(false);
+    try {
+      const res = await donationService.getReceiptUrl(confirmedDonation.id);
+      setReceiptUrl(res.download_url);
+      const link = document.createElement("a");
+      link.href = res.download_url;
+      link.target = "_blank";
+      link.rel = "noopener,noreferrer";
+      link.download = `PawGuard_Donation_Receipt_${confirmedDonation.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      setReceiptError(true);
+      toast.error("Receipt preparation in progress", {
+        description:
+          "Could not load receipt at this moment. Please click retry below.",
+      });
+    } finally {
+      setIsReceiptLoading(false);
+    }
+  }, [confirmedDonation, receiptUrl]);
 
   function makeAnotherDonation() {
     setSubmitted(false);
@@ -404,6 +473,7 @@ export function useDonationState({
     setErrorMsg("");
     setConfirmedDonation(null);
     setReceiptUrl(null);
+    setReceiptError(false);
     setSelectedAmount(2000);
     setCustomAmount("");
   }
@@ -429,11 +499,14 @@ export function useDonationState({
     confirmedDonation,
     receiptUrl,
     isReceiptLoading,
+    receiptError,
     setFrequency,
     selectPreset,
     setCustom,
     getImpactLine: (amount) => getImpactLine(amount, frequency),
     handleSubmit,
+    fetchReceipt,
+    viewReceipt,
     downloadReceipt,
     makeAnotherDonation,
     clearError,

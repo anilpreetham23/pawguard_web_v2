@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Download, Lock } from "lucide-react";
+import { CheckCircle2, Download, ExternalLink, FileText, Lock, RefreshCw } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import { useAuth } from "../providers/auth-provider";
 import {
@@ -31,13 +31,17 @@ export default function DonatePage() {
     hasError,
     errorMsg,
     isLoading,
+    receiptUrl,
     isReceiptLoading,
+    receiptError,
     progress,
     confirmedDonation,
     setFrequency,
     selectPreset,
     setCustom,
     handleSubmit,
+    fetchReceipt,
+    viewReceipt,
     downloadReceipt,
     makeAnotherDonation,
     clearError,
@@ -155,33 +159,80 @@ export default function DonatePage() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      {confirmedDonation?.receipt_file_key && (
+                    <div className="flex flex-col gap-3 pt-2">
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        {isReceiptLoading ? (
+                          <Button
+                            variant="outline"
+                            size="md"
+                            isLoading
+                            disabled
+                          >
+                            Preparing Official Receipt...
+                          </Button>
+                        ) : receiptUrl ? (
+                          <>
+                            <Button
+                              variant="primary"
+                              size="md"
+                              onClick={() => void viewReceipt()}
+                            >
+                              <ExternalLink size={16} aria-hidden="true" />
+                              View Receipt
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="md"
+                              onClick={() => void downloadReceipt()}
+                            >
+                              <Download size={16} aria-hidden="true" />
+                              Download PDF Receipt
+                            </Button>
+                          </>
+                        ) : receiptError ? (
+                          <Button
+                            variant="outline"
+                            size="md"
+                            isLoading={isReceiptLoading}
+                            onClick={() => void fetchReceipt()}
+                          >
+                            <RefreshCw size={16} aria-hidden="true" />
+                            Retry Fetching Receipt
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="md"
+                            isLoading={isReceiptLoading}
+                            onClick={() => void fetchReceipt()}
+                          >
+                            <FileText size={16} aria-hidden="true" />
+                            Get Official Receipt
+                          </Button>
+                        )}
                         <Button
-                          variant="outline"
+                          variant={receiptUrl ? "secondary" : "primary"}
                           size="md"
-                          isLoading={isReceiptLoading}
-                          onClick={() => void downloadReceipt()}
+                          onClick={makeAnotherDonation}
                         >
-                          <Download size={14} aria-hidden="true" />
-                          Download Receipt
+                          Make Another Donation
                         </Button>
-                      )}
-                      <Button
-                        variant={
-                          confirmedDonation?.receipt_file_key
-                            ? "primary"
-                            : "outline"
-                        }
-                        size="md"
-                        onClick={makeAnotherDonation}
-                      >
-                        Make Another Donation
-                      </Button>
+                      </div>
+                      {receiptUrl ? (
+                        <p className="text-emerald-600 dark:text-emerald-400 text-xs font-medium flex items-center gap-1.5">
+                          <CheckCircle2 size={14} />
+                          Your official tax receipt is ready to view or download.
+                        </p>
+                      ) : receiptError ? (
+                        <p className="text-amber-600 dark:text-amber-400 text-xs font-medium">
+                          Donation confirmed. Your receipt is taking a moment to generate — click retry to load.
+                        </p>
+                      ) : isReceiptLoading ? (
+                        <p className="text-muted-foreground text-xs animate-pulse">
+                          Retrieving your official tax receipt from backend...
+                        </p>
+                      ) : null}
                     </div>
-                    <p className="text-muted-foreground text-xs">
-                      A tax receipt will also be emailed to you within 24 hours.
-                    </p>
                   </div>
                 </Card>
               </div>
