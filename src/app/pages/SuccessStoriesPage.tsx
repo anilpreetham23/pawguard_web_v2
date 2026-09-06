@@ -14,7 +14,7 @@ const FEATURED = {
   animal: "Bruno — Golden Retriever Mix",
   type: "Bruno — Golden Retriever Mix · March 2024",
   date: "March 2024",
-  excerpt: "Bruno was found severely malnourished and unable to walk following a road accident near the Millbrook interchange. PawGuard's emergency team reached the scene in under 12 minutes.",
+  excerpt: "Bruno was found severely malnourished and unable to walk following a road accident near the Millbrook interchange. PawGuard's emergency team reached the scene with priority dispatch.",
   quote: "The gentlest, most grateful dog we've ever known.",
   img: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=500&fit=crop&auto=format",
   adopter: "Helena & Stefan Lindqvist",

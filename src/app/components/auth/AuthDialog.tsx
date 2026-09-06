@@ -80,10 +80,17 @@ export default function AuthDialog() {
     setError(null);
     setPending(true);
 
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     try {
       if (step === "forgot-password") {
         if (!email.trim()) {
           setError("Please enter your email address.");
+          setPending(false);
+          return;
+        }
+        if (!EMAIL_REGEX.test(email.trim())) {
+          setError("Please enter a valid email address.");
           setPending(false);
           return;
         }
@@ -99,6 +106,21 @@ export default function AuthDialog() {
         return;
       }
       if (activeMode === "sign-in") {
+        if (!email.trim()) {
+          setError("Please enter your email address.");
+          setPending(false);
+          return;
+        }
+        if (!EMAIL_REGEX.test(email.trim())) {
+          setError("Please enter a valid email address.");
+          setPending(false);
+          return;
+        }
+        if (!password) {
+          setError("Please enter your password.");
+          setPending(false);
+          return;
+        }
         try {
           await signIn(email.trim(), password);
         } catch (err) {
@@ -121,6 +143,11 @@ export default function AuthDialog() {
           setPending(false);
           return;
         }
+        if (!EMAIL_REGEX.test(email.trim())) {
+          setError("Please enter a valid email address.");
+          setPending(false);
+          return;
+        }
         const phoneErr = validatePhone(phone, phoneCountry, true);
         if (phoneErr) {
           setPhoneError(phoneErr);
@@ -130,6 +157,11 @@ export default function AuthDialog() {
         }
         if (!password) {
           setError("Password is required to create an account.");
+          setPending(false);
+          return;
+        }
+        if (password.length < 8) {
+          setError("Password must be at least 8 characters long.");
           setPending(false);
           return;
         }

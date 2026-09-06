@@ -717,11 +717,11 @@ export default function VolunteerDashboardPage() {
               </span>
               <span className="text-sm font-bold text-foreground mt-1 flex items-center gap-1.5">
                 {certData?.download_url ? (
-                  <a href={certData.download_url} target="_blank" rel="noreferrer" className="text-primary underline flex items-center gap-1">
-                    <Award size={14} /> Certificate Available
-                  </a>
+                  <span className="text-emerald-700 dark:text-emerald-400 font-semibold text-xs flex items-center gap-1.5">
+                    <CheckCircle2 size={14} className="text-emerald-600" /> Issued &amp; Verified
+                  </span>
                 ) : (
-                  <span className="text-amber-600 font-medium text-xs flex items-center gap-1">
+                  <span className="text-amber-600 dark:text-amber-400 font-medium text-xs flex items-center gap-1.5">
                     <Clock size={14} /> Pending Admin Verification
                   </span>
                 )}
@@ -913,16 +913,6 @@ export default function VolunteerDashboardPage() {
                             Detailed log of your completed volunteer assignments and verified service hours.
                           </p>
                         </div>
-                        {certData?.download_url && (
-                          <a
-                            href={certData.download_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline shrink-0"
-                          >
-                            <Award size={14} /> Download Certificate
-                          </a>
-                        )}
                       </div>
 
                       {completedAttendanceItems.length === 0 ? (
@@ -1018,19 +1008,24 @@ export default function VolunteerDashboardPage() {
                     Official volunteer service certificates are issued directly by the Admin / Volunteer Coordinator upon verification of your completed service shifts and logged hours.
                   </p>
                   {certData?.download_url ? (
-                    <div className="flex flex-col gap-2.5 items-start">
-                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded">
-                        Status: Certificate Available
+                    <div className="flex flex-col gap-3 items-start">
+                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded inline-flex items-center gap-1.5">
+                        <CheckCircle2 size={14} className="text-emerald-600" />
+                        Status: Certificate Issued &amp; Verified
                       </span>
-                      <a
-                        href={certData.download_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold text-xs tracking-wider uppercase px-5 py-2.5 rounded-btn hover:bg-primary-hover transition-colors"
+                      <Button
+                        type="button"
+                        variant="primary"
+                        size="md"
+                        onClick={() => {
+                          if (certData.download_url) {
+                            window.open(certData.download_url, "_blank", "noopener,noreferrer");
+                          }
+                        }}
                       >
                         <Award size={16} />
                         Download Verified Certificate
-                      </a>
+                      </Button>
                     </div>
                   ) : (
                     <div className="text-xs text-muted-foreground bg-muted/40 p-3.5 rounded-card border border-border flex items-center gap-2">

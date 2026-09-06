@@ -85,7 +85,7 @@ export default function AdoptionCard({
   const [btnHovered, setBtnHovered] = useState(false);
 
   const [imageFailed, setImageFailed] = useState(false);
-  const mainImage = img || image_urls?.[0] || photo_gallery_urls?.[0];
+  const mainImage = image_urls?.[0] || photo_gallery_urls?.[0] || img;
   const showImage = Boolean(mainImage) && !imageFailed;
 
   const tier = useMotionStore((s) => s.motionTier);

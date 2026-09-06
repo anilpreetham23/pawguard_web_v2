@@ -114,6 +114,7 @@ export function LenisProvider({ children }: LenisProviderProps) {
       smoothWheel: true,
       wheelMultiplier: params.wheelMultiplier ?? 1,
       touchMultiplier: params.touchMultiplier ?? 1,
+      syncTouch: true,
     });
 
     lenisRef.current = lenis;

@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { MapPin, LocateFixed, Search, Check, RefreshCw, X, AlertCircle } from "lucide-react";
+import { MapPin, LocateFixed, Search, Check, RefreshCw, AlertCircle } from "lucide-react";
 import { Button, Input, Card, Badge } from "./pawguard";
-import { useGeolocation } from "../hooks/useGeolocation";
 import type { LostFoundKind } from "@/types";
 
 interface LocationMapPickerProps {
@@ -18,6 +17,39 @@ interface LocationMapPickerProps {
 const DEFAULT_LAT = 12.9716;
 const DEFAULT_LNG = 77.5946;
 
+function loadLeaflet(): Promise<any> {
+  if (typeof window === "undefined") return Promise.reject("Window undefined");
+  if ((window as any).L) return Promise.resolve((window as any).L);
+
+  return new Promise((resolve, reject) => {
+    if (!document.getElementById("leaflet-css")) {
+      const link = document.createElement("link");
+      link.id = "leaflet-css";
+      link.rel = "stylesheet";
+      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(link);
+    }
+
+    const existingScript = document.getElementById("leaflet-js") as HTMLScriptElement;
+    if (existingScript) {
+      if ((window as any).L) {
+        resolve((window as any).L);
+      } else {
+        existingScript.addEventListener("load", () => resolve((window as any).L));
+      }
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = "leaflet-js";
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.async = true;
+    script.onload = () => resolve((window as any).L);
+    script.onerror = (err) => reject(err);
+    document.head.appendChild(script);
+  });
+}
+
 export function LocationMapPicker({
   kind,
   locationAddress,
@@ -28,48 +60,42 @@ export function LocationMapPicker({
   const isLost = kind === "lost";
   const locationLabel = isLost ? "Last Seen Location" : "Found Location";
 
-  const [mode, setMode] = useState<"none" | "gps" | "map">(
-    latitude && longitude ? "map" : "none"
-  );
-
-  const [mapLat, setMapLat] = useState<number>(
-    latitude ? parseFloat(latitude) : DEFAULT_LAT
-  );
-  const [mapLng, setMapLng] = useState<number>(
-    longitude ? parseFloat(longitude) : DEFAULT_LNG
-  );
-  const [zoom, setZoom] = useState<number>(14);
-
+  const [mode, setMode] = useState<"none" | "gps" | "map">("map");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<
-    { display_name: string; lat: string; lon: string }[]
-  >([]);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [isGpsLoading, setIsGpsLoading] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
 
-  const { status: gpsStatus, coords: gpsCoords, requestLocation: requestGpsLocation } = useGeolocation();
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markerInstanceRef = useRef<any>(null);
+
+  // Parse current coordinates or use default
+  const currentLat = latitude ? parseFloat(latitude) : DEFAULT_LAT;
+  const currentLng = longitude ? parseFloat(longitude) : DEFAULT_LNG;
 
   // Reverse-geocode coordinates to human-readable address
   const reverseGeocode = useCallback(
     async (lat: number, lng: number) => {
       setIsGeocoding(true);
       setMapError(null);
+      const latStr = lat.toFixed(6);
+      const lngStr = lng.toFixed(6);
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
-          { headers: { "User-Agent": "PawGuardWeb/1.0" } }
+          { headers: { "User-Agent": "PawGuard-PublicWeb/1.0" } }
         );
         if (res.ok) {
           const data = await res.json();
           if (data && data.display_name) {
-            // Extract clean short address (street, suburb, city, state)
             const parts = data.display_name.split(", ");
             const shortAddr = parts.slice(0, Math.min(4, parts.length)).join(", ");
             onChange({
               locationAddress: shortAddr,
-              latitude: lat.toFixed(6),
-              longitude: lng.toFixed(6),
+              latitude: latStr,
+              longitude: lngStr,
             });
             return;
           }
@@ -80,29 +106,111 @@ export function LocationMapPicker({
         setIsGeocoding(false);
       }
 
-      // Fallback if reverse geocode fails or returns empty
+      // Fallback if reverse geocode fails
       onChange({
         locationAddress: locationAddress || `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
-        latitude: lat.toFixed(6),
-        longitude: lng.toFixed(6),
+        latitude: latStr,
+        longitude: lngStr,
       });
     },
     [locationAddress, onChange]
   );
 
-  // Sync GPS results when requested
+  // Initialize Leaflet Map
   useEffect(() => {
-    if (gpsStatus === "granted" && gpsCoords) {
-      setMapLat(gpsCoords.latitude);
-      setMapLng(gpsCoords.longitude);
-      setMode("gps");
-      reverseGeocode(gpsCoords.latitude, gpsCoords.longitude);
-    }
-  }, [gpsStatus, gpsCoords, reverseGeocode]);
+    if (mode !== "map") return;
+    let isMounted = true;
 
-  // Handle map search query
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+    loadLeaflet()
+      .then((L) => {
+        if (!isMounted || !mapContainerRef.current) return;
+
+        // Clean up previous map if container was re-rendered
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.remove();
+          mapInstanceRef.current = null;
+          markerInstanceRef.current = null;
+        }
+
+        const map = L.map(mapContainerRef.current, {
+          center: [currentLat, currentLng],
+          zoom: 15,
+          zoomControl: true,
+        });
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(map);
+
+        // Custom SVG Marker Icon
+        const customMarkerIcon = L.divIcon({
+          className: "custom-pawguard-marker",
+          html: `
+            <div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); pointer-events: none;">
+              <div style="background-color: ${isLost ? '#ef4444' : '#0284c7'}; color: white; border-radius: 9999px; padding: 4px 10px; font-size: 11px; font-weight: bold; white-space: nowrap; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>${locationLabel}</span>
+              </div>
+              <div style="width: 2px; height: 10px; background-color: ${isLost ? '#ef4444' : '#0284c7'};"></div>
+              <div style="width: 10px; height: 4px; background-color: rgba(0,0,0,0.25); border-radius: 50%;"></div>
+            </div>
+          `,
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        });
+
+        const marker = L.marker([currentLat, currentLng], { icon: customMarkerIcon }).addTo(map);
+
+        // Handle map click
+        map.on("click", (e: any) => {
+          const lat = e.latlng.lat;
+          const lng = e.latlng.lng;
+          marker.setLatLng([lat, lng]);
+          reverseGeocode(lat, lng);
+        });
+
+        mapInstanceRef.current = map;
+        markerInstanceRef.current = marker;
+
+        // Force recalculation of tile layout
+        setTimeout(() => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.invalidateSize();
+          }
+        }, 200);
+      })
+      .catch((err) => {
+        console.error("Leaflet load error:", err);
+        setMapError("Failed to load map engine. Please check network connection.");
+      });
+
+    return () => {
+      isMounted = false;
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        markerInstanceRef.current = null;
+      }
+    };
+  }, [mode]);
+
+  // Update marker position if latitude/longitude change externally
+  useEffect(() => {
+    if (mapInstanceRef.current && markerInstanceRef.current && latitude && longitude) {
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        mapInstanceRef.current.setView([lat, lng], 15);
+        markerInstanceRef.current.setLatLng([lat, lng]);
+      }
+    }
+  }, [latitude, longitude]);
+
+  // Handle Nominatim location search
+  const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     setIsSearching(true);
     setMapError(null);
@@ -110,70 +218,83 @@ export function LocationMapPicker({
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
           searchQuery.trim()
-        )}&limit=4`,
-        { headers: { "User-Agent": "PawGuardWeb/1.0" } }
+        )}&limit=1`,
+        { headers: { "User-Agent": "PawGuard-PublicWeb/1.0" } }
       );
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          setSearchResults(data);
+          const result = data[0];
+          const lat = parseFloat(result.lat);
+          const lng = parseFloat(result.lon);
+          const latStr = lat.toFixed(6);
+          const lngStr = lng.toFixed(6);
+
+          if (mapInstanceRef.current && markerInstanceRef.current) {
+            mapInstanceRef.current.setView([lat, lng], 15);
+            markerInstanceRef.current.setLatLng([lat, lng]);
+          }
+
+          const parts = (result.display_name || "").split(", ");
+          const shortAddr = parts.slice(0, Math.min(4, parts.length)).join(", ");
+
+          onChange({
+            locationAddress: shortAddr || result.display_name,
+            latitude: latStr,
+            longitude: lngStr,
+          });
+          setSearchQuery("");
         } else {
-          setMapError("No locations found for that search. Try another query or click the map directly.");
-          setSearchResults([]);
+          setMapError("No location found for that search query. Try another landmark or city.");
         }
+      } else {
+        setMapError("Location search service unavailable. Click directly on the map to place the pin.");
       }
     } catch (err) {
-      setMapError("Location search unavailable. You can click anywhere on the map to set the pin.");
+      setMapError("Location search failed. Click directly on the map to place the pin.");
     } finally {
       setIsSearching(false);
     }
   };
 
-  const selectSearchResult = (item: { display_name: string; lat: string; lon: string }) => {
-    const lat = parseFloat(item.lat);
-    const lng = parseFloat(item.lon);
-    setMapLat(lat);
-    setMapLng(lng);
-    setSearchResults([]);
-    setSearchQuery("");
-    const parts = item.display_name.split(", ");
-    const shortAddr = parts.slice(0, Math.min(4, parts.length)).join(", ");
-    onChange({
-      locationAddress: shortAddr,
-      latitude: lat.toFixed(6),
-      longitude: lng.toFixed(6),
-    });
-  };
+  // Handle GPS Current Location
+  const handleUseGps = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setMapError("Geolocation is not supported by your browser.");
+      return;
+    }
 
-  // Convert lat/lng coordinates to OpenStreetMap static tile parameters
-  const tileX = Math.floor(((mapLng + 180) / 360) * Math.pow(2, zoom));
-  const tileY = Math.floor(
-    ((1 -
-      Math.log(
-        Math.tan((mapLat * Math.PI) / 180) + 1 / Math.cos((mapLat * Math.PI) / 180)
-      ) /
-        Math.PI) /
-      2) *
-      Math.pow(2, zoom)
-  );
+    setIsGpsLoading(true);
+    setMapError(null);
 
-  const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
-    const width = rect.width;
-    const height = rect.height;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setIsGpsLoading(false);
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setMode("map");
 
-    // Approximate lat/lng delta based on click offset from map center
-    const deltaLng = ((clickX - width / 2) / width) * (360 / Math.pow(2, zoom));
-    const deltaLat = -((clickY - height / 2) / height) * (180 / Math.pow(2, zoom));
+        if (mapInstanceRef.current && markerInstanceRef.current) {
+          mapInstanceRef.current.setView([lat, lng], 15);
+          markerInstanceRef.current.setLatLng([lat, lng]);
+        }
 
-    const newLat = Math.max(-85, Math.min(85, mapLat + deltaLat));
-    const newLng = Math.max(-180, Math.min(180, mapLng + deltaLng));
-
-    setMapLat(newLat);
-    setMapLng(newLng);
-    reverseGeocode(newLat, newLng);
+        reverseGeocode(lat, lng);
+      },
+      (err) => {
+        setIsGpsLoading(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          setMapError("Location permission denied. Please enable location access or click on the map.");
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          setMapError("Location information unavailable. Please select your location on the map.");
+        } else if (err.code === err.TIMEOUT) {
+          setMapError("Location request timed out. Please try again or select on the map.");
+        } else {
+          setMapError("Could not retrieve current location. Please select on the map.");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   };
 
   const hasSelectedLocation = Boolean(latitude && longitude);
@@ -212,7 +333,7 @@ export function LocationMapPicker({
                 {locationAddress || "Coordinates selected on map"}
               </p>
               <p className="text-muted-foreground text-[11px] font-mono mt-0.5">
-                Lat: {parseFloat(latitude).toFixed(4)}, Lng: {parseFloat(longitude).toFixed(4)}
+                Lat: {parseFloat(latitude).toFixed(6)}, Lng: {parseFloat(longitude).toFixed(6)}
               </p>
             </div>
           </div>
@@ -235,15 +356,12 @@ export function LocationMapPicker({
           type="button"
           variant={mode === "gps" ? "primary" : "outline"}
           size="md"
-          onClick={() => {
-            setMode("gps");
-            requestGpsLocation();
-          }}
-          disabled={gpsStatus === "loading"}
+          onClick={handleUseGps}
+          disabled={isGpsLoading}
           className="w-full justify-center h-11 text-xs"
         >
           <LocateFixed size={16} />
-          {gpsStatus === "loading" ? "Locating Current Position…" : "Use Current Location"}
+          {isGpsLoading ? "Locating Current Position…" : "Use Current Location"}
         </Button>
 
         <Button
@@ -258,10 +376,10 @@ export function LocationMapPicker({
         </Button>
       </div>
 
-      {gpsStatus === "denied" && mode === "gps" && (
+      {mapError && (
         <p className="text-amber-700 bg-amber-500/10 border border-amber-500/20 rounded-btn p-3 text-xs flex items-center gap-2">
           <AlertCircle size={14} className="shrink-0" />
-          Location permission was denied. Please select the location on the map below or type the address manually.
+          {mapError}
         </p>
       )}
 
@@ -273,95 +391,52 @@ export function LocationMapPicker({
               Interactive Map ({locationLabel})
             </span>
             <span className="text-muted-foreground text-xs">
-              Click anywhere on the map to pin the {isLost ? "last seen" : "found"} location.
+              Click anywhere on the map or search to pin location.
             </span>
           </div>
 
-          {/* Map Search Form */}
-          <form onSubmit={handleSearch} className="flex gap-2 relative w-full">
+          {/* Map Search Form Control */}
+          <div className="flex gap-2 relative w-full">
             <Input
               type="text"
               placeholder="Search area, landmark, or city (e.g. Indiranagar, Bengaluru)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSearch();
+                }
+              }}
               className="h-10 text-xs flex-1"
             />
-            <Button type="submit" variant="outline" size="sm" isLoading={isSearching} className="shrink-0 px-4 h-10">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              isLoading={isSearching}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSearch();
+              }}
+              className="shrink-0 px-4 h-10"
+            >
               <Search size={14} />
               Search
             </Button>
-          </form>
+          </div>
 
-          {/* Search Results Dropdown */}
-          {searchResults.length > 0 && (
-            <div className="bg-card border border-border rounded-btn shadow-lg overflow-hidden flex flex-col divide-y divide-border z-10">
-              {searchResults.map((item, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => selectSearchResult(item)}
-                  className="p-3 text-left hover:bg-muted text-xs text-foreground transition-colors flex items-start gap-2"
-                >
-                  <MapPin size={14} className="text-primary shrink-0 mt-0.5" />
-                  <span className="line-clamp-2">{item.display_name}</span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {mapError && (
-            <p className="text-destructive text-xs bg-destructive/10 p-2.5 rounded-btn">{mapError}</p>
-          )}
-
-          {/* Canvas Tile Interactive Map Viewport */}
-          <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] min-h-[260px] bg-slate-900 rounded-lg overflow-hidden border border-border cursor-crosshair select-none group">
-            {/* OpenStreetMap Tile Background */}
-            <div
-              className="absolute inset-0 bg-cover bg-center transition-all duration-300 opacity-90 group-hover:opacity-100"
-              style={{
-                backgroundImage: `url('https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png')`,
-                backgroundSize: "cover",
-              }}
-              onClick={handleMapClick}
-            />
-
-            {/* Grid Overlay for Visual Polish */}
-            <div className="absolute inset-0 bg-slate-950/20 backdrop-brightness-95 pointer-events-none" />
-
-            {/* Map Controls (Zoom In / Out) */}
-            <div className="absolute bottom-3 right-3 flex flex-col gap-1 z-10">
-              <button
-                type="button"
-                onClick={() => setZoom((z) => Math.min(18, z + 1))}
-                className="w-8 h-8 rounded-btn bg-background/90 backdrop-blur border border-border text-foreground font-bold flex items-center justify-center shadow-sm hover:bg-card transition-colors text-sm"
-                aria-label="Zoom in"
-              >
-                +
-              </button>
-              <button
-                type="button"
-                onClick={() => setZoom((z) => Math.max(3, z - 1))}
-                className="w-8 h-8 rounded-btn bg-background/90 backdrop-blur border border-border text-foreground font-bold flex items-center justify-center shadow-sm hover:bg-card transition-colors text-sm"
-                aria-label="Zoom out"
-              >
-                -
-              </button>
-            </div>
-
-            {/* Interactive Pin Marker */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none z-20 animate-bounce-short">
-              <div className="bg-primary text-primary-foreground px-2.5 py-1 rounded-full text-[11px] font-bold shadow-lg flex items-center gap-1.5 whitespace-nowrap">
-                <MapPin size={12} />
-                {locationLabel}
+          {/* Interactive Leaflet Map Container */}
+          <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] min-h-[280px] sm:min-h-[320px] rounded-lg overflow-hidden border border-border z-0 shadow-inner">
+            <div ref={mapContainerRef} className="w-full h-full min-h-[280px] sm:min-h-[320px] z-0" />
+            {isGeocoding && (
+              <div className="absolute top-3 left-3 bg-background/90 backdrop-blur border border-border rounded-btn px-3 py-1.5 text-[11px] font-medium text-foreground shadow-sm pointer-events-none z-10 flex items-center gap-1.5">
+                <RefreshCw size={12} className="animate-spin text-primary" />
+                Resolving address…
               </div>
-              <div className="w-0.5 h-3 bg-primary shadow-md" />
-              <div className="w-3 h-1.5 bg-primary/40 rounded-full blur-[1px]" />
-            </div>
-
-            {/* Map Instruction Prompt */}
-            <div className="absolute top-3 left-3 bg-background/90 backdrop-blur border border-border rounded-btn px-3 py-1.5 text-[11px] font-medium text-foreground shadow-sm pointer-events-none">
-              {isGeocoding ? "Resolving location address…" : "Click anywhere on map to update pin"}
-            </div>
+            )}
           </div>
         </div>
       )}

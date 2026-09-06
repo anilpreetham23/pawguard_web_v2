@@ -25,6 +25,7 @@ export default function DonatePage() {
     selectedAmount,
     customAmount,
     displayAmount,
+    customAmountError,
     activeTier,
     submitted,
     hasError,
@@ -135,22 +136,22 @@ export default function DonatePage() {
                     )}
                     <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 flex items-center gap-4">
                       <span className="font-serif text-primary font-bold text-3xl">
-                        {displayAmount && displayAmount >= 500 ? "1" : "7"}
+                        {displayAmount && displayAmount >= 40000 ? "1" : "7"}
                       </span>
                       <div className="flex flex-col">
                         <span className="text-foreground font-semibold text-sm">
                           Your direct impact
                         </span>
                         <span className="text-muted-foreground text-sm leading-relaxed">
-                          {displayAmount && displayAmount >= 500
+                          {displayAmount && displayAmount >= 40000
                             ? "full rescue operation deployed to save a dog in crisis."
-                            : displayAmount && displayAmount >= 250
+                            : displayAmount && displayAmount >= 20000
                               ? "dog sponsored through full rehabilitation — from rescue to adoption."
-                              : displayAmount && displayAmount >= 100
+                              : displayAmount && displayAmount >= 8000
                                 ? "emergency triage treatment provided for an injured dog."
-                                : displayAmount && displayAmount >= 50
+                                : displayAmount && displayAmount >= 4000
                                   ? "emergency transport and initial veterinary assessment covered."
-                                  : "days of foster care funded for a recovering dog."}
+                                  : "weeks of foster care funded for a recovering dog."}
                         </span>
                       </div>
                     </div>
@@ -247,25 +248,44 @@ export default function DonatePage() {
                           </button>
                         ))}
                       </div>
-                      <div className="flex items-center gap-3 mt-1">
-                        <label
-                          htmlFor="custom-amount"
-                          className="text-muted-foreground text-sm shrink-0"
-                        >
-                          Custom amount:
-                        </label>
-                        <div className="flex items-center border border-border rounded-input bg-white focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-standard">
-                          <span className="px-3 text-muted-foreground">₹</span>
-                          <input
-                            id="custom-amount"
-                            type="number"
-                            min="1"
-                            placeholder="0.00"
-                            value={customAmount}
-                            onChange={(e) => setCustom(e.target.value)}
-                            className="py-3 pr-3 bg-transparent text-foreground focus:outline-none w-full max-w-[120px]"
-                          />
+                      <div className="flex flex-col gap-1.5 mt-1">
+                        <div className="flex items-center gap-3">
+                          <label
+                            htmlFor="custom-amount"
+                            className="text-muted-foreground text-sm shrink-0"
+                          >
+                            Custom amount:
+                          </label>
+                          <div className={`flex items-center border rounded-input bg-white focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-standard ${customAmountError ? "border-destructive ring-1 ring-destructive/20" : "border-border"}`}>
+                            <span className="px-3 text-muted-foreground">₹</span>
+                            <input
+                              id="custom-amount"
+                              type="text"
+                              inputMode="decimal"
+                              placeholder="0.00"
+                              value={customAmount}
+                              onChange={(e) => setCustom(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (["e", "E", "+", "-"].includes(e.key)) {
+                                  e.preventDefault();
+                                }
+                              }}
+                              onPaste={(e) => {
+                                const pastedText = e.clipboardData.getData("text");
+                                if (/[eE+-]/.test(pastedText) || /Infinity|NaN/i.test(pastedText)) {
+                                  e.preventDefault();
+                                  setCustom(pastedText);
+                                }
+                              }}
+                              className="py-3 pr-3 bg-transparent text-foreground focus:outline-none w-full max-w-[140px]"
+                            />
+                          </div>
                         </div>
+                        {customAmountError && (
+                          <p className="text-destructive text-xs font-medium ml-28">
+                            {customAmountError}
+                          </p>
+                        )}
                       </div>
                     </div>
 

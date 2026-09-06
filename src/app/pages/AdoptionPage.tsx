@@ -6,7 +6,7 @@ import { CheckCircle2, Shield, RefreshCw, ChevronLeft, ChevronRight, Search, X, 
 import SectionHeading from "../components/SectionHeading";
 import PageHeader from "../components/PageHeader";
 import AdoptionCard from "../components/AdoptionCard";
-import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, EmptyState, Skeleton, Alert, Input } from "../components/pawguard";
+import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, EmptyState, Skeleton, Alert, Input, PawGuardInfoCard, type InfoCardVisualType } from "../components/pawguard";
 import { useAdoptionPets } from "../hooks/useAdoptionPets";
 import { getErrorMessage } from "@/lib/api";
 
@@ -101,6 +101,7 @@ export default function AdoptionPage() {
   }
 
   const filtered = pets.filter((pet) => {
+    if (pet.adoptionBadge === "adopted") return false;
     if (selectedAge.length && !selectedAge.includes(AGE_LABEL[pet.ageGroup])) return false;
     if (selectedSize.length && !selectedSize.includes(SIZE_LABEL[pet.size])) return false;
     if (searchQuery.trim()) {
@@ -334,31 +335,53 @@ export default function AdoptionPage() {
                 </div>
               )}
         </div>
-        <Reveal><Section bg="card">
-          <div className="max-w-[800px] mx-auto flex flex-col gap-12">
-            <SectionHeading eyebrow="Peace of Mind" align="center">
-              Adoption Support &amp; Guarantee
-            </SectionHeading>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-grid-md">
-              {[
-                { icon: CheckCircle2, title: "Health Guarantee", desc: "Every dog is vaccinated, microchipped, and vet-checked before adoption. Full medical history provided." },
-                { icon: RefreshCw, title: "30-Day Adjustment Period", desc: "If the match isn't right within 30 days, we will help find a better fit or welcome the dog back." },
-                { icon: Shield, title: "Lifetime Support", desc: "All adopters get access to our behaviour helpline, training resources, and discounted veterinary care." },
-              ].map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div key={item.title} className="bg-background border border-border rounded-card p-6 flex flex-col items-center text-center gap-3 shadow-sm">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Icon size={22} className="text-primary" />
-                    </div>
-                    <h3 className="text-foreground font-bold text-base">{item.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
-                  </div>
-                );
-              })}
+        <Reveal>
+          <Section bg="card">
+            <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto flex flex-col gap-10 sm:gap-12">
+              <SectionHeading eyebrow="Peace of Mind" align="center">
+                Adoption Support &amp; Guarantee
+              </SectionHeading>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+                {[
+                  {
+                    icon: CheckCircle2,
+                    title: "Health Guarantee",
+                    desc: "Every dog is vaccinated, microchipped, and vet-checked before adoption. Full medical history provided.",
+                    visualType: "health-guarantee" as InfoCardVisualType,
+                    accentVariant: "emerald" as const,
+                    badgeText: "100% Verified",
+                  },
+                  {
+                    icon: RefreshCw,
+                    title: "30-Day Adjustment Period",
+                    desc: "If the match isn't right within 30 days, we will help find a better fit or welcome the dog back.",
+                    visualType: "adjustment-period" as InfoCardVisualType,
+                    accentVariant: "blue" as const,
+                    badgeText: "Flexible Match",
+                  },
+                  {
+                    icon: Shield,
+                    title: "Lifetime Support",
+                    desc: "All adopters get access to our behaviour helpline, training resources, and discounted veterinary care.",
+                    visualType: "lifetime-support" as InfoCardVisualType,
+                    accentVariant: "indigo" as const,
+                    badgeText: "Always Here",
+                  },
+                ].map((item) => (
+                  <PawGuardInfoCard
+                    key={item.title}
+                    icon={item.icon}
+                    title={item.title}
+                    desc={item.desc}
+                    visualType={item.visualType}
+                    accentVariant={item.accentVariant}
+                    badgeText={item.badgeText}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        </Section></Reveal>
+          </Section>
+        </Reveal>
       </main>
     </PageShell>
   );

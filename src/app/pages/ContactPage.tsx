@@ -50,11 +50,23 @@ export default function ContactPage() {
     setErrors((prev) => ({ ...prev, ...e }));
   }
 
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   function validate() {
     const e: Record<string, string> = {};
-    if (!form.name.trim()) e.name = "Name is required";
-    if (!form.email.trim()) e.email = "Email is required";
-    if (!form.message.trim()) e.message = "Message is required";
+    if (!form.name.trim()) {
+      e.name = "Please enter your full name.";
+    }
+    if (!form.email.trim()) {
+      e.email = "Please enter your email address.";
+    } else if (!EMAIL_REGEX.test(form.email.trim())) {
+      e.email = "Please enter a valid email address (e.g. name@example.com).";
+    }
+    if (!form.message.trim()) {
+      e.message = "Please enter your message.";
+    } else if (form.message.trim().length < 5) {
+      e.message = "Message must be at least 5 characters long.";
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -191,12 +203,6 @@ export default function ContactPage() {
                     <option value="General Enquiry">General Enquiry</option>
                     <option value="Feedback">Feedback</option>
                     <option value="Complaint / Grievance">Complaint / Grievance</option>
-                    <option>Adoption Inquiry</option>
-                    <option>Volunteer Application</option>
-                    <option>Donation / Fundraising</option>
-                    <option>Partnership / Corporate</option>
-                    <option>Media &amp; Press</option>
-                    <option>Share My Story</option>
                   </select>
                 </div>
                 <Textarea

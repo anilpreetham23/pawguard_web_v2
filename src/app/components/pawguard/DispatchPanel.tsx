@@ -100,8 +100,8 @@ export function DispatchPanel({
             <Clock size={18} className="text-emergency" />
           </div>
           <div>
-            <p className="text-foreground font-bold text-lg font-mono tracking-tight">&lt;{responseTime} min</p>
-            <p className="text-muted-foreground text-xs">Average dispatch time for critical cases</p>
+            <p className="text-foreground font-bold text-lg font-mono tracking-tight">Priority</p>
+            <p className="text-muted-foreground text-xs">Priority dispatch for critical cases</p>
           </div>
         </div>
       </div>

@@ -82,10 +82,10 @@ export default function EmergencyActionPanel({ variant = "banner" }: EmergencyAc
           </div>
           <div className="hidden lg:flex flex-col gap-3">
             <div className="bg-white/10 rounded-glass px-8 py-6 border border-white/10">
-              <p className="text-white/60 text-xs font-semibold tracking-wider uppercase font-condensed mb-1">Average Response</p>
-              <p className="text-white font-bold text-4xl font-mono">&lt;12 min</p>
+              <p className="text-white/60 text-xs font-semibold tracking-wider uppercase font-condensed mb-1">Emergency Response</p>
+              <p className="text-white font-bold text-2xl font-sans">Priority Dispatch</p>
             </div>
-            <p className="text-white/50 text-xs">For critical emergencies</p>
+            <p className="text-white/50 text-xs">Priority dispatch for critical cases</p>
           </div>
         </div>
       </div>

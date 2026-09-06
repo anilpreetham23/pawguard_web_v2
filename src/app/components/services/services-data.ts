@@ -171,7 +171,7 @@ export const SERVICES: ServiceData[] = [
     timeline: ["Report", "Dispatch", "On the Way", "Rescue", "Recovery"],
     stats: [
       { value: "11", label: "Avg. response (min)" },
-      { value: "4,200+", label: "Dogs rescued" },
+      { value: "—", label: "Dogs rescued" },
       { value: "98%", label: "Arrival success" },
       { value: "24/7", label: "Coverage" },
     ],
@@ -329,21 +329,21 @@ export const SERVICES: ServiceData[] = [
     },
     /** Bottom-left corner → line goes to ~(22, 78) */
     connection: { lineEndX: 22, lineEndY: 78 },
-    primaryCta: { label: "Apply to Foster", to: "/volunteer" },
+    primaryCta: { label: "Apply to Foster", to: "/foster/apply" },
     secondaryCta: { label: "Support a foster family", to: "/donate" },
   },
 ];
 
 export const DEFAULT_CENTER = {
   title: "PawGuard",
-  stat: "4,200+",
+  stat: "—",
   sub: "Lives Protected",
 };
 
 export const INTRO_STATS: ServiceStat[] = [
-  { value: "4,200+", label: "Dogs Rescued" },
-  { value: "1,850+", label: "Successful Adoptions" },
-  { value: "800+", label: "Active Volunteers" },
+  { value: "—", label: "Dogs Rescued" },
+  { value: "—", label: "Successful Adoptions" },
+  { value: "—", label: "Active Volunteers" },
   { value: "24/7", label: "Emergency Coordination" },
 ];
 

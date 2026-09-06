@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     template: "%s — PawGuard",
   },
   description:
-    "You see a dog in danger. We dispatch help within 12 minutes. Report emergencies, adopt a companion, or support rescue operations in your community.",
+    "You see a dog in danger. Priority dispatch for critical cases. Report emergencies, adopt a companion, or support rescue operations in your community.",
   keywords: [
     "dog rescue",
     "pet adoption",
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PawGuard — Emergency Dog Rescue & Companion Care Network",
     description:
-      "You see a dog in danger. We dispatch help within 12 minutes. Report emergencies, adopt a companion, or support rescue operations.",
+      "You see a dog in danger. Priority dispatch for critical cases. Report emergencies, adopt a companion, or support rescue operations.",
     url: "https://pawguard-public-web.vercel.app",
     siteName: "PawGuard",
     locale: "en_IN",

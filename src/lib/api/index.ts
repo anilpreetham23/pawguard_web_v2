@@ -141,6 +141,7 @@ export type {
   PublicContentResponse,
   PublicHeroStats,
   PublicRescueStatusResponse,
+  PublicRescueTrackResponse,
   QueryParams,
   RefreshRequest,
   RefreshResponse,

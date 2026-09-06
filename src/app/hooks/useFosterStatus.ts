@@ -1,5 +1,8 @@
 "use client";
 
+import { QUERY_KEYS, useApiQuery } from "@/lib/api";
+import { fosterService } from "@/services/api/foster";
+import { useAuth } from "../providers/auth-provider";
 import { useDashboardSummary } from "./useDashboardSummary";
 import type { FosterProfileResponse } from "@/lib/api";
 
@@ -23,13 +26,21 @@ export interface FosterStatusResult {
 }
 
 /**
- * Authoritative foster lifecycle status from the user's dashboard summary (`GET /portal/me/dashboard`).
+ * Authoritative foster lifecycle status from GET /api/v1/fosters/me with fallback to user's dashboard summary (`GET /portal/me/dashboard`).
  * Returns typed foster profile, status enum, canApply flag, and helper booleans.
  */
 export function useFosterStatus(): FosterStatusResult {
-  const { summary, isLoading, isError, error, refetch } = useDashboardSummary();
+  const { summary, isLoading: summaryLoading, isError: summaryIsError, error: summaryError, refetch: refetchSummary } = useDashboardSummary();
+  const { isAuthenticated, status: authStatus } = useAuth();
+  const enabled = isAuthenticated && authStatus === "authenticated";
 
-  const rawProfile = summary?.foster_profile ?? null;
+  const profileQuery = useApiQuery({
+    queryKey: QUERY_KEYS.foster.me,
+    enabled,
+    queryFn: () => fosterService.getMyProfile(),
+  });
+
+  const rawProfile = profileQuery.data ?? (summary?.foster_profile as FosterProfileResponse | null) ?? null;
   const fosterProfile = rawProfile as FosterProfileResponse | null;
 
   let status: FosterLifecycleStatus = "NOT_APPLIED";
@@ -59,6 +70,15 @@ export function useFosterStatus(): FosterStatusResult {
     status === "INACTIVE";
   const isApproved = status === "APPROVED";
   const isPending = status === "APPLIED";
+
+  const isLoading = summaryLoading || (enabled && profileQuery.isLoading && !summary?.foster_profile);
+  const isError = summaryIsError || profileQuery.isError;
+  const error = profileQuery.error ?? summaryError;
+
+  const refetch = () => {
+    void refetchSummary();
+    void profileQuery.refetch();
+  };
 
   return {
     fosterProfile,

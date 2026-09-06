@@ -74,7 +74,8 @@ export default function Footer() {
 
   function handleSubscribe(e: React.FormEvent) {
     e.preventDefault();
-    if (!email) return;
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim() || !EMAIL_REGEX.test(email.trim())) return;
     setSubLoading(true);
     setTimeout(() => {
       setSubLoading(false);

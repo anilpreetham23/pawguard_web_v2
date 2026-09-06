@@ -56,9 +56,10 @@ import {
 import { PhotoUploadInput } from "../components/PhotoUploadInput";
 import { validatePhone, getCountryByCode, normalizePhonePayload } from "@/lib/utils/validation";
 import { useAuth } from "../providers/auth-provider";
-import { useFavorites } from "../hooks/useFavorites";
 import { useDashboardSummary } from "../hooks/useDashboardSummary";
 import { useMyPets } from "../hooks/useMyPets";
+import { useMyAppointments } from "../hooks/useMyAppointments";
+import { useMyReminders } from "../hooks/useMyReminders";
 import { getErrorMessage, getAvatarUrl, resolveAvatarUrl, QUERY_KEYS } from "@/lib/api";
 import { queryClient } from "@/lib/react-query";
 import { authService } from "@/services/api/auth";
@@ -134,69 +135,10 @@ function DashboardCard({
   );
 }
 
-function SavedDogCard({
-  id,
-  name,
-  breed,
-  age,
-  gender,
-  emoji,
-  tone,
-  onRemove,
-}: {
-  id: string;
-  name: string;
-  breed: string;
-  age: string;
-  gender: string;
-  emoji?: string;
-  tone?: string;
-  onRemove: () => void;
-}) {
-  const TONES: Record<string, string> = {
-    amber: "from-amber-200/90 via-orange-100 to-amber-100",
-    purple: "from-violet-200/90 via-purple-100 to-indigo-100",
-    sky: "from-sky-200/90 via-cyan-100 to-sky-100",
-    rose: "from-rose-200/90 via-pink-100 to-rose-100",
-    teal: "from-teal-200/90 via-emerald-100 to-teal-100",
-  };
-
-  return (
-    <div className="group bg-card border border-border rounded-card overflow-hidden shadow-sm flex flex-col transition-all duration-fast hover:border-primary/40 hover:shadow-md">
-      <div
-        aria-hidden="true"
-        className={`relative aspect-[4/3] flex items-center justify-center bg-gradient-to-br ${TONES[tone ?? ""] ?? TONES.amber}`}
-      >
-        <span className="text-6xl leading-none drop-shadow-sm select-none">{emoji ?? "🐶"}</span>
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label={`Remove ${name} from saved`}
-          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-muted-foreground hover:text-destructive hover:bg-white shadow-sm transition-colors duration-fast focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring/60"
-        >
-          <Trash2 size={15} />
-        </button>
-      </div>
-      <div className="p-4 flex flex-col gap-1.5 flex-1">
-        <p className="text-foreground font-bold text-base truncate">{name}</p>
-        <p className="text-muted-foreground text-xs">{breed} &middot; {age} &middot; {gender}</p>
-        <Link
-          href={`/adopt/${id}`}
-          className="mt-auto pt-2 inline-flex items-center gap-1 text-primary text-xs font-semibold hover:underline"
-        >
-          View profile
-          <ChevronRight size={13} />
-        </Link>
-      </div>
-    </div>
-  );
-}
-
 type SettingsTab = "overview" | "profile" | "notifications" | "security";
 
 export default function AccountPage() {
   const { user, isAuthenticated, status: authStatus, openAuthDialog, refreshProfile, deleteAccount } = useAuth();
-  const { favorites, removeFavorite, clearFavorites } = useFavorites();
   const {
     summary,
     isLoading: dashboardLoading,
@@ -204,7 +146,9 @@ export default function AccountPage() {
     error: dashboardErrorObj,
     refetch: refetchDashboard,
   } = useDashboardSummary();
-  const { total: petsTotal } = useMyPets(isAuthenticated);
+  const { pets, total: petsTotal } = useMyPets(isAuthenticated);
+  const { total: appointmentsTotal } = useMyAppointments(isAuthenticated);
+  const { reminders } = useMyReminders(pets, isAuthenticated);
 
   // ── Navigation Tab State ───────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<SettingsTab>("overview");
@@ -366,13 +310,12 @@ export default function AccountPage() {
 
   async function handleSavePassword(e: React.FormEvent) {
     e.preventDefault();
-    setConfirmPassword("");
     if (!currentPassword) {
       setPasswordError("Current password is required.");
       return;
     }
-    if (!newPassword || newPassword.length < 6) {
-      setPasswordError("New password must be at least 6 characters long.");
+    if (!newPassword || newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters long.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -472,7 +415,7 @@ export default function AccountPage() {
         <PageHeader
           eyebrow="Account & Settings"
           title={`Welcome${user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}`}
-          subtitle="Manage your personal profile, notifications, security settings, and saved dogs."
+          subtitle="Manage your personal profile, notifications, and security settings."
         />
 
         <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md lg:py-section-lg flex flex-col gap-8">
@@ -619,7 +562,7 @@ export default function AccountPage() {
                     <DashboardCard
                       icon={<Calendar size={18} />}
                       label="Vet Appointments"
-                      count={(summary as any)?.appointments?.length ?? 0}
+                      count={appointmentsTotal}
                       to="/appointments"
                       hint="Bookings &amp; consultations"
                     />
@@ -654,63 +597,10 @@ export default function AccountPage() {
                     <DashboardCard
                       icon={<Bell size={18} />}
                       label="Reminders &amp; Alerts"
-                      count={(summary as any)?.reminders?.length ?? 0}
+                      count={reminders.length}
                       to="/reminders"
                       hint="Care &amp; medical alerts"
                     />
-                  </div>
-                )}
-              </section>
-
-              {/* Saved dogs */}
-              <section aria-labelledby="saved-heading" className="flex flex-col gap-4">
-                <div className="flex items-end justify-between">
-                  <div>
-                    <h2 id="saved-heading" className="text-foreground font-bold text-2xl">
-                      Saved dogs
-                      <span className="ml-2 text-sm font-semibold text-muted-foreground align-middle">
-                        {favorites.length} saved
-                      </span>
-                    </h2>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      Dogs you've marked with a heart while browsing. Stored on this device.
-                    </p>
-                  </div>
-                  {favorites.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={clearFavorites}
-                      className="text-xs text-destructive font-semibold hover:underline underline-offset-2"
-                    >
-                      Clear all
-                    </button>
-                  )}
-                </div>
-
-                {favorites.length === 0 ? (
-                  <Card>
-                    <EmptyState
-                      icon="heart"
-                      title="No saved dogs yet"
-                      description="Tap the heart on any adoptable dog to keep it here for later."
-                      action={{ label: "Browse adoptable dogs", to: "/adopt" }}
-                    />
-                  </Card>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-grid-md">
-                    {favorites.map((dog) => (
-                      <SavedDogCard
-                        key={dog.id}
-                        id={dog.id}
-                        name={dog.name}
-                        breed={dog.breed}
-                        age={dog.age}
-                        gender={dog.gender}
-                        emoji={dog.emoji}
-                        tone={dog.tone}
-                        onRemove={() => removeFavorite(dog.id)}
-                      />
-                    ))}
                   </div>
                 )}
               </section>
@@ -1016,7 +906,7 @@ export default function AccountPage() {
                     <div>
                       <h3 className="text-foreground font-bold text-xl">Change Password</h3>
                       <p className="text-muted-foreground text-xs mt-1">
-                        Update your account password. Must be at least 6 characters long.
+                        Update your account password. Must be at least 8 characters long.
                       </p>
                     </div>
 
@@ -1048,7 +938,7 @@ export default function AccountPage() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         prefix={<Key size={16} />}
-                        helper="Minimum 6 characters long."
+                        helper="Minimum 8 characters long."
                         required
                       />
 

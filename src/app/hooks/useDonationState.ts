@@ -142,6 +142,7 @@ export interface DonationState {
   selectedAmount: number | null;
   customAmount: string;
   displayAmount: number | null;
+  customAmountError: string;
   activeTier: DonationTier;
   submitted: boolean;
   hasError: boolean;
@@ -175,7 +176,7 @@ export function useDonationState({
   userName,
 }: DonationStateOptions): DonationState {
   const [frequency, setFrequency] = useState<DonationFrequency>("monthly");
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(50);
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(2000);
   const [customAmount, setCustomAmount] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -187,9 +188,58 @@ export function useDonationState({
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [isReceiptLoading, setIsReceiptLoading] = useState(false);
 
-  const displayAmount = customAmount
-    ? parseFloat(customAmount)
-    : selectedAmount;
+  const customValidation = useMemo(() => {
+    if (!customAmount || customAmount.trim() === "") {
+      return { amount: selectedAmount, error: "" };
+    }
+
+    const trimmed = customAmount.trim();
+
+    // 1. Reject scientific notation (e/E), signs (+/-), and special non-finite terms
+    if (
+      /[eE]/.test(trimmed) ||
+      /^[+-]/.test(trimmed) ||
+      /^[+-]?Infinity$/i.test(trimmed) ||
+      /^NaN$/i.test(trimmed)
+    ) {
+      return {
+        amount: null,
+        error: "Scientific notation and special characters (+, -, e, E) are not allowed.",
+      };
+    }
+
+    // 2. Strict positive decimal format with at most 2 decimal places
+    if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) {
+      return {
+        amount: null,
+        error: "Please enter a valid decimal amount (e.g. 50, 150.50) with at most 2 decimal places.",
+      };
+    }
+
+    const num = Number(trimmed);
+
+    // 3. Require finite positive number >= 1
+    if (!Number.isFinite(num) || isNaN(num) || num < 1) {
+      return {
+        amount: null,
+        error: "Donation amount must be at least ₹1.",
+      };
+    }
+
+    // 4. Enforce standard maximum online donation limit (₹5,00,000.00)
+    if (num > 500000) {
+      return {
+        amount: null,
+        error:
+          "Maximum online donation per transaction is ₹5,00,000. For larger institutional grants or corporate contributions, please contact our donation team directly.",
+      };
+    }
+
+    return { amount: num, error: "" };
+  }, [customAmount, selectedAmount]);
+
+  const displayAmount = customValidation.amount;
+  const customAmountError = customValidation.error;
 
   const activeTier = useMemo(() => {
     const amt = displayAmount || 0;
@@ -224,7 +274,11 @@ export function useDonationState({
 
   function setCustom(value: string) {
     setCustomAmount(value);
-    setSelectedAmount(null);
+    if (value.trim() !== "") {
+      setSelectedAmount(null);
+    } else {
+      setSelectedAmount(2000);
+    }
   }
 
   const handleSubmit = useCallback(
@@ -235,9 +289,14 @@ export function useDonationState({
         return;
       }
       const amount = displayAmount;
-      if (!amount || amount < 1) {
+      if (!amount || !Number.isFinite(amount) || amount < 1 || amount > 500000 || customAmountError) {
         setHasError(true);
-        setErrorMsg("Please choose an amount to donate.");
+        setErrorMsg(
+          customAmountError ||
+            (amount && amount > 500000
+              ? "Maximum online donation per transaction is ₹5,00,000. For larger institutional grants or corporate contributions, please contact our donation team directly."
+              : "Please enter a valid donation amount (minimum ₹1, maximum ₹5,00,000).")
+        );
         return;
       }
       setIsLoading(true);
@@ -314,6 +373,7 @@ export function useDonationState({
     },
     [
       displayAmount,
+      customAmountError,
       frequency,
       isAuthenticated,
       openAuthDialog,
@@ -344,7 +404,7 @@ export function useDonationState({
     setErrorMsg("");
     setConfirmedDonation(null);
     setReceiptUrl(null);
-    setSelectedAmount(50);
+    setSelectedAmount(2000);
     setCustomAmount("");
   }
 
@@ -359,6 +419,7 @@ export function useDonationState({
     selectedAmount,
     customAmount,
     displayAmount,
+    customAmountError,
     activeTier,
     submitted,
     hasError,

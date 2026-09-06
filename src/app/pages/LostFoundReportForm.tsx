@@ -79,6 +79,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
   const [eventAt, setEventAt] = useState("");
   const [dateError, setDateError] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
 
   // Auto-select pet matching urlPetId parameter when pets load
   useEffect(() => {
@@ -187,7 +188,17 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
       setPhotoError("Please upload at least one photo before submitting the report.");
       return;
     }
+    if (!mediaVideo) {
+      setPhotoError("An evidence video clip is required before submitting the report.");
+      return;
+    }
     setPhotoError(null);
+
+    if (kind === "found" && !description.trim()) {
+      setDescriptionError("Description is required.");
+      return;
+    }
+    setDescriptionError(null);
 
     if (eventAt) {
       const picked = new Date(eventAt);
@@ -495,6 +506,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                 <MediaUpload
                   label="Photos & Video of Animal"
                   required
+                  videoRequired
                   photos={mediaPhotos}
                   video={mediaVideo}
                   isUploading={isUploadingPhoto}
@@ -502,7 +514,10 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                     setMediaPhotos(photos);
                     if (photos.length > 0 && photoError) setPhotoError(null);
                   }}
-                  onChangeVideo={(vid) => setMediaVideo(vid)}
+                  onChangeVideo={(vid) => {
+                    setMediaVideo(vid);
+                    if (vid && photoError) setPhotoError(null);
+                  }}
                   onPrimaryPhotoChange={(file, dataUrl) => {
                     setSelectedPhotoFile(file);
                     setPhotoUrl(dataUrl);
@@ -516,10 +531,15 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                 {kind === "found" && (
                   <Textarea
                     id="found-description"
-                    label={labels.id}
+                    label="Description"
+                    required
                     placeholder="Distinctive features, collar colour, condition…"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                      if (descriptionError) setDescriptionError(null);
+                    }}
+                    error={descriptionError ?? undefined}
                     className="w-full min-h-[100px]"
                   />
                 )}

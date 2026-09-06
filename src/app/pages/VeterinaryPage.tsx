@@ -29,6 +29,8 @@ import {
   Input,
   Button,
   Badge,
+  PawGuardInfoCard,
+  type InfoCardVisualType,
 } from "../components/pawguard";
 import { useVeterinaryPartners } from "../hooks/useVeterinaryPartners";
 import { useVetClinics } from "../hooks/useVetClinics";
@@ -564,46 +566,47 @@ export default function VeterinaryPage() {
 
         <Reveal>
           <Section bg="card">
-            <div className="max-w-[800px] mx-auto flex flex-col gap-12">
+            <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto flex flex-col gap-10 sm:gap-12">
               <SectionHeading eyebrow="Vetted Partners" align="center">
                 Our Network, Their Expertise
               </SectionHeading>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-grid-md">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
                 {[
                   {
                     icon: ShieldCheck,
                     title: "Verified Clinics",
                     desc: "Every partner is vetted by PawGuard so your companion always receives reputable, standard-of-care treatment.",
+                    visualType: "verified-clinics" as InfoCardVisualType,
+                    accentVariant: "emerald" as const,
+                    badgeText: "Standard of Care",
                   },
                   {
                     icon: Syringe,
                     title: "Full-Circle Care",
                     desc: "From routine vaccinations to specialized surgery and radiology — a single trusted place for every need.",
+                    visualType: "full-circle-care" as InfoCardVisualType,
+                    accentVariant: "sky" as const,
+                    badgeText: "360° Services",
                   },
                   {
                     icon: Phone,
                     title: "Emergency, Day or Night",
                     desc: "Clinics marked Emergency operate round-the-clock and answer critical calls any hour, any day.",
+                    visualType: "emergency-care" as InfoCardVisualType,
+                    accentVariant: "amber" as const,
+                    badgeText: "24/7 Hotline",
                   },
-                ].map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <div
-                      key={item.title}
-                      className="bg-background border border-border rounded-card p-6 flex flex-col items-center text-center gap-3 shadow-sm"
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Icon size={22} className="text-primary" />
-                      </div>
-                      <h3 className="text-foreground font-bold text-base">
-                        {item.title}
-                      </h3>
-                      <p className="text-muted-foreground text-sm leading-relaxed">
-                        {item.desc}
-                      </p>
-                    </div>
-                  );
-                })}
+                ].map((item) => (
+                  <PawGuardInfoCard
+                    key={item.title}
+                    icon={item.icon}
+                    title={item.title}
+                    desc={item.desc}
+                    visualType={item.visualType}
+                    accentVariant={item.accentVariant}
+                    badgeText={item.badgeText}
+                  />
+                ))}
               </div>
             </div>
           </Section>

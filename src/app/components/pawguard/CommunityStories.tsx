@@ -29,7 +29,7 @@ const STORIES: StoryData[] = [
     type: "Golden Retriever Mix",
     quote: "The gentlest, most grateful dog we've ever known.",
     headline: "From the Streets of Millbrook to His Forever Home",
-    excerpt: "Bruno was found severely malnourished and unable to walk following a road accident. PawGuard's emergency team reached the scene in under 12 minutes.",
+    excerpt: "Bruno was found severely malnourished and unable to walk following a road accident. PawGuard's emergency team reached the scene with priority dispatch.",
     img: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1000&h=600&fit=crop&auto=format",
     adopter: "Helena & Stefan Lindqvist",
     date: "March 2024",

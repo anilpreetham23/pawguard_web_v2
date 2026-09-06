@@ -13,15 +13,15 @@ interface DonationActionPanelProps {
 }
 
 function formatSummary(amount: number | null, frequency: DonationFrequency): string {
-  if (!amount) return "Select an amount";
+  if (!amount) return "Select a valid amount";
   const fmt = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount);
-  const unit = frequency === "monthly" ? "/ month" : "/ one-time";
+  const unit = frequency === "monthly" ? " / month" : " / one-time";
   return `${fmt}${unit}`;
 }
 
 function formatCta(amount: number | null): string {
   if (!amount) return "Donate Now";
-  return `Give ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount)}`;
+  return `GIVE ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount)}`;
 }
 
 export function DonationActionPanel({
@@ -33,6 +33,7 @@ export function DonationActionPanel({
 }: DonationActionPanelProps) {
   const summary = formatSummary(displayAmount, frequency);
   const cta = formatCta(displayAmount);
+  const isInvalid = !displayAmount || !Number.isFinite(displayAmount) || displayAmount < 1 || displayAmount > 500000;
 
   const progressBar = isLoading ? (
     <div
@@ -59,10 +60,10 @@ export function DonationActionPanel({
               Your donation
             </span>
             <span aria-live="polite" className="flex items-baseline gap-1.5">
-              <span className="font-mono text-3xl font-bold tabular-nums text-foreground">{formatSummary(displayAmount, frequency)}</span>
+              <span className="font-mono text-3xl font-bold tabular-nums text-foreground">{summary}</span>
             </span>
             <span className="text-sm leading-relaxed text-muted-foreground">
-              {activeTier.impact}
+              {displayAmount ? activeTier.impact : "Please enter or select a valid donation amount."}
             </span>
           </div>
 
@@ -75,6 +76,7 @@ export function DonationActionPanel({
               variant="primary"
               size="lg"
               isLoading={isLoading}
+              disabled={isInvalid || isLoading}
               context="donate"
               className="w-full"
               data-analytics-cta="donate-submit"
@@ -102,6 +104,7 @@ export function DonationActionPanel({
               variant="primary"
               size="md"
               isLoading={isLoading}
+              disabled={isInvalid || isLoading}
               context="donate"
               className="shrink-0"
               data-analytics-cta="donate-submit"
@@ -109,7 +112,9 @@ export function DonationActionPanel({
               {cta}
             </Button>
           </div>
-          <span className="pr-1 text-2xs text-muted-foreground">{activeTier.impact}</span>
+          <span className="pr-1 text-2xs text-muted-foreground">
+            {displayAmount ? activeTier.impact : "Please enter or select a valid donation amount."}
+          </span>
         </div>
       </div>
     </>

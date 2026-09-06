@@ -10,7 +10,7 @@ export type StatCardAccent = "green" | "navy" | "amber" | "community";
 export interface PawGuardFlipStatCardProps {
   /** Front side icon element */
   icon: React.ReactNode;
-  /** Front side main statistic value (e.g. "501(c)(3)", "4,200+", "<12 min", "800+") */
+  /** Front side main statistic value (e.g. "501(c)(3)", "4,200+", "Priority", "800+") */
   stat: string;
   /** Optional numeric value for count-up animation */
   statNum?: number;

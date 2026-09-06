@@ -841,6 +841,24 @@ export interface PublicRescueStatusResponse {
   created_at: string;
 }
 
+/**
+ * `GET /public/rescue/track/{ticket_number}` payload (`PublicRescueTrackResponse`).
+ * Authoritative public status tracking response.
+ */
+export interface PublicRescueTrackResponse {
+  ticket_number: string;
+  status: RescueStatus;
+  severity: string;
+  animal_count?: number;
+  location_address?: string | null;
+  created_at: string;
+  estimated_arrival_minutes?: number | null;
+  eta_display?: string | null;
+  driver_assigned?: boolean | string | null;
+  vehicle_id?: string | null;
+  stage_history?: Array<{ stage: string; timestamp?: string | null }>;
+}
+
 /** `GET /portal/success-stories` payload (`SuccessStoryResponse`). */
 export interface SuccessStoryResponse {
   id: string;
@@ -1510,7 +1528,8 @@ export interface FosterPlacementResponse {
   foster_id: string;
   dog_id: string;
   status: FosterPlacementStatus;
-  start_date: string;
+  placed_at?: string;
+  start_date?: string;
   end_date: string | null;
   notes: string | null;
   created_at: string;

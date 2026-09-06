@@ -18,7 +18,10 @@ export function useAdoptionPets(params?: Parameters<typeof adoptionService.listD
     queryKey: [QUERY_KEYS.adoption.pets, params],
     queryFn: () =>
       adoptionService.listDogs({ is_adoptable: true, page_size: 24, ...params }),
-    select: (page) => page.items.map(dogProfileToPet),
+    select: (page) =>
+      page.items
+        .map(dogProfileToPet)
+        .filter((pet) => pet.adoptionBadge !== "adopted"),
   });
 }
 

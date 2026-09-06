@@ -30,6 +30,7 @@ export interface MediaItem {
 export interface MediaUploadProps {
   label?: string;
   required?: boolean;
+  videoRequired?: boolean;
   maxPhotos?: number;
   maxVideos?: number;
   photos?: MediaItem[];
@@ -45,6 +46,7 @@ export interface MediaUploadProps {
 export function MediaUpload({
   label = "Evidence Photos & Video",
   required = true,
+  videoRequired = false,
   maxPhotos = 5,
   maxVideos = 1,
   photos = [],
@@ -338,7 +340,7 @@ export function MediaUpload({
         <div className="flex items-center justify-between">
           <span className="text-foreground text-xs font-semibold uppercase tracking-wider font-condensed flex items-center gap-1">
             <VideoIcon size={13} className="text-primary" />
-            Evidence Video ({video ? 1 : 0} / {maxVideos})
+            Evidence Video ({video ? 1 : 0} / {maxVideos}) {videoRequired && <span className="text-destructive">*</span>}
           </span>
           {!video && (
             <Button
@@ -372,7 +374,7 @@ export function MediaUpload({
             </div>
             <div className="flex flex-col">
               <span className="text-foreground font-semibold text-xs tracking-wider uppercase font-condensed group-hover:text-primary transition-colors">
-                Add Video Clip (Optional — Max 100MB)
+                Add Video Clip ({videoRequired ? "Required *" : "Optional"} — Max 100MB)
               </span>
               <span className="text-muted-foreground text-2xs">
                 Supports MP4, WEBM, MOV video clips of animal behavior or surroundings

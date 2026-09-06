@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   User,
   ArrowRight,
-  Calendar,
   Package,
   Heart,
   Info,
@@ -154,13 +153,32 @@ export default function FosterDashboardPage() {
     e.preventDefault();
     if (!placementId) return;
     setLogError(null);
+
+    // 1. Validate weight_kg if provided
+    if (logForm.weight_kg.trim() !== "") {
+      const w = Number(logForm.weight_kg);
+      if (!Number.isFinite(w) || w <= 0) {
+        setLogError("Weight must be greater than 0 kg.");
+        return;
+      }
+    }
+
+    // 2. Validate exercise_minutes if provided
+    if (logForm.exercise_minutes.trim() !== "") {
+      const m = Number(logForm.exercise_minutes);
+      if (!Number.isFinite(m) || !Number.isInteger(m) || m < 0) {
+        setLogError("Exercise time must be a whole number of minutes (0 or more).");
+        return;
+      }
+    }
+
     setIsSubmittingLog(true);
 
     try {
       await fosterService.createPlacementProgress(placementId, {
-        weight_kg: logForm.weight_kg ? Number(logForm.weight_kg) : null,
+        weight_kg: logForm.weight_kg.trim() !== "" ? Number(logForm.weight_kg) : null,
         mood_rating: logForm.mood_rating ? Number(logForm.mood_rating) : null,
-        exercise_minutes: logForm.exercise_minutes ? Number(logForm.exercise_minutes) : null,
+        exercise_minutes: logForm.exercise_minutes.trim() !== "" ? Number(logForm.exercise_minutes) : null,
         feeding_notes: logForm.feeding_notes.trim() || null,
         medication_notes: logForm.medication_notes.trim() || null,
         behavior_notes: logForm.behavior_notes.trim() || null,
@@ -273,8 +291,7 @@ export default function FosterDashboardPage() {
           />
           <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-section-md flex flex-col gap-6">
             <div className="h-28 bg-muted/40 animate-pulse rounded-card" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="h-32 bg-muted/40 animate-pulse rounded-card" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="h-32 bg-muted/40 animate-pulse rounded-card" />
               <div className="h-32 bg-muted/40 animate-pulse rounded-card" />
               <div className="h-32 bg-muted/40 animate-pulse rounded-card" />
@@ -374,8 +391,8 @@ export default function FosterDashboardPage() {
 
                 <div className="flex flex-col text-right text-xs text-muted-foreground gap-1 shrink-0">
                   <span>Profile ID: <code className="text-foreground font-mono">{fosterProfile.id.slice(0, 8)}...</code></span>
-                  <span>Registered: <strong className="text-foreground">{formatDate(fosterProfile.created_at)}</strong></span>
-                  <span>Last Updated: <strong className="text-foreground">{formatDate(fosterProfile.updated_at)}</strong></span>
+                  <span>Registered: <strong className="text-foreground">{formatDate(fosterProfile.created_at || (fosterProfile as unknown as Record<string, unknown>).createdAt as string || (fosterProfile as unknown as Record<string, unknown>).created_date as string)}</strong></span>
+                  <span>Last Updated: <strong className="text-foreground">{formatDate(fosterProfile.updated_at || (fosterProfile as unknown as Record<string, unknown>).updatedAt as string || (fosterProfile as unknown as Record<string, unknown>).updated_date as string)}</strong></span>
                 </div>
               </div>
             </Card>
@@ -383,7 +400,7 @@ export default function FosterDashboardPage() {
 
           {/* ── OVERVIEW STATS GRID ─────────────────────────────────────────── */}
           <Reveal>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {/* Max Capacity */}
               <Card className="p-6 flex flex-col gap-2">
                 <div className="flex items-center justify-between">
@@ -425,26 +442,18 @@ export default function FosterDashboardPage() {
                   <ShieldCheck size={18} className="text-primary" />
                 </div>
                 <p className="text-xl font-bold text-foreground font-serif">
-                  {fosterProfile.is_available ? "Available" : "Unavailable"}
+                  {placements.length > 0 && placements.length >= fosterProfile.max_capacity
+                    ? `At Capacity (${placements.length}/${fosterProfile.max_capacity})`
+                    : fosterProfile.is_available
+                    ? "Available"
+                    : "Unavailable"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {fosterProfile.is_available ? "Ready for placement matching" : "Paused for new placements"}
-                </p>
-              </Card>
-
-              {/* Application Date */}
-              <Card className="p-6 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Application Date
-                  </span>
-                  <Calendar size={18} className="text-primary" />
-                </div>
-                <p className="text-xl font-bold text-foreground font-serif">
-                  {formatDate(fosterProfile.created_at)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Profile creation date
+                  {placements.length > 0 && placements.length >= fosterProfile.max_capacity
+                    ? "Currently fostering at maximum home capacity"
+                    : fosterProfile.is_available
+                    ? "Ready for placement matching"
+                    : "Paused for new placements"}
                 </p>
               </Card>
             </div>
@@ -472,9 +481,9 @@ export default function FosterDashboardPage() {
                     <Card className="p-6 flex flex-col gap-6 border-primary/20 bg-primary/5">
                       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 pb-4">
                         <div className="flex items-center gap-4">
-                          {(selectedPlacement.dog?.image_url ?? selectedPlacement.dog?.photo_url ?? selectedPlacement.dog?.image_urls?.[0]) ? (
+                          {(selectedPlacement.dog?.image_urls?.[0] ?? selectedPlacement.dog?.photo_gallery_urls?.[0] ?? selectedPlacement.dog?.image_url ?? selectedPlacement.dog?.photo_url) ? (
                             <img
-                              src={(selectedPlacement.dog?.image_url ?? selectedPlacement.dog?.photo_url ?? selectedPlacement.dog?.image_urls?.[0])!}
+                              src={(selectedPlacement.dog?.image_urls?.[0] ?? selectedPlacement.dog?.photo_gallery_urls?.[0] ?? selectedPlacement.dog?.image_url ?? selectedPlacement.dog?.photo_url)!}
                               alt={selectedPlacement.dog?.name ?? "Foster Dog"}
                               className="w-16 h-16 rounded-xl object-cover"
                             />
@@ -491,7 +500,7 @@ export default function FosterDashboardPage() {
                               <Badge variant="success">Active Placement</Badge>
                             </div>
                             <p className="text-muted-foreground text-sm">
-                              {selectedPlacement.dog?.breed ?? "Rescue Dog"} · {selectedPlacement.dog?.gender ?? "Unknown"} · Placed on {formatDate(selectedPlacement.start_date)}
+                              {selectedPlacement.dog?.breed ?? "Rescue Dog"} · {selectedPlacement.dog?.gender ?? "Unknown"} · Placed on {formatDate(selectedPlacement.placed_at || selectedPlacement.start_date)}
                             </p>
                           </div>
                         </div>
@@ -564,7 +573,7 @@ export default function FosterDashboardPage() {
                             <span className="text-xs font-semibold text-muted-foreground uppercase block mb-1">
                               Placement Start Date
                             </span>
-                            <span className="text-foreground font-medium">{formatDate(selectedPlacement.start_date)}</span>
+                            <span className="text-foreground font-medium">{formatDate(selectedPlacement.placed_at || selectedPlacement.start_date)}</span>
                           </div>
                           <div className="bg-background p-4 rounded-card border border-border">
                             <span className="text-xs font-semibold text-muted-foreground uppercase block mb-1">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Heart,
@@ -152,10 +152,26 @@ const FAQS = [
   },
 ];
 
-export default function FosterPage() {
+export interface FosterPageProps {
+  initialFocusApply?: boolean;
+}
+
+export default function FosterPage({ initialFocusApply = false }: FosterPageProps) {
   const { isAuthenticated, openAuthDialog } = useAuth();
   const { status, fosterProfile, canApply, isApproved, isPending, refetch } = useFosterStatus();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  useEffect(() => {
+    if (initialFocusApply) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById("apply");
+        if (el) {
+          scrollTo(el);
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [initialFocusApply]);
 
   // Form State (ONLY supported API fields: preferences, max_capacity, notes)
   const [preferences, setPreferences] = useState("");

@@ -128,7 +128,7 @@ export function dogProfileToPet(dog: DogProfileResponse): Pet {
 
   const imageUrls = rawImages.length > 0 ? Array.from(new Set(rawImages)) : undefined;
   const photoGalleryUrls = dog.photo_gallery_urls?.filter(Boolean) ?? imageUrls;
-  const primaryImage = imageUrls?.[0] || photoGalleryUrls?.[0] || undefined;
+  const primaryImage = dog.image_urls?.[0] || dog.photo_gallery_urls?.[0] || dog.image_url || dog.photo_url || undefined;
 
   return {
     id: dog.id,

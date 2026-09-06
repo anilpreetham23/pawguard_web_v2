@@ -15,6 +15,7 @@ import { API_ROUTES, apiGet, apiGetPage, apiPost } from "@/lib/api";
 import type {
   Page,
   PublicRescueStatusResponse,
+  PublicRescueTrackResponse,
   RescueMediaUploadRequest,
   RescueMediaUploadResponse,
   RescueQueryParams,
@@ -103,6 +104,29 @@ export const rescueService = {
     });
   },
 
+  /**
+   * `GET /public/rescue/track/{ticket_number}` — authoritative public status tracking.
+   */
+  trackPublicReport(
+    ticketNumber: string
+  ): Promise<PublicRescueTrackResponse> {
+    return apiGet<PublicRescueTrackResponse>(
+      API_ROUTES.rescue.publicTrack(ticketNumber),
+      { auth: false }
+    ).catch(() =>
+      // Fallback to /rescue/status if needed
+      apiGet<PublicRescueStatusResponse>(API_ROUTES.rescue.status, {
+        params: { ticket_number: ticketNumber },
+      }).then((res) => ({
+        ticket_number: res.ticket_number,
+        status: res.status,
+        severity: res.severity,
+        animal_count: res.animal_count,
+        created_at: res.created_at,
+      }))
+    );
+  },
+
   /** `GET /portal/success-stories` — published rescue success stories. */
   getSuccessStories(): Promise<SuccessStoryResponse[]> {
     return apiGet<SuccessStoryResponse[]>(API_ROUTES.community.successStories);
@@ -116,6 +140,8 @@ export const rescueService = {
 
 export type {
   Page,
+  PublicRescueStatusResponse,
+  PublicRescueTrackResponse,
   RescueQueryParams,
   RescueRequestCreate,
   RescueRequestResponse,

@@ -43,7 +43,7 @@ const STAGES = [
     title: "Rescue Vehicle En Route",
     description:
       "The nearest team heads out with live GPS tracking, and you get a real-time ETA.",
-    duration: "Under 12 minutes",
+    duration: "Priority dispatch",
     team: "Rescue Operations",
     image: "/images/rescue-process/step-3.webp",
     emotion: "Alert",

@@ -30,9 +30,9 @@ export default function AboutPage() {
   const aboutText = publicContent?.about_us || "PawGuard began in 2018 when Dr. Sarah Chen, then a veterinary surgeon, responded to a series of uncoordinated dog rescue calls in her city and realized that good intentions were not enough. Dogs were slipping through gaps between organizations, jurisdictions, and volunteer networks.";
 
   const statsList = [
-    { value: impactStats[0]?.value || "4,200+", label: "Dogs Rescued" },
-    { value: impactStats[1]?.value || "1,850+", label: "Successful Adoptions" },
-    { value: impactStats[2]?.value || "800+", label: "Active Volunteers" },
+    { value: impactStats[0]?.value || "—", label: "Dogs Rescued" },
+    { value: impactStats[1]?.value || "—", label: "Successful Adoptions" },
+    { value: impactStats[2]?.value || "—", label: "Active Volunteers" },
     { value: "12", label: "Municipalities Served" },
   ];
 
@@ -43,7 +43,7 @@ export default function AboutPage() {
           <PageHeader
             eyebrow="About PawGuard"
             title="A rescue system built by veterinarians, for speed."
-            subtitle="PawGuard coordinates emergency rescue, adoption, and veterinary care across 12 municipalities. We respond to critical emergencies in under 12 minutes."
+            subtitle="PawGuard coordinates emergency rescue, adoption, and veterinary care across 12 municipalities with priority dispatch for critical cases."
             right={
               <div className="aspect-[4/3] lg:aspect-[16/9] bg-secondary rounded-img overflow-hidden shadow-md">
                 <img

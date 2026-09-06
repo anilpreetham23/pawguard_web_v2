@@ -6,8 +6,8 @@ export const EMERGENCY = {
 };
 
 export const SITE_STATS = {
-  rescuedDogs: "4,200+",
-  successfulAdoptions: "1,800+",
-  volunteers: "600+",
-  activeCases: "32",
+  rescuedDogs: "—",
+  successfulAdoptions: "—",
+  volunteers: "—",
+  activeCases: "—",
 };

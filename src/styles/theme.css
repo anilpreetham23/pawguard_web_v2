@@ -903,7 +903,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
+    @apply bg-background text-foreground font-sans antialiased overflow-x-clip;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
@@ -914,6 +914,7 @@
   html {
     font-size: var(--font-size);
     scroll-padding-top: calc(var(--header-height) + 8px);
+    overflow-x: clip;
   }
 
   ::-webkit-scrollbar {

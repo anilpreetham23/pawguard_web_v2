@@ -26,8 +26,8 @@ export default function TrustBar() {
   useAmbientPause(sectionRef);
   const impactStats = useImpactStats();
 
-  const dogsRescuedValue = impactStats[0]?.value ?? "4,200+";
-  const activeVolunteersValue = impactStats[2]?.value ?? "800+";
+  const dogsRescuedValue = impactStats[0]?.value ?? "—";
+  const activeVolunteersValue = impactStats[2]?.value ?? "—";
 
   const trusts: TrustItem[] = [
     {
@@ -59,7 +59,7 @@ export default function TrustBar() {
     },
     {
       stat: dogsRescuedValue,
-      statNum: 4200,
+      statNum: parseInt(dogsRescuedValue.replace(/[^\d]/g, ""), 10) || 0,
       title: "Dogs Rescued",
       tagline: "Each number has a name and a story",
       backBadge: "RESCUE IMPACT",
@@ -88,9 +88,9 @@ export default function TrustBar() {
       ),
     },
     {
-      stat: "<12 min",
-      statNum: 12,
-      title: "Rescue Dispatch",
+      stat: "24/7",
+      statNum: 0,
+      title: "Priority Dispatch",
       tagline: "Priority routing that saves lives",
       backBadge: "DISPATCH",
       backTitle: "Rapid Response",

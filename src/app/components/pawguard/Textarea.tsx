@@ -28,7 +28,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
           htmlFor={inputId}
           className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed"
         >
-          {label}
+          {label} {props.required && !label.includes("*") && <span className="text-destructive">*</span>}
         </label>
       )}
       <textarea
