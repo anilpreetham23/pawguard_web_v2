@@ -42,6 +42,7 @@ import type {
   VolunteerProfileResponse,
   VolunteerShiftResponse,
   ShiftAttendanceResponse,
+  VolunteerApplicationInfo,
   Page,
 } from "@/lib/api";
 
@@ -295,17 +296,25 @@ export default function VolunteerDashboardPage() {
   } = useVolunteerStatus();
 
   const volunteerProfile =
+    (summary?.volunteer_profile as VolunteerProfileResponse | null) ??
     volunteerStatus?.profile ??
-    (summary?.volunteer_profile as VolunteerProfileResponse | null);
+    null;
 
-  const applicationInfo = volunteerStatus?.application;
+  const applicationInfo =
+    volunteerStatus?.application ??
+    ((summary as any)?.volunteer_application as VolunteerApplicationInfo | null) ??
+    null;
   const vLifecycleStatus = normalizeVolunteerLifecycleStatus(
     volunteerStatus?.status,
     volunteerProfile,
     applicationInfo
   );
 
-  const canApply = volunteerStatus ? volunteerStatus.can_apply : !volunteerProfile;
+  const canApply = volunteerProfile
+    ? false
+    : volunteerStatus
+    ? volunteerStatus.can_apply
+    : true;
   const canReapply = volunteerStatus ? volunteerStatus.can_reapply : false;
   const profileId = volunteerProfile?.id;
 

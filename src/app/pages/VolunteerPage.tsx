@@ -171,7 +171,11 @@ export default function VolunteerPage() {
     applicationInfo
   );
 
-  const canApply = volunteerStatus ? volunteerStatus.can_apply : !volunteerProfile;
+  const canApply = volunteerProfile
+    ? false
+    : volunteerStatus
+    ? volunteerStatus.can_apply
+    : true;
   const canReapply = volunteerStatus ? volunteerStatus.can_reapply : false;
   const [form, setForm] = useState({
     emergencyContactName: "",

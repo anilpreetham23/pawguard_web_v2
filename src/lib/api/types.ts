@@ -1681,58 +1681,81 @@ export function normalizeVolunteerLifecycleStatus(
   profile?: VolunteerProfileResponse | Record<string, unknown> | null,
   application?: VolunteerApplicationInfo | Record<string, unknown> | null
 ): VolunteerLifecycleStatus {
-  const statusStr = (
-    rawStatus ||
+  let candidate = (rawStatus || "").toString().trim().toUpperCase();
+
+  const profileStatus = (
     (profile as any)?.status ||
-    (application as any)?.status ||
+    (profile as any)?.lifecycle_status ||
     ""
   )
     .toString()
     .trim()
     .toUpperCase();
 
+  const appStatus = (
+    (application as any)?.status ||
+    (application as any)?.lifecycle_status ||
+    ""
+  )
+    .toString()
+    .trim()
+    .toUpperCase();
+
+  // A real existing profile or application MUST take precedence over a synthetic NOT_APPLIED fallback
+  if (profile) {
+    if (profileStatus && profileStatus !== "NOT_APPLIED") {
+      candidate = profileStatus;
+    } else if (candidate === "NOT_APPLIED" || !candidate) {
+      candidate = "ACTIVE";
+    }
+  } else if (application) {
+    if (appStatus && appStatus !== "NOT_APPLIED") {
+      candidate = appStatus;
+    } else if (candidate === "NOT_APPLIED" || !candidate) {
+      candidate = "PENDING";
+    }
+  }
+
   if (
-    statusStr === "ACTIVE" ||
-    statusStr === "APPROVED" ||
-    statusStr === "ONBOARDED" ||
-    statusStr === "COMPLETED" ||
-    statusStr === "PASSED"
+    candidate === "ACTIVE" ||
+    candidate === "APPROVED" ||
+    candidate === "ONBOARDED" ||
+    candidate === "COMPLETED" ||
+    candidate === "PASSED"
   ) {
     return "ACTIVE";
   }
 
   if (
-    statusStr === "PENDING" ||
-    statusStr === "APPLIED" ||
-    statusStr === "UNDER_REVIEW" ||
-    statusStr === "SUBMITTED" ||
-    statusStr === "REVIEWING"
+    candidate === "PENDING" ||
+    candidate === "APPLIED" ||
+    candidate === "UNDER_REVIEW" ||
+    candidate === "SUBMITTED" ||
+    candidate === "REVIEWING"
   ) {
     return "PENDING";
   }
 
   if (
-    statusStr === "REJECTED" ||
-    statusStr === "DECLINED" ||
-    statusStr === "DENIED"
+    candidate === "REJECTED" ||
+    candidate === "DECLINED" ||
+    candidate === "DENIED"
   ) {
     return "REJECTED";
   }
 
   if (
-    statusStr === "INACTIVE" ||
-    statusStr === "DISABLED" ||
-    statusStr === "SUSPENDED"
+    candidate === "INACTIVE" ||
+    candidate === "DISABLED" ||
+    candidate === "SUSPENDED"
   ) {
     return "INACTIVE";
   }
 
-  // If a profile object is present, default to ACTIVE (or PENDING if pending flag)
   if (profile) {
     return "ACTIVE";
   }
 
-  // If an application object is present, default to PENDING
   if (application) {
     return "PENDING";
   }
