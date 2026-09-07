@@ -548,7 +548,7 @@ export default function VolunteerDashboardPage() {
   }
 
   // 3. Dashboard summary & status loading state
-  if (isSummaryLoading || isStatusLoading) {
+  if ((isSummaryLoading || isStatusLoading) && !volunteerProfile) {
     return (
       <PageShell>
         <main id="main-content" className="flex-1 max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-[calc(var(--header-height)+2rem)] pb-12">
@@ -562,8 +562,9 @@ export default function VolunteerDashboardPage() {
     );
   }
 
-  // 4. API Error state (e.g. HTTP 500 database error)
-  if (isStatusError || isSummaryError) {
+  // 4. API Error state (e.g. HTTP 500 database error when no profile is available)
+  const hasBlockingError = !volunteerProfile && (isStatusError || isSummaryError);
+  if (hasBlockingError) {
     const errorObj = statusError || summaryError;
     return (
       <PageShell>
