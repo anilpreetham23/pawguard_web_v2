@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   Heart,
   Sparkles,
+  Check,
+  ShieldCheck,
 } from "lucide-react";
 import { PageShell, Section, Card, Reveal, Button, Input, Textarea, Badge, EmptyState, SuccessState, Skeleton, Alert } from "../components/pawguard";
 import SectionHeading from "../components/SectionHeading";
@@ -36,6 +38,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from "../components/ui/dialog";
+import AdoptionIdentityVerification, {
+  type AdoptionIdentityData,
+} from "../components/adoption/AdoptionIdentityVerification";
 
 const energyLabels: Record<string, string> = {
   Low: "Easy-going",
@@ -114,6 +119,7 @@ function AdoptionApplicationModal({
   onSuccess: () => void;
 }) {
   const queryClient = useQueryClient();
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [form, setForm] = useState({
     residentialStatus: "owned",
     hasLandlordApproval: true,
@@ -122,8 +128,22 @@ function AdoptionApplicationModal({
     existingPetsMedicalDetails: "",
     petCareExperience: "",
   });
+  const [identityData, setIdentityData] = useState<AdoptionIdentityData>({
+    aadhaarStatus: "NOT_STARTED",
+    maskedAadhaar: undefined,
+    primaryDocument: null,
+    secondaryDocument: null,
+    isIdentityVerified: false,
+  });
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setStep(1);
+      setSubmitError(null);
+    }
+  }, [isOpen]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -158,123 +178,289 @@ function AdoptionApplicationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[600px] w-full p-6 sm:p-8 rounded-card border-border bg-card shadow-2xl gap-6">
-        <DialogHeader className="text-left gap-2 pr-8">
-          <Badge variant="neutral">Adoption Screening</Badge>
+      <DialogContent className="max-w-[640px] max-h-[85vh] overflow-y-auto w-full p-6 sm:p-8 rounded-card border-border bg-card shadow-2xl gap-5">
+        <DialogHeader className="text-left gap-1.5 pr-8">
+          <Badge variant="neutral">Adoption Application Wizard</Badge>
           <DialogTitle className="font-serif font-bold text-2xl sm:text-3xl text-foreground">
             Adoption Application for {petName}
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground text-sm">
-            Please complete the screening details below so our adoption team can review your application.
+          <DialogDescription className="text-muted-foreground text-xs sm:text-sm">
+            Complete the 3-step application form including identity verification so our team can review your application.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          {submitError && (
-            <Alert variant="error" title="Couldn't submit your application">
-              {submitError}
-            </Alert>
-          )}
-
-          <div className="flex flex-col gap-2">
-            <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
-              Housing Arrangement *
-            </label>
-            <select
-              value={form.residentialStatus}
-              onChange={(e) => setForm({ ...form, residentialStatus: e.target.value })}
-              className="w-full bg-background border border-border rounded-btn px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
-              required
+        {/* 3-Step Stepper Header */}
+        <div className="flex items-center justify-between border-b border-border pb-3 mb-1">
+          <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors shrink-0",
+                step === 1
+                  ? "bg-primary text-primary-foreground"
+                  : step > 1
+                  ? "bg-emerald-600 text-white"
+                  : "bg-muted text-muted-foreground"
+              )}
             >
-              <option value="owned">I own my home</option>
-              <option value="rented">I rent (Landlord approval required)</option>
-              <option value="other">Other housing arrangement</option>
-            </select>
+              {step > 1 ? <Check size={12} /> : "1"}
+            </div>
+            <span
+              className={cn(
+                "text-2xs sm:text-xs font-semibold",
+                step === 1 ? "text-foreground font-bold" : "text-muted-foreground"
+              )}
+            >
+              1. Housing
+            </span>
           </div>
+          <div className="h-[1px] flex-1 bg-border mx-2" />
+          <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors shrink-0",
+                step === 2
+                  ? "bg-primary text-primary-foreground"
+                  : step > 2
+                  ? "bg-emerald-600 text-white"
+                  : "bg-muted text-muted-foreground"
+              )}
+            >
+              {step > 2 ? <Check size={12} /> : "2"}
+            </div>
+            <span
+              className={cn(
+                "text-2xs sm:text-xs font-semibold",
+                step === 2 ? "text-foreground font-bold" : "text-muted-foreground"
+              )}
+            >
+              2. Identity
+            </span>
+          </div>
+          <div className="h-[1px] flex-1 bg-border mx-2" />
+          <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors shrink-0",
+                step === 3
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+              )}
+            >
+              3
+            </div>
+            <span
+              className={cn(
+                "text-2xs sm:text-xs font-semibold",
+                step === 3 ? "text-foreground font-bold" : "text-muted-foreground"
+              )}
+            >
+              3. Review
+            </span>
+          </div>
+        </div>
 
-          {form.residentialStatus === "rented" && (
+        {/* STEP 1: Housing & Residence Details */}
+        {step === 1 && (
+          <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
+                Housing Arrangement *
+              </label>
+              <select
+                value={form.residentialStatus}
+                onChange={(e) => setForm({ ...form, residentialStatus: e.target.value })}
+                className="w-full bg-background border border-border rounded-btn px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+                required
+              >
+                <option value="owned">I own my home</option>
+                <option value="rented">I rent (Landlord approval required)</option>
+                <option value="other">Other housing arrangement</option>
+              </select>
+            </div>
+
+            {form.residentialStatus === "rented" && (
+              <label className="flex items-center gap-3 cursor-pointer p-3 bg-muted/40 rounded-card border border-border">
+                <input
+                  type="checkbox"
+                  checked={form.hasLandlordApproval}
+                  onChange={(e) => setForm({ ...form, hasLandlordApproval: e.target.checked })}
+                  className="w-4 h-4 accent-primary rounded shrink-0"
+                />
+                <span className="text-sm text-foreground">
+                  I have explicit landlord approval to keep a dog in my residence
+                </span>
+              </label>
+            )}
+
             <label className="flex items-center gap-3 cursor-pointer p-3 bg-muted/40 rounded-card border border-border">
               <input
                 type="checkbox"
-                checked={form.hasLandlordApproval}
-                onChange={(e) => setForm({ ...form, hasLandlordApproval: e.target.checked })}
+                checked={form.hasYardFence}
+                onChange={(e) => setForm({ ...form, hasYardFence: e.target.checked })}
                 className="w-4 h-4 accent-primary rounded shrink-0"
               />
               <span className="text-sm text-foreground">
-                I have explicit landlord approval to keep a dog in my residence
+                Residence has a secure enclosed yard / fenced outdoor space
               </span>
             </label>
-          )}
 
-          <label className="flex items-center gap-3 cursor-pointer p-3 bg-muted/40 rounded-card border border-border">
-            <input
-              type="checkbox"
-              checked={form.hasYardFence}
-              onChange={(e) => setForm({ ...form, hasYardFence: e.target.checked })}
-              className="w-4 h-4 accent-primary rounded shrink-0"
-            />
-            <span className="text-sm text-foreground">
-              Residence has a secure enclosed yard / fenced outdoor space
-            </span>
-          </label>
+            <div className="flex flex-col gap-2">
+              <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
+                Household Members Count
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={20}
+                value={form.householdMembersCount}
+                onFocus={(e) => e.currentTarget.select()}
+                onMouseUp={(e) => {
+                  if (e.currentTarget.selectionStart === e.currentTarget.selectionEnd) {
+                    e.currentTarget.select();
+                  }
+                }}
+                onChange={(e) => {
+                  setForm({ ...form, householdMembersCount: e.target.value });
+                }}
+                onBlur={() => {
+                  const parsed = parseInt(String(form.householdMembersCount), 10);
+                  if (isNaN(parsed) || parsed < 1) {
+                    setForm({ ...form, householdMembersCount: "1" });
+                  } else if (parsed > 20) {
+                    setForm({ ...form, householdMembersCount: "20" });
+                  } else {
+                    setForm({ ...form, householdMembersCount: String(parsed) });
+                  }
+                }}
+                className="w-full bg-background border border-border rounded-btn px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+              />
+            </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
-              Household Members Count
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={20}
-              value={form.householdMembersCount}
-              onFocus={(e) => e.currentTarget.select()}
-              onMouseUp={(e) => {
-                if (e.currentTarget.selectionStart === e.currentTarget.selectionEnd) {
-                  e.currentTarget.select();
-                }
-              }}
-              onChange={(e) => {
-                setForm({ ...form, householdMembersCount: e.target.value });
-              }}
-              onBlur={() => {
-                const parsed = parseInt(String(form.householdMembersCount), 10);
-                if (isNaN(parsed) || parsed < 1) {
-                  setForm({ ...form, householdMembersCount: "1" });
-                } else if (parsed > 20) {
-                  setForm({ ...form, householdMembersCount: "20" });
-                } else {
-                  setForm({ ...form, householdMembersCount: String(parsed) });
-                }
-              }}
-              className="w-full bg-background border border-border rounded-btn px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
-            />
+            <div className="pt-3 border-t border-border flex items-center justify-end gap-3">
+              <Button type="button" variant="outline" size="md" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                onClick={() => setStep(2)}
+              >
+                Next: Identity Verification
+              </Button>
+            </div>
           </div>
+        )}
 
-          <Textarea
-            label="Existing Pets & Medical Details (Optional)"
-            placeholder="List any pets currently living in your household and their vaccination status..."
-            value={form.existingPetsMedicalDetails}
-            onChange={(e) => setForm({ ...form, existingPetsMedicalDetails: e.target.value })}
-            rows={2}
-          />
+        {/* STEP 2: Identity Verification */}
+        {step === 2 && (
+          <div className="flex flex-col gap-5">
+            <AdoptionIdentityVerification
+              value={identityData}
+              onChange={setIdentityData}
+            />
 
-          <Textarea
-            label="Pet Care Experience (Optional)"
-            placeholder="Briefly describe your experience caring for dogs or animals..."
-            value={form.petCareExperience}
-            onChange={(e) => setForm({ ...form, petCareExperience: e.target.value })}
-            rows={2}
-          />
+            {!identityData.primaryDocument && (
+              <p className="text-xs text-amber-700 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-card">
+                Please connect your Primary Identity Document via DigiLocker above to proceed with the adoption application.
+              </p>
+            )}
 
-          <div className="pt-3 border-t border-border flex items-center justify-end gap-3">
-            <Button type="button" variant="outline" size="md" onClick={onClose} disabled={submitting}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" size="md" isLoading={submitting}>
-              Submit Application
-            </Button>
+            <div className="pt-3 border-t border-border flex items-center justify-between gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={() => setStep(1)}
+              >
+                Back to Housing
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                disabled={!identityData.primaryDocument}
+                onClick={() => setStep(3)}
+              >
+                Next: Care & Review
+              </Button>
+            </div>
           </div>
-        </form>
+        )}
+
+        {/* STEP 3: Experience & Final Submission */}
+        {step === 3 && (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            {submitError && (
+              <Alert variant="error" title="Couldn't submit your application">
+                {submitError}
+              </Alert>
+            )}
+
+            {/* Identity Summary Card */}
+            <div className="p-4 rounded-card bg-emerald-500/5 border border-emerald-500/20 flex flex-col gap-2.5">
+              <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-wider">
+                <ShieldCheck size={16} />
+                Verified Identity Attachment (Simulated Sandbox)
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-foreground">
+                <div>
+                  <span className="text-muted-foreground">Aadhaar Status: </span>
+                  <span className="font-semibold">
+                    {identityData.aadhaarStatus === "VERIFIED"
+                      ? `Match (${identityData.maskedAadhaar || "XXXX XXXX 5678"}) [Simulated]`
+                      : "Pending OTP / Unverified"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Primary ID: </span>
+                  <span className="font-semibold text-emerald-700">
+                    {identityData.primaryDocument?.document_label ?? "Not Connected"}
+                  </span>
+                </div>
+                {identityData.secondaryDocument && (
+                  <div className="col-span-full">
+                    <span className="text-muted-foreground">Secondary ID: </span>
+                    <span className="font-semibold text-primary">
+                      {identityData.secondaryDocument.document_label}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Textarea
+              label="Existing Pets & Medical Details (Optional)"
+              placeholder="List any pets currently living in your household and their vaccination status..."
+              value={form.existingPetsMedicalDetails}
+              onChange={(e) => setForm({ ...form, existingPetsMedicalDetails: e.target.value })}
+              rows={2}
+            />
+
+            <Textarea
+              label="Pet Care Experience (Optional)"
+              placeholder="Briefly describe your experience caring for dogs or animals..."
+              value={form.petCareExperience}
+              onChange={(e) => setForm({ ...form, petCareExperience: e.target.value })}
+              rows={2}
+            />
+
+            <div className="pt-3 border-t border-border flex items-center justify-between gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={() => setStep(2)}
+                disabled={submitting}
+              >
+                Back to Identity
+              </Button>
+              <Button type="submit" variant="primary" size="md" isLoading={submitting}>
+                Submit Application
+              </Button>
+            </div>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
