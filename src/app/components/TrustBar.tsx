@@ -31,9 +31,9 @@ export default function TrustBar() {
 
   const trusts: TrustItem[] = [
     {
-      stat: "501(c)(3)",
-      statNum: 0,
-      title: "Verified Nonprofit",
+      stat: "100%",
+      statNum: 100,
+      title: "Tax-Deductible Receipts",
       tagline: "Every rupee is accounted for",
       backBadge: "TRANSPARENCY",
       backTitle: "Verified & Accountable",

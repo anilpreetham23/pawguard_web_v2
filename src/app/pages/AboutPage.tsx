@@ -152,7 +152,7 @@ export default function AboutPage() {
                   "Annual external financial audit",
                   "Quarterly program outcome reports",
                   "Open-source operational systems",
-                  "Registered 501(c)(3) nonprofit",
+                  "Registered tax-exempt animal welfare organisation",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3 py-3.5 border-b border-border last:border-0">
                     <Check size={16} className="text-primary shrink-0 mt-0.5" />

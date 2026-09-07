@@ -44,7 +44,7 @@ const FAQS = [
   { q: "How do I report a dog emergency?", a: "Click the Emergency button in the navigation bar or visit our Emergency page. Fill out the quick report form with the location, dog description, and situation type. Our nearest available unit will respond immediately." },
   { q: "What is the adoption process?", a: "Browse available dogs, submit an adoption application, complete a meet-and-greet, and finalize the adoption with our team. The process typically takes 3–7 business days." },
   { q: "How can I volunteer with PawGuard?", a: "Visit our Volunteer page to see available roles including Foster Care, Transport, Events & Outreach, and Shelter Support. Complete a short application and we'll match you with the right opportunity." },
-  { q: "Are donations tax-deductible?", a: "Yes. PawGuard is a registered 501(c)(3) nonprofit organization. All donations are fully tax-deductible to the extent permitted by law." },
+  { q: "Are donations tax-deductible?", a: "Yes. All donations receive an automated tax-deductible receipt upon completion. Contributions are tax-deductible to the extent permitted by law." },
   { q: "Do you provide veterinary care?", a: "Yes. We offer basic veterinary services including vaccinations, spay/neuter procedures, and emergency triage for rescued dogs. Partner clinics provide specialized care." },
 ];
 

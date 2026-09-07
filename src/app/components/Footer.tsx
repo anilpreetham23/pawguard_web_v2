@@ -47,11 +47,10 @@ const CONTACTS = [
 ];
 
 const TRUST = [
-  { label: "501(c)(3)", sub: "Verified Nonprofit" },
-  { label: "AVMA", sub: "Member" },
-  { label: "Charity Navigator", sub: "4/4 Stars" },
-  { label: "GuideStar", sub: "Gold Seal" },
-  { label: "Stripe", sub: "Secure Payments" },
+  { label: "Razorpay & Stripe", sub: "256-Bit SSL Encryption" },
+  { label: "Instant Receipts", sub: "Automated Tax Downloads" },
+  { label: "Transparent Ledger", sub: "Audited Financial Use" },
+  { label: "Verified Network", sub: "Emergency Clinical Care" },
 ];
 
 const staggerItem = (i: number, tier: string) => {
@@ -290,7 +289,7 @@ export default function Footer() {
               className="lg:col-span-5 flex flex-col gap-2.5"
             >
               <p className="text-white/70 text-xs font-semibold tracking-widest uppercase">
-                Trusted Partners &amp; Accreditation
+                Secure &amp; Reliable Services
               </p>
               <ul className="flex flex-wrap items-center gap-x-5 gap-y-2.5">
                 {TRUST.map((p) => (

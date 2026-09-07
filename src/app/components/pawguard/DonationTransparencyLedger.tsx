@@ -32,13 +32,13 @@ export function DonationTransparencyLedger({
     { pct: "10%", label: "Reserve & Development", detail: "Emergency fund, training, system improvements" },
   ],
   trustSignals = [
-    { icon: <CheckCircle2 size={16} />, label: "Verified 501(c)(3) Nonprofit", detail: "EIN: 87-1234567 · IRS Tax-Exempt" },
-    { icon: <Shield size={16} />, label: "SSL Encrypted Transactions", detail: "256-bit · Powered by Stripe" },
+    { icon: <CheckCircle2 size={16} />, label: "Tax-Deductible Receipts", detail: "Automated Instant Downloads · Official Receipt" },
+    { icon: <Shield size={16} />, label: "SSL Encrypted Transactions", detail: "256-bit Security · Razorpay & Stripe" },
   ],
   accreditation = [
-    { label: "Charity Navigator", rating: "4/4 Stars" },
-    { label: "GuideStar", rating: "Gold Seal" },
-    { label: "AVMA", rating: "Member" },
+    { label: "Public Ledger", rating: "Transparent" },
+    { label: "Clinical Network", rating: "Verified" },
+    { label: "Rescue Network", rating: "Active" },
   ],
 }: DonationTransparencyLedgerProps) {
   return (
