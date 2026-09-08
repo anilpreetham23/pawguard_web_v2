@@ -41,6 +41,10 @@ export interface MediaUploadProps {
   /** Primary single photo callback for legacy/primary image API field binding */
   onPrimaryPhotoChange?: (file: File | null, dataUrl: string) => void;
   error?: string;
+  /** Contextual upload mode: "emergency" enforces the 5-media combined guidance and limits */
+  mode?: "default" | "emergency";
+  /** Maximum combined photos + videos allowed (used in emergency mode, default: 5) */
+  maxTotalFiles?: number;
 }
 
 export function MediaUpload({
@@ -56,7 +60,15 @@ export function MediaUpload({
   onChangeVideo,
   onPrimaryPhotoChange,
   error,
+  mode = "default",
+  maxTotalFiles = 5,
 }: MediaUploadProps) {
+  const isEmergency = mode === "emergency";
+  const totalMediaCount = photos.length + (video ? 1 : 0);
+  const effectiveMaxTotal = isEmergency ? maxTotalFiles : maxPhotos + maxVideos;
+  const canAddPhoto = isEmergency ? totalMediaCount < maxTotalFiles : photos.length < maxPhotos;
+  const canAddVideo = !video && (!isEmergency || totalMediaCount < maxTotalFiles);
+
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -81,10 +93,21 @@ export function MediaUpload({
     setValidationError(null);
     if (!selectedFiles.length) return;
 
-    if (photos.length + selectedFiles.length > maxPhotos) {
-      setValidationError(`You can upload up to ${maxPhotos} photos.`);
-      if (photoInputRef.current) photoInputRef.current.value = "";
-      return;
+    if (isEmergency) {
+      const remainingSlots = maxTotalFiles - totalMediaCount;
+      if (selectedFiles.length > remainingSlots) {
+        setValidationError(
+          `Maximum ${maxTotalFiles} media files total (photos + video combined). You can add at most ${remainingSlots} more file${remainingSlots === 1 ? "" : "s"}.`
+        );
+        if (photoInputRef.current) photoInputRef.current.value = "";
+        return;
+      }
+    } else {
+      if (photos.length + selectedFiles.length > maxPhotos) {
+        setValidationError(`You can upload up to ${maxPhotos} photos.`);
+        if (photoInputRef.current) photoInputRef.current.value = "";
+        return;
+      }
     }
 
     const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
@@ -97,7 +120,11 @@ export function MediaUpload({
         return;
       }
       if (file.size > 50 * 1024 * 1024) {
-        setValidationError("Each photo must be under 50MB.");
+        setValidationError(
+          isEmergency
+            ? "Each photo must be under 50MB (50MB combined limit)."
+            : "Each photo must be under 50MB."
+        );
         if (photoInputRef.current) photoInputRef.current.value = "";
         return;
       }
@@ -170,6 +197,14 @@ export function MediaUpload({
       return;
     }
 
+    if (isEmergency && totalMediaCount >= maxTotalFiles) {
+      setValidationError(
+        `Maximum ${maxTotalFiles} media files total reached. Remove a photo to add a video.`
+      );
+      if (videoInputRef.current) videoInputRef.current.value = "";
+      return;
+    }
+
     const validVideoTypes = ["video/mp4", "video/webm", "video/quicktime"];
     if (!validVideoTypes.includes(file.type.toLowerCase())) {
       setValidationError("Please select a supported video format (MP4, WEBM, or MOV).");
@@ -177,10 +212,18 @@ export function MediaUpload({
       return;
     }
 
-    if (file.size > 100 * 1024 * 1024) {
-      setValidationError("Video file size must be under 100MB.");
-      if (videoInputRef.current) videoInputRef.current.value = "";
-      return;
+    if (isEmergency) {
+      if (file.size > 50 * 1024 * 1024) {
+        setValidationError("Video file size must be under 50MB (50MB combined limit).");
+        if (videoInputRef.current) videoInputRef.current.value = "";
+        return;
+      }
+    } else {
+      if (file.size > 100 * 1024 * 1024) {
+        setValidationError("Video file size must be under 100MB.");
+        if (videoInputRef.current) videoInputRef.current.value = "";
+        return;
+      }
     }
 
     const previewUrl = URL.createObjectURL(file);
@@ -224,13 +267,34 @@ export function MediaUpload({
     <div className="flex flex-col gap-5 w-full">
       {/* Label Header */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <label className="text-foreground text-xs font-bold tracking-wider uppercase font-condensed flex items-center gap-1.5">
-          <ImageIcon size={15} className="text-primary" />
-          {label} {required && <span className="text-destructive">*</span>}
-        </label>
-        <span className="text-muted-foreground text-xs">
-          Up to {maxPhotos} photos (JPG, PNG, WEBP — Max 50MB) + {maxVideos} video (MP4, WEBM — Max 100MB)
-        </span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <label className="text-foreground text-xs font-bold tracking-wider uppercase font-condensed flex items-center gap-1.5">
+            <ImageIcon size={15} className="text-primary" />
+            {label} {required && <span className="text-destructive">*</span>}
+          </label>
+          {isEmergency && (
+            <Badge
+              variant="default"
+              className="text-2xs font-condensed tracking-wider font-semibold border border-primary/30 py-0.5"
+            >
+              Evidence Media ({totalMediaCount} / {maxTotalFiles})
+            </Badge>
+          )}
+        </div>
+        {isEmergency ? (
+          <div className="flex flex-col sm:items-end text-left sm:text-right">
+            <span className="text-foreground/90 font-medium text-xs">
+              Up to 5 media files total (photos + video) — Max 50MB combined
+            </span>
+            <span className="text-muted-foreground text-2xs">
+              JPG, PNG, WEBP photos • MP4, WEBM, MOV video
+            </span>
+          </div>
+        ) : (
+          <span className="text-muted-foreground text-xs">
+            Up to {maxPhotos} photos (JPG, PNG, WEBP — Max 50MB) + {maxVideos} video (MP4, WEBM — Max 100MB)
+          </span>
+        )}
       </div>
 
       {/* Hidden File Inputs */}
@@ -255,9 +319,18 @@ export function MediaUpload({
         <div className="flex items-center justify-between">
           <span className="text-foreground text-xs font-semibold uppercase tracking-wider font-condensed flex items-center gap-1">
             <ImageIcon size={13} className="text-primary" />
-            Evidence Photos ({photos.length} / {maxPhotos})
+            {isEmergency ? (
+              <>
+                Evidence Photos ({photos.length}){" "}
+                <span className="text-muted-foreground font-normal lowercase tracking-normal font-sans">
+                  · up to {maxTotalFiles} media files total
+                </span>
+              </>
+            ) : (
+              `Evidence Photos (${photos.length} / ${maxPhotos})`
+            )}
           </span>
-          {photos.length < maxPhotos && (
+          {canAddPhoto && (
             <Button
               type="button"
               variant="outline"
@@ -275,10 +348,20 @@ export function MediaUpload({
           <div
             role="button"
             tabIndex={0}
-            onClick={() => photoInputRef.current?.click()}
+            onClick={() => {
+              if (isEmergency && !canAddPhoto) {
+                setValidationError(`Maximum ${maxTotalFiles} media files total reached.`);
+                return;
+              }
+              photoInputRef.current?.click();
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
+                if (isEmergency && !canAddPhoto) {
+                  setValidationError(`Maximum ${maxTotalFiles} media files total reached.`);
+                  return;
+                }
                 photoInputRef.current?.click();
               }
             }}
@@ -287,9 +370,16 @@ export function MediaUpload({
             <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
               <Upload size={18} />
             </div>
-            <span className="text-foreground font-semibold text-xs tracking-wider uppercase font-condensed group-hover:text-primary transition-colors">
-              Click to Upload Photos ({photos.length} / {maxPhotos})
-            </span>
+            <div className="flex flex-col items-center text-center">
+              <span className="text-foreground font-semibold text-xs tracking-wider uppercase font-condensed group-hover:text-primary transition-colors">
+                {isEmergency ? "Click to Upload Photos" : `Click to Upload Photos (${photos.length} / ${maxPhotos})`}
+              </span>
+              {isEmergency && (
+                <span className="text-muted-foreground text-2xs mt-0.5">
+                  Up to {maxTotalFiles} media files total (photos + video)
+                </span>
+              )}
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
@@ -319,7 +409,7 @@ export function MediaUpload({
                 </button>
               </div>
             ))}
-            {photos.length < maxPhotos && (
+            {canAddPhoto && (
               <button
                 type="button"
                 onClick={() => photoInputRef.current?.click()}
@@ -340,14 +430,32 @@ export function MediaUpload({
         <div className="flex items-center justify-between">
           <span className="text-foreground text-xs font-semibold uppercase tracking-wider font-condensed flex items-center gap-1">
             <VideoIcon size={13} className="text-primary" />
-            Evidence Video ({video ? 1 : 0} / {maxVideos}) {videoRequired && <span className="text-destructive">*</span>}
+            {isEmergency ? (
+              <>
+                Evidence Video ({video ? 1 : 0}){" "}
+                <span className="text-muted-foreground font-normal lowercase tracking-normal font-sans">
+                  · included in {maxTotalFiles}-file total limit
+                </span>
+              </>
+            ) : (
+              `Evidence Video (${video ? 1 : 0} / ${maxVideos})`
+            )}
+            {videoRequired && <span className="text-destructive">*</span>}
           </span>
-          {!video && (
+          {!video && canAddVideo && (
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => videoInputRef.current?.click()}
+              onClick={() => {
+                if (isEmergency && !canAddVideo) {
+                  setValidationError(
+                    `Maximum ${maxTotalFiles} media files total reached. Remove a photo to add a video.`
+                  );
+                  return;
+                }
+                videoInputRef.current?.click();
+              }}
               disabled={isUploading}
               className="text-xs"
             >
@@ -360,10 +468,24 @@ export function MediaUpload({
           <div
             role="button"
             tabIndex={0}
-            onClick={() => videoInputRef.current?.click()}
+            onClick={() => {
+              if (isEmergency && !canAddVideo) {
+                setValidationError(
+                  `Maximum ${maxTotalFiles} media files total reached. Remove a photo to add a video.`
+                );
+                return;
+              }
+              videoInputRef.current?.click();
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
+                if (isEmergency && !canAddVideo) {
+                  setValidationError(
+                    `Maximum ${maxTotalFiles} media files total reached. Remove a photo to add a video.`
+                  );
+                  return;
+                }
                 videoInputRef.current?.click();
               }
             }}
@@ -373,12 +495,25 @@ export function MediaUpload({
               <Film size={16} />
             </div>
             <div className="flex flex-col">
-              <span className="text-foreground font-semibold text-xs tracking-wider uppercase font-condensed group-hover:text-primary transition-colors">
-                Add Video Clip ({videoRequired ? "Required *" : "Optional"} — Max 100MB)
-              </span>
-              <span className="text-muted-foreground text-2xs">
-                Supports MP4, WEBM, MOV video clips of animal behavior or surroundings
-              </span>
+              {isEmergency ? (
+                <>
+                  <span className="text-foreground font-semibold text-xs tracking-wider uppercase font-condensed group-hover:text-primary transition-colors">
+                    ADD VIDEO CLIP (OPTIONAL)
+                  </span>
+                  <span className="text-muted-foreground text-2xs">
+                    MP4, WEBM, MOV • Included in the {maxTotalFiles}-file / 50MB combined limit
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-foreground font-semibold text-xs tracking-wider uppercase font-condensed group-hover:text-primary transition-colors">
+                    Add Video Clip ({videoRequired ? "Required *" : "Optional"} — Max 100MB)
+                  </span>
+                  <span className="text-muted-foreground text-2xs">
+                    Supports MP4, WEBM, MOV video clips of animal behavior or surroundings
+                  </span>
+                </>
+              )}
             </div>
           </div>
         ) : (
@@ -393,6 +528,7 @@ export function MediaUpload({
                 </span>
                 <span className="text-muted-foreground text-2xs">
                   Video clip · {formatSize(video.sizeBytes)}
+                  {isEmergency && " · counts toward 5-file / 50MB combined limit"}
                 </span>
               </div>
             </div>

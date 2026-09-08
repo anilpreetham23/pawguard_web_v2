@@ -1079,6 +1079,8 @@ export default function EmergencyPage() {
                           />
 
                           <MediaUpload
+                            mode="emergency"
+                            maxTotalFiles={5}
                             label="Visual Evidence Photos & Video"
                             required
                             photos={mediaPhotos}
