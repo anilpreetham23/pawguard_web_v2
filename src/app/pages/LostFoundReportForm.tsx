@@ -165,13 +165,17 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
    */
   const [duplicateReport, setDuplicateReport] = useState<{ id: string | null } | null>(null);
 
-  const mutation = useApiMutation<{ id: string }, LostReportCreate | FoundReportCreate>({
+  const mutation = useApiMutation<{ id: string; is_duplicate?: boolean }, LostReportCreate | FoundReportCreate>({
     mutationFn: (payload) =>
       kind === "lost"
         ? lostFoundService.reportLostPet(payload as LostReportCreate)
         : lostFoundService.reportFoundPet(payload as FoundReportCreate),
     onSuccess: async (report) => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lostFound.reports });
+      if (report?.is_duplicate === true) {
+        setDuplicateReport({ id: report.id });
+        return;
+      }
       setSubmittedReport(report);
     },
     onError: (err) => {
