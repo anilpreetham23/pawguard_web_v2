@@ -596,6 +596,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                 />
 
                 <MediaUpload
+                  mode="lost-found"
                   label="Photos & Video of Animal"
                   required
                   videoRequired

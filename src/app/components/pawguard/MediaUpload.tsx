@@ -41,8 +41,8 @@ export interface MediaUploadProps {
   /** Primary single photo callback for legacy/primary image API field binding */
   onPrimaryPhotoChange?: (file: File | null, dataUrl: string) => void;
   error?: string;
-  /** Contextual upload mode: "emergency" enforces the 5-media combined guidance and limits */
-  mode?: "default" | "emergency";
+  /** Contextual upload mode: "emergency" enforces 5-media combined limit; "lost-found" (or "default") enforces independent photo/video limits */
+  mode?: "default" | "emergency" | "lost-found";
   /** Maximum combined photos + videos allowed (used in emergency mode, default: 5) */
   maxTotalFiles?: number;
 }
@@ -291,9 +291,14 @@ export function MediaUpload({
             </span>
           </div>
         ) : (
-          <span className="text-muted-foreground text-xs">
-            Up to {maxPhotos} photos (JPG, PNG, WEBP — Max 50MB) + {maxVideos} video (MP4, WEBM — Max 100MB)
-          </span>
+          <div className="flex flex-col sm:items-end text-left sm:text-right">
+            <span className="text-foreground/90 font-medium text-xs">
+              Direct file upload: Up to {maxPhotos} photos (max 50MB each) &amp; {maxVideos} video (max 100MB)
+            </span>
+            <span className="text-muted-foreground text-2xs">
+              Upload directly from device • JPG, PNG, WEBP • MP4, WEBM, MOV
+            </span>
+          </div>
         )}
       </div>
 
@@ -372,13 +377,15 @@ export function MediaUpload({
             </div>
             <div className="flex flex-col items-center text-center">
               <span className="text-foreground font-semibold text-xs tracking-wider uppercase font-condensed group-hover:text-primary transition-colors">
-                {isEmergency ? "Click to Upload Photos" : `Click to Upload Photos (${photos.length} / ${maxPhotos})`}
+                {isEmergency
+                  ? "Click to Upload Photos"
+                  : `Upload Photo Files (${photos.length} / ${maxPhotos})`}
               </span>
-              {isEmergency && (
-                <span className="text-muted-foreground text-2xs mt-0.5">
-                  Up to {maxTotalFiles} media files total (photos + video)
-                </span>
-              )}
+              <span className="text-muted-foreground text-2xs mt-0.5">
+                {isEmergency
+                  ? `Up to ${maxTotalFiles} media files total (photos + video)`
+                  : "Select image files from device (JPG, PNG, WEBP — max 50MB each)"}
+              </span>
             </div>
           </div>
         ) : (
@@ -507,10 +514,10 @@ export function MediaUpload({
               ) : (
                 <>
                   <span className="text-foreground font-semibold text-xs tracking-wider uppercase font-condensed group-hover:text-primary transition-colors">
-                    Add Video Clip ({videoRequired ? "Required *" : "Optional"} — Max 100MB)
+                    Upload Video Clip ({videoRequired ? "Required *" : "Optional"} — Max 100MB)
                   </span>
                   <span className="text-muted-foreground text-2xs">
-                    Supports MP4, WEBM, MOV video clips of animal behavior or surroundings
+                    Select video file from device • MP4, WEBM, MOV (max 100MB)
                   </span>
                 </>
               )}
