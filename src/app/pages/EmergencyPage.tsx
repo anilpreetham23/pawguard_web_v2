@@ -39,8 +39,13 @@ import { getErrorMessage, isApiError } from "@/lib/api";
 import type {
   PublicRescueTrackResponse,
   RescuePhysicalCondition,
+  RescueRequestResponse,
   RescueSeverity,
 } from "@/lib/api";
+
+type RescueIncidentResult = RescueRequestResponse & {
+  is_duplicate?: boolean;
+};
 import {
   validatePhone,
   getCountryByCode,
@@ -440,7 +445,7 @@ export default function EmergencyPage() {
         severity === "critical" ? "critical" : "medium";
       const normalizedPhone = normalizePhonePayload(contact.trim(), contactCountry);
 
-      const res = await rescueService.reportPublicCase({
+      const res: RescueIncidentResult = await rescueService.reportPublicCase({
         reporter_name: reporterName.trim(),
         reporter_phone: normalizedPhone,
         location_address: location.trim(),
@@ -461,6 +466,15 @@ export default function EmergencyPage() {
         (res as unknown as Record<string, string>)?.ticketNumber ||
         res?.id ||
         "RES-SUBMITTED";
+
+      // Authoritative backend duplicate check on HTTP 200/201 response.
+      // If data.is_duplicate is true, render the duplicate emergency view
+      // rather than the standard successful submission screen.
+      if (res?.is_duplicate) {
+        setDuplicateEmergency({ ticketNum: res.ticket_number || assignedTicket });
+        localStorage.removeItem("pawguard-emergency-draft");
+        return;
+      }
 
       setTicketNumber(assignedTicket);
       setReporterPhone(normalizedPhone);
