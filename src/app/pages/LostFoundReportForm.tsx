@@ -3,10 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, LocateFixed, X, Phone, PawPrint, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, LocateFixed, X, Phone, PawPrint, CheckCircle2, AlertTriangle } from "lucide-react";
 import { PageShell, Card, Reveal, Alert, Button, Input, Textarea, SuccessState, Badge, MediaUpload, type MediaItem } from "../components/pawguard";
 import SectionHeading from "../components/SectionHeading";
-import { useApiMutation, useApiErrorMessage, QUERY_KEYS, toApiDateTime, getErrorMessage } from "@/lib/api";
+import { useApiMutation, useApiErrorMessage, QUERY_KEYS, toApiDateTime, getErrorMessage, isApiError } from "@/lib/api";
 import { queryClient } from "@/lib/react-query";
 import { lostFoundService } from "@/services/api/lost-found";
 import { useGeolocation } from "../hooks/useGeolocation";
@@ -158,6 +158,12 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
   }, [latitude, longitude]);
 
   const [submittedReport, setSubmittedReport] = useState<{ id: string } | null>(null);
+  /**
+   * Set when the backend signals a duplicate (HTTP 409).
+   * Contains the existing active report's ID so the user can navigate to it.
+   * `id` may be `null` if the backend body did not include the existing report.
+   */
+  const [duplicateReport, setDuplicateReport] = useState<{ id: string | null } | null>(null);
 
   const mutation = useApiMutation<{ id: string }, LostReportCreate | FoundReportCreate>({
     mutationFn: (payload) =>
@@ -168,9 +174,36 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lostFound.reports });
       setSubmittedReport(report);
     },
+    onError: (err) => {
+      // 409 means backend detected an existing active report — show the dedicated
+      // duplicate view rather than a generic error banner.
+      if (isApiError(err) && err.status === 409) {
+        // Attempt to extract the existing report ID from the raw error body.
+        // Backend shape: { success: false, error: {...}, data: { id: "..." } }
+        let existingId: string | null = null;
+        try {
+          const rawData = (err.originalError as any)?.response?.data;
+          if (rawData?.data?.id && typeof rawData.data.id === "string") {
+            existingId = rawData.data.id;
+          } else if (
+            err.detail &&
+            typeof err.detail === "object" &&
+            !Array.isArray(err.detail) &&
+            typeof (err.detail as Record<string, unknown>).id === "string"
+          ) {
+            existingId = (err.detail as Record<string, unknown>).id as string;
+          }
+        } catch {
+          // Parsing failed — show duplicate view without an ID
+        }
+        setDuplicateReport({ id: existingId });
+      }
+    },
   });
 
-  const errorMessageText = useApiErrorMessage(mutation.error);
+  // Only show the generic error banner for non-409 errors.
+  const isNonDuplicateError = mutation.isError && !(isApiError(mutation.error) && mutation.error.status === 409);
+  const errorMessageText = useApiErrorMessage(isNonDuplicateError ? mutation.error : null);
 
   function handleUseMyLocation() {
     requestLocation();
@@ -351,6 +384,61 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
     );
   }
 
+  // Dedicated duplicate-report view — shown when the backend returns 409.
+  if (duplicateReport) {
+    return (
+      <PageShell>
+        <main id="main-content" className="flex-1 flex items-start justify-center px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+2rem)] pb-section-lg">
+          <div className="max-w-[560px] w-full">
+            <Reveal>
+              <Card className="p-8 flex flex-col items-center gap-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                  <AlertTriangle size={32} className="text-amber-600 dark:text-amber-400" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <h1 className="text-xl font-bold text-foreground">
+                    This Report Already Exists
+                  </h1>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    It looks like this case has already been reported.<br />
+                    An active report matching the information you submitted already exists.
+                  </p>
+                  {duplicateReport.id && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Report ID:{" "}
+                      <span className="font-mono font-semibold text-foreground">
+                        {duplicateReport.id.slice(0, 8).toUpperCase()}
+                      </span>
+                    </p>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  You do not need to submit the same report again.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                  {duplicateReport.id && (
+                    <Link
+                      href={`/lost-found/${duplicateReport.id}`}
+                      className="flex-1 inline-flex items-center justify-center gap-2 h-11 px-6 rounded-btn bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity"
+                    >
+                      View Existing Report
+                    </Link>
+                  )}
+                  <Link
+                    href="/lost-found"
+                    className="flex-1 inline-flex items-center justify-center gap-2 h-11 px-6 rounded-btn border border-border text-foreground font-semibold text-sm hover:bg-secondary transition-colors"
+                  >
+                    Back to Lost &amp; Found
+                  </Link>
+                </div>
+              </Card>
+            </Reveal>
+          </div>
+        </main>
+      </PageShell>
+    );
+  }
+
   const selectedPetObject = pets.find((p) => p.id === companionPetId);
 
   return (
@@ -406,7 +494,7 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                   </div>
                 )}
 
-                {mutation.isError && errorMessageText && (
+                {isNonDuplicateError && errorMessageText && (
                   <Alert variant="error" title={mutation.error?.isUnauthorized ? "Sign in required" : "We couldn't submit your report"}>
                     {mutation.error?.isUnauthorized
                       ? "Submitting a report requires a PawGuard account. Sign in to continue and we'll resubmit automatically."
@@ -549,8 +637,19 @@ export default function LostFoundReportForm({ kind }: { kind: LostFoundKind }) {
                     <Phone size={14} className="shrink-0 text-primary" />
                     Need urgent help? Contact your nearest PawGuard rescue team directly.
                   </p>
-                  <Button type="submit" variant="primary" size="md" isLoading={mutation.isPending} disabled={mutation.isPending} className="w-full sm:w-auto px-8 shrink-0 self-end">
-                    {kind === "lost" ? "Submit Lost Pet Report" : "Submit Found Animal Report"}
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="md"
+                    isLoading={mutation.isPending || isUploadingPhoto}
+                    disabled={mutation.isPending || isUploadingPhoto}
+                    className="w-full sm:w-auto px-8 shrink-0 self-end"
+                  >
+                    {isUploadingPhoto
+                      ? "Uploading media…"
+                      : kind === "lost"
+                      ? "Submit Lost Pet Report"
+                      : "Submit Found Animal Report"}
                   </Button>
                 </div>
               </form>

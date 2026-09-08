@@ -35,7 +35,7 @@ import {
   type MediaItem,
 } from "../components/pawguard";
 import { rescueService } from "@/services/api/rescue";
-import { getErrorMessage } from "@/lib/api";
+import { getErrorMessage, isApiError } from "@/lib/api";
 import type {
   PublicRescueTrackResponse,
   RescuePhysicalCondition,
@@ -224,6 +224,12 @@ export default function EmergencyPage() {
   const [activeStatus, setActiveStatus] = useState<PublicRescueTrackResponse | null>(null);
   const [trackingError, setTrackingError] = useState<string | null>(null);
   const [isTrackingLoading, setIsTrackingLoading] = useState(false);
+  /**
+   * Set when the backend returns HTTP 409 for a duplicate emergency submission.
+   * Contains the existing case ticket number so the user can track it.
+   * `ticketNum` may be `null` if the backend body did not include the ticket.
+   */
+  const [duplicateEmergency, setDuplicateEmergency] = useState<{ ticketNum: string | null } | null>(null);
 
   const draftNotified = useRef(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
@@ -365,6 +371,24 @@ export default function EmergencyPage() {
       if (!description.trim()) e.description = "Description is required";
       if (!photoUrl || !photoUrl.trim())
         e.photoUrl = "Please upload a photo before submitting the report.";
+
+      // ---- Emergency-specific combined media limits ----
+      // Client requirement: max 5 files total, max 50 MB combined.
+      // This is enforced here (pre-upload) so we never waste presigned URL
+      // requests on files the backend would reject.
+      const EMERGENCY_MAX_FILES = 5;
+      const EMERGENCY_MAX_BYTES = 50 * 1024 * 1024; // 50 MB
+      const totalFiles = mediaPhotos.length + (mediaVideo ? 1 : 0);
+      const totalBytes =
+        mediaPhotos.reduce((sum, p) => sum + p.sizeBytes, 0) +
+        (mediaVideo ? mediaVideo.sizeBytes : 0);
+      if (totalFiles > EMERGENCY_MAX_FILES) {
+        e.photoUrl = `Emergency reports allow a maximum of ${EMERGENCY_MAX_FILES} files (photos + video combined). Please remove ${totalFiles - EMERGENCY_MAX_FILES} file(s).`;
+      } else if (totalBytes > EMERGENCY_MAX_BYTES) {
+        const overMb = ((totalBytes - EMERGENCY_MAX_BYTES) / (1024 * 1024)).toFixed(1);
+        e.photoUrl = `Combined media size exceeds 50 MB (over by ${overMb} MB). Please remove or reduce the size of some files.`;
+      }
+      // ---- End emergency media limits ----
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -443,8 +467,31 @@ export default function EmergencyPage() {
       setSubmitted(true);
       localStorage.removeItem("pawguard-emergency-draft");
     } catch (err) {
-      setHasError(true);
-      toast.error("Report failed to submit", { description: getErrorMessage(err) });
+      // 409 Conflict: backend detected a duplicate emergency submission.
+      // Show a dedicated duplicate view instead of the generic error panel.
+      if (isApiError(err) && err.status === 409) {
+        let existingTicket: string | null = null;
+        try {
+          const rawData = (err.originalError as any)?.response?.data;
+          // Backend shape: { success: false, error: {...}, data: { ticket_number: "..." } }
+          if (rawData?.data?.ticket_number && typeof rawData.data.ticket_number === "string") {
+            existingTicket = rawData.data.ticket_number;
+          } else if (
+            err.detail &&
+            typeof err.detail === "object" &&
+            !Array.isArray(err.detail) &&
+            typeof (err.detail as Record<string, unknown>).ticket_number === "string"
+          ) {
+            existingTicket = (err.detail as Record<string, unknown>).ticket_number as string;
+          }
+        } catch {
+          // Parsing failed — show duplicate view without a ticket number
+        }
+        setDuplicateEmergency({ ticketNum: existingTicket });
+      } else {
+        setHasError(true);
+        toast.error("Report failed to submit", { description: getErrorMessage(err) });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -521,7 +568,52 @@ export default function EmergencyPage() {
                     </p>
                   </div>
 
-                  {hasError ? (
+                  {duplicateEmergency ? (
+                    <div className="flex flex-col gap-6" role="alert">
+                      <div className="bg-card border border-border rounded-card p-6 lg:p-8 shadow-lg flex flex-col items-center gap-5 text-center">
+                        <div className="w-14 h-14 bg-amber-100 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center">
+                          <AlertTriangle size={28} className="text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <h2 className="text-foreground font-bold text-xl">
+                            Emergency Case Already Reported
+                          </h2>
+                          <p className="text-muted-foreground text-sm leading-relaxed">
+                            It looks like this emergency incident has already been reported.<br />
+                            An active rescue case matching your submission already exists.
+                          </p>
+                          {duplicateEmergency.ticketNum && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Case / Ticket:{" "}
+                              <span className="font-mono font-semibold text-foreground tracking-wider">
+                                {duplicateEmergency.ticketNum}
+                              </span>
+                            </p>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          You do not need to submit the same emergency again.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 w-full">
+                          {duplicateEmergency.ticketNum && (
+                            <a
+                              href={`/emergency?ticket=${encodeURIComponent(duplicateEmergency.ticketNum)}`}
+                              className="flex-1 inline-flex items-center justify-center gap-2 h-11 px-6 rounded-btn bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity"
+                            >
+                              Track Existing Case
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setDuplicateEmergency(null)}
+                            className="flex-1 inline-flex items-center justify-center gap-2 h-11 px-6 rounded-btn border border-border text-foreground font-semibold text-sm hover:bg-secondary transition-colors"
+                          >
+                            Back to Emergency
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : hasError ? (
                     <div className="flex flex-col gap-6" role="alert">
                       <div className="bg-card border border-border rounded-card p-6 lg:p-8 shadow-lg flex flex-col gap-5">
                         <div className="w-14 h-14 bg-destructive/10 rounded-2xl flex items-center justify-center">
