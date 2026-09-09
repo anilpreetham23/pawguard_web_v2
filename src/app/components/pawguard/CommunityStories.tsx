@@ -94,29 +94,34 @@ const STORIES: StoryData[] = [
 function ProgressDots({
   count,
   active,
+  stories,
   onSelect,
 }: {
   count: number;
   active: number;
+  stories?: StoryData[];
   onSelect: (i: number) => void;
 }) {
   return (
     <div className="flex items-center justify-center gap-2" role="tablist" aria-label="Story navigation">
-      {Array.from({ length: count }).map((_, i) => (
-        <button
-          key={i}
-          role="tab"
-          aria-selected={i === active}
-          aria-label={`Story ${i + 1}: ${STORIES[i].animal}`}
-          onClick={() => onSelect(i)}
-          className={cn(
-            "h-1.5 rounded-full transition-all duration-narrative ease-gentle focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-            i === active
-              ? "w-8 bg-primary"
-              : "w-1.5 bg-foreground/15 hover:bg-foreground/30",
-          )}
-        />
-      ))}
+      {Array.from({ length: count }).map((_, i) => {
+        const animalName = stories?.[i]?.animal ?? STORIES[i]?.animal;
+        return (
+          <button
+            key={i}
+            role="tab"
+            aria-selected={i === active}
+            aria-label={`Story ${i + 1}${animalName ? `: ${animalName}` : ""}`}
+            onClick={() => onSelect(i)}
+            className={cn(
+              "h-1.5 rounded-full transition-all duration-narrative ease-gentle focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+              i === active
+                ? "w-8 bg-primary"
+                : "w-1.5 bg-foreground/15 hover:bg-foreground/30",
+            )}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -444,6 +449,7 @@ export function CommunityStories() {
           <ProgressDots
             count={storiesToDisplay.length}
             active={hoveredIdx !== null ? hoveredIdx : activeIdx}
+            stories={storiesToDisplay}
             onSelect={scrollTo}
           />
         </div>
