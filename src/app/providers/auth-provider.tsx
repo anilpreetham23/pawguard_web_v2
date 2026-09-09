@@ -14,6 +14,7 @@ import { authService, type RegisterRequest } from "@/services/api/auth";
 import {
   ApiError,
   auth,
+  isApiError,
   QUERY_KEYS,
   useApiQuery,
   type AuthUser,
@@ -102,9 +103,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // pre_auth_token captured when sign-in hits an MFA challenge.
   const [preAuthToken, setPreAuthToken] = useState<string | null>(null);
 
-  const meQuery = useApiQuery<AuthUser, AuthUser>({
+  const meQuery = useApiQuery<AuthUser | null>({
     queryKey: QUERY_KEYS.auth.me,
-    queryFn: () => authService.getMe(),
+    queryFn: async () => {
+      try {
+        return await authService.getMe();
+      } catch (error: unknown) {
+        if (isApiError(error) && (error.isUnauthorized || error.status === 401)) {
+          auth.clearAuthTokens();
+          return null;
+        }
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "status" in error &&
+          (error as { status: unknown }).status === 401
+        ) {
+          auth.clearAuthTokens();
+          return null;
+        }
+        throw error;
+      }
+    },
     staleTime: 30 * 1000,
     retry: false,
   });

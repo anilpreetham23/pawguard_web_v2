@@ -79,7 +79,7 @@ export const authService = {
 
   /** `GET /auth/me` — fetch the current user profile. */
   getMe(): Promise<AuthUser> {
-    return apiGet<AuthUser>(API_ROUTES.auth.me);
+    return apiGet<AuthUser>(API_ROUTES.auth.me, { auth: false });
   },
 
   /** `PUT /auth/me` — update the current user's profile fields. */
