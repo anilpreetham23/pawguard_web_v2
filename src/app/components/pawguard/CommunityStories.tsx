@@ -10,7 +10,7 @@ import { useAmbientPause } from "../../hooks/useAmbientPause";
 import { EditorialHeading } from "./EditorialHeading";
 import { useSuccessStories } from "../../hooks/useSuccessStories";
 
-interface StoryData {
+export interface StoryData {
   id: string;
   animal: string;
   type: string;
@@ -22,7 +22,7 @@ interface StoryData {
   date: string;
 }
 
-const STORIES: StoryData[] = [
+export const STORIES: StoryData[] = [
   {
     id: "bruno",
     animal: "Bruno",
@@ -91,7 +91,7 @@ const STORIES: StoryData[] = [
   },
 ];
 
-function ProgressDots({
+export function StoryNavigation({
   count,
   active,
   stories,
@@ -99,13 +99,15 @@ function ProgressDots({
 }: {
   count: number;
   active: number;
-  stories?: StoryData[];
+  stories?: Array<{ animal?: string; title?: string }>;
   onSelect: (i: number) => void;
 }) {
+  if (count <= 1) return null;
+
   return (
     <div className="flex items-center justify-center gap-2" role="tablist" aria-label="Story navigation">
       {Array.from({ length: count }).map((_, i) => {
-        const animalName = stories?.[i]?.animal ?? STORIES[i]?.animal;
+        const animalName = stories?.[i]?.animal || stories?.[i]?.title || "";
         return (
           <button
             key={i}
@@ -126,7 +128,9 @@ function ProgressDots({
   );
 }
 
-function StoryCard({
+export const ProgressDots = StoryNavigation;
+
+export function StoryCard({
   story,
   isActive,
   onFocus,
@@ -148,7 +152,7 @@ function StoryCard({
     >
       <img
         src={story.img}
-        alt={story.headline}
+        alt={story.headline || story.animal || "Story image"}
         className={cn(
           "absolute inset-0 w-full h-full object-cover transition-all duration-narrative ease-gentle will-change-transform animate-story-photo-zoom",
           isActive ? "scale-100" : "scale-[1.02]",
@@ -176,9 +180,7 @@ function StoryCard({
             }
             transition={{ duration: duration.gentle / 1000, ease: ease.gentle }}
           >
-            <Quote size={18} className="text-white/30 mb-2"
-              aria-hidden="true"
-            />
+            <Quote size={18} className="text-white/30 mb-2" aria-hidden="true" />
             <blockquote className="text-white font-serif font-bold text-xl lg:text-2xl leading-snug tracking-tight">
               &ldquo;{story.quote}&rdquo;
             </blockquote>
@@ -229,7 +231,7 @@ export function CommunityStories() {
           type: "Rescue Dog",
           quote: s.summary || "A story of hope and recovery.",
           headline: s.title,
-          excerpt: s.summary || s.body.slice(0, 120),
+          excerpt: s.summary || s.body?.slice(0, 120) || "",
           img:
             s.hero_image_url ||
             "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1000&h=600&fit=crop&auto=format",
@@ -247,7 +249,7 @@ export function CommunityStories() {
   useAmbientPause(sectionRef);
 
   const autoIdxRef = useRef(0);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>(Array(storiesToDisplay.length).fill(null));
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -281,7 +283,7 @@ export function CommunityStories() {
 
     cards.forEach((c) => obs.observe(c));
     return () => obs.disconnect();
-  }, []);
+  }, [storiesToDisplay.length]);
 
   const scrollTo = useCallback((idx: number) => {
     autoIdxRef.current = idx;
@@ -299,17 +301,19 @@ export function CommunityStories() {
   }, [motionTier]);
 
   const goNext = useCallback(() => {
+    if (storiesToDisplay.length <= 1) return;
     const next = Math.min(activeIdx + 1, storiesToDisplay.length - 1);
     if (next !== activeIdx) scrollTo(next);
   }, [activeIdx, storiesToDisplay.length, scrollTo]);
 
   const goPrev = useCallback(() => {
+    if (storiesToDisplay.length <= 1) return;
     const prev = Math.max(activeIdx - 1, 0);
     if (prev !== activeIdx) scrollTo(prev);
-  }, [activeIdx, scrollTo]);
+  }, [activeIdx, storiesToDisplay.length, scrollTo]);
 
   useEffect(() => {
-    if (motionTier === "none" || !sectionVisible) return;
+    if (motionTier === "none" || !sectionVisible || storiesToDisplay.length <= 1) return;
     const id = setInterval(() => {
       scrollTo((autoIdxRef.current + 1) % storiesToDisplay.length);
     }, 4500);
@@ -328,6 +332,10 @@ export function CommunityStories() {
     },
     [goNext, goPrev],
   );
+
+  if (storiesToDisplay.length === 0) {
+    return null;
+  }
 
   if (motionTier === "none") {
     return (
@@ -434,7 +442,7 @@ export function CommunityStories() {
               key={story.id}
               ref={(el) => { cardRefs.current[i] = el; }}
               role="tabpanel"
-              aria-label={`Story ${i + 1}: ${story.animal}`}
+              aria-label={`Story ${i + 1}${story?.animal ? `: ${story.animal}` : ""}`}
             >
               <StoryCard
                 story={story}
@@ -445,14 +453,16 @@ export function CommunityStories() {
           ))}
         </div>
 
-        <div className="mt-6 lg:mt-8 flex items-center justify-center gap-4">
-          <ProgressDots
-            count={storiesToDisplay.length}
-            active={hoveredIdx !== null ? hoveredIdx : activeIdx}
-            stories={storiesToDisplay}
-            onSelect={scrollTo}
-          />
-        </div>
+        {storiesToDisplay.length > 1 && (
+          <div className="mt-6 lg:mt-8 flex items-center justify-center gap-4">
+            <StoryNavigation
+              count={storiesToDisplay.length}
+              active={hoveredIdx !== null ? hoveredIdx : activeIdx}
+              stories={storiesToDisplay}
+              onSelect={scrollTo}
+            />
+          </div>
+        )}
       </div>
     </section>
   );

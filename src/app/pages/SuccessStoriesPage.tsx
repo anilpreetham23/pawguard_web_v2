@@ -157,7 +157,7 @@ export default function SuccessStoriesPage() {
             <p className="text-muted-foreground text-base leading-relaxed">
               If you adopted through PawGuard and would like to share your experience, we would love to hear from you. Your story may inspire another family.
             </p>
-            <Button variant="secondary" size="md" asLink={{ href: "/contact" }}>
+            <Button variant="secondary" size="md" asLink={{ href: "/stories/share" }}>
               Share Your Story <ArrowRight size={14} />
             </Button>
           </div>

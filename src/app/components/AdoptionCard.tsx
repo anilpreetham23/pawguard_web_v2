@@ -109,6 +109,12 @@ export default function AdoptionCard({
   const rawLift = useMotionValue(0);
   const lift = useSpring(rawLift, TILT_SPRING);
 
+  const innerGlowBg = useTransform(
+    [glowX, glowY],
+    ([gx, gy]: number[]) =>
+      `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.18) 0%, transparent 60%)`,
+  );
+
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (isReduced || isMobile) return;
     const rect = cardRef.current!.getBoundingClientRect();
@@ -219,11 +225,7 @@ export default function AdoptionCard({
                 className="pointer-events-none absolute inset-0 z-[8]"
                 style={{
                   opacity: glowOpacity,
-                  background: useTransform(
-                    [glowX, glowY],
-                    ([gx, gy]: number[]) =>
-                      `radial-gradient(circle at ${gx}% ${gy}%, rgba(255,255,255,0.18) 0%, transparent 60%)`,
-                  ),
+                  background: innerGlowBg,
                 }}
               />
             )}

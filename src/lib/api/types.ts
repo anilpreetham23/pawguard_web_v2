@@ -859,6 +859,8 @@ export interface PublicRescueTrackResponse {
   stage_history?: Array<{ stage: string; timestamp?: string | null }>;
 }
 
+export type SuccessStoryStatus = "draft" | "pending_review" | "published" | "rejected";
+
 /** `GET /portal/success-stories` payload (`SuccessStoryResponse`). */
 export interface SuccessStoryResponse {
   id: string;
@@ -866,11 +868,37 @@ export interface SuccessStoryResponse {
   summary: string;
   body: string;
   hero_image_url: string | null;
+  cover_image_url?: string | null;
   dog_id: string | null;
-  status: "draft" | "published";
+  adopter_id?: string | null;
+  has_consent?: boolean;
+  rejection_reason?: string | null;
+  status: SuccessStoryStatus;
+  slug?: string | null;
+  is_featured?: boolean;
+  sort_order?: number;
   published_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** `POST /portal/stories` request body (`SuccessStoryUserSubmit`). */
+export interface SuccessStoryUserSubmit {
+  title: string;
+  summary: string;
+  body: string;
+  hero_image_url?: string | null;
+  dog_id?: string | null;
+  has_consent: true;
+}
+
+/** Query parameters for `GET /portal/stories/me`. */
+export interface SuccessStoryQueryParams extends QueryParams {
+  page?: number;
+  page_size?: number;
+  status?: SuccessStoryStatus;
+  sort_by?: string;
+  sort_order?: "asc" | "desc";
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1239,9 +1267,13 @@ export interface ContactLocationResponse {
 
 /** `POST /portal/contact` request body (`ContactMessageCreate`). */
 export interface ContactMessageCreate {
+  name?: string | null;
   email: string;
+  phone?: string | null;
   subject: string;
+  category?: string;
   message: string;
+  has_consent?: boolean;
 }
 
 /** `POST /grievance/feedback` request body (`ServiceFeedbackCreate`). */

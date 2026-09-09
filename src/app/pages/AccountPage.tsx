@@ -60,6 +60,7 @@ import { useDashboardSummary } from "../hooks/useDashboardSummary";
 import { useMyPets } from "../hooks/useMyPets";
 import { useMyAppointments } from "../hooks/useMyAppointments";
 import { useMyReminders } from "../hooks/useMyReminders";
+import { useMyStories } from "../hooks/useMyStories";
 import { getErrorMessage, getAvatarUrl, resolveAvatarUrl, QUERY_KEYS } from "@/lib/api";
 import { queryClient } from "@/lib/react-query";
 import { authService } from "@/services/api/auth";
@@ -149,6 +150,7 @@ export default function AccountPage() {
   const { pets, total: petsTotal } = useMyPets(isAuthenticated);
   const { total: appointmentsTotal } = useMyAppointments(isAuthenticated);
   const { reminders } = useMyReminders(pets, isAuthenticated);
+  const { stories: myStories, meta: myStoriesMeta } = useMyStories(undefined, isAuthenticated);
 
   // ── Navigation Tab State ───────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<SettingsTab>("overview");
@@ -600,6 +602,13 @@ export default function AccountPage() {
                       count={reminders.length}
                       to="/reminders"
                       hint="Care &amp; medical alerts"
+                    />
+                    <DashboardCard
+                      icon={<Heart size={18} />}
+                      label="My Success Stories"
+                      count={myStoriesMeta.total || myStories.length}
+                      to="/account/stories"
+                      hint="Your submitted adoption tales"
                     />
                   </div>
                 )}

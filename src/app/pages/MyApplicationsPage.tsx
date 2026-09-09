@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, PawPrint, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, PawPrint, CheckCircle2, Heart } from "lucide-react";
 import PageHeader from "../components/PageHeader";
-import { PageShell, Card, Reveal, Skeleton, EmptyState, Alert } from "../components/pawguard";
+import { PageShell, Card, Reveal, Skeleton, EmptyState, Alert, Button } from "../components/pawguard";
 import { AddCompanionPetButton } from "../components/AddCompanionPetButton";
 import {
   useMyApplications,
@@ -150,6 +150,17 @@ function ApplicationCard({ app }: { app: AdoptionApplicationResponse }) {
                 variant="outline"
                 className="mt-1"
               />
+            )}
+            {app.status === "completed" && (
+              <div className="pt-2 border-t border-emerald-500/20 flex items-center justify-between gap-3">
+                <span className="text-xs text-muted-foreground">Loved adopting {app.dog?.name ?? "your pet"}?</span>
+                <Link href={`/stories/share?dog_id=${app.dog_id}`}>
+                  <Button variant="secondary" size="sm" className="gap-1.5">
+                    <Heart size={14} className="text-primary fill-primary/20" />
+                    Share Adoption Story
+                  </Button>
+                </Link>
+              </div>
             )}
           </div>
         )}

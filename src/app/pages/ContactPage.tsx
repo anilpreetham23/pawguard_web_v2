@@ -36,7 +36,15 @@ export default function ContactPage() {
       ? validApiFaqs.map((f) => ({ q: f.question, a: f.answer }))
       : FAQS;
 
-  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    category: "general",
+    subject: "",
+    message: "",
+    has_consent: true,
+  });
   const [submitted, setSubmitted] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [formError, setFormError] = useState("");
@@ -46,7 +54,9 @@ export default function ContactPage() {
 
   function validateField(field: string, value: string) {
     const e: Record<string, string> = {};
-    if (!value.trim()) e[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+    if (!value.trim() && (field === "email" || field === "subject" || field === "message")) {
+      e[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+    }
     setErrors((prev) => ({ ...prev, ...e }));
   }
 
@@ -54,13 +64,15 @@ export default function ContactPage() {
 
   function validate() {
     const e: Record<string, string> = {};
-    if (!form.name.trim()) {
-      e.name = "Please enter your full name.";
-    }
     if (!form.email.trim()) {
       e.email = "Please enter your email address.";
     } else if (!EMAIL_REGEX.test(form.email.trim())) {
       e.email = "Please enter a valid email address (e.g. name@example.com).";
+    }
+    if (!form.subject.trim()) {
+      e.subject = "Please enter a subject for your inquiry.";
+    } else if (form.subject.trim().length > 255) {
+      e.subject = "Subject must be 255 characters or fewer.";
     }
     if (!form.message.trim()) {
       e.message = "Please enter your message.";
@@ -78,9 +90,13 @@ export default function ContactPage() {
     setHasError(false);
     contactService
       .submitContactMessage({
+        name: form.name.trim() || undefined,
         email: form.email.trim(),
-        subject: form.subject || "General inquiry",
+        phone: form.phone.trim() || undefined,
+        subject: form.subject.trim(),
+        category: form.category || "general",
         message: form.message.trim(),
+        has_consent: form.has_consent,
       })
       .then(() => setSubmitted(true))
       .catch((err) => {
@@ -170,17 +186,15 @@ export default function ContactPage() {
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <Input
-                  label="Name"
+                  label="Name (Optional)"
                   placeholder="Your full name"
                   ref={setRef("name")}
                   value={form.name}
-                  onChange={(e) => { setForm({ ...form, name: e.target.value }); if (errors.name) setErrors({ ...errors, name: "" }); }}
-                  onBlur={() => { if (!form.name.trim()) validateField("name", form.name); }}
-                  error={errors.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
                   autoComplete="name"
                 />
                 <Input
-                  label="Email"
+                  label="Email *"
                   type="email"
                   placeholder="your@email.com"
                   ref={setRef("email")}
@@ -192,30 +206,69 @@ export default function ContactPage() {
                   inputMode="email"
                   className="w-full text-sm sm:text-base tracking-normal min-w-0"
                 />
+                <Input
+                  label="Phone Number (Optional)"
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  ref={setRef("phone")}
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  autoComplete="tel"
+                  inputMode="tel"
+                />
                 <div className="flex flex-col gap-2">
-                  <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">Subject</label>
+                  <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
+                    Category
+                  </label>
                   <select
-                    value={form.subject}
-                    onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
                     className="w-full h-12 bg-input-background border border-border rounded-input px-4 text-foreground text-base focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
                   >
-                    <option value="">Select inquiry type</option>
-                    <option value="General Enquiry">General Enquiry</option>
-                    <option value="Feedback">Feedback</option>
-                    <option value="Complaint / Grievance">Complaint / Grievance</option>
+                    <option value="general">General Inquiry</option>
+                    <option value="adoption">Adoption &amp; Fostering</option>
+                    <option value="volunteer">Volunteering &amp; Community</option>
+                    <option value="donation">Donations &amp; Sponsorship</option>
+                    <option value="medical">Medical &amp; Shelter Care</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
+                <Input
+                  label="Subject *"
+                  placeholder="What is your inquiry about?"
+                  ref={setRef("subject")}
+                  value={form.subject}
+                  onChange={(e) => { setForm({ ...form, subject: e.target.value }); if (errors.subject) setErrors({ ...errors, subject: "" }); }}
+                  onBlur={() => { if (!form.subject.trim()) validateField("subject", form.subject); }}
+                  error={errors.subject}
+                  maxLength={255}
+                />
                 <Textarea
-                  label="Message"
+                  label="Message *"
                   placeholder="Describe your inquiry..."
                   ref={setRef("message")}
                   value={form.message}
                   onChange={(e) => { setForm({ ...form, message: e.target.value }); if (errors.message) setErrors({ ...errors, message: "" }); }}
                   onBlur={() => { if (!form.message.trim()) validateField("message", form.message); }}
                   error={errors.message}
-                  maxLength={1000}
+                  maxLength={10000}
                   rows={5}
                 />
+                <label className="flex items-start gap-3 cursor-pointer select-none pt-1">
+                  <input
+                    type="checkbox"
+                    checked={form.has_consent}
+                    onChange={(e) => setForm({ ...form, has_consent: e.target.checked })}
+                    className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    I consent to PawGuard processing my contact details to respond to this inquiry in accordance with the{" "}
+                    <Link href="/privacy" className="text-primary hover:underline">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </span>
+                </label>
                 <Button type="submit" variant="secondary" size="lg" isLoading={isLoading} context="contact">
                   Send Message
                 </Button>

@@ -22,6 +22,9 @@ import type {
   RescueRequestCreate,
   RescueRequestResponse,
   SuccessStoryResponse,
+  SuccessStoryStatus,
+  SuccessStoryUserSubmit,
+  SuccessStoryQueryParams,
 } from "@/lib/api";
 
 export const rescueService = {
@@ -132,9 +135,28 @@ export const rescueService = {
     return apiGet<SuccessStoryResponse[]>(API_ROUTES.community.successStories);
   },
 
-  /** `GET /portal/success-stories/{id}` — a single published success story. */
-  getSuccessStory(id: string): Promise<SuccessStoryResponse> {
-    return apiGet<SuccessStoryResponse>(API_ROUTES.community.successStory(id));
+  /** `GET /portal/success-stories/{id}` or `/portal/success-stories/slug/{slug}` — a single published success story. */
+  getSuccessStory(idOrSlug: string): Promise<SuccessStoryResponse> {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
+    if (isUuid) {
+      return apiGet<SuccessStoryResponse>(API_ROUTES.community.successStory(idOrSlug));
+    }
+    return apiGet<SuccessStoryResponse>(API_ROUTES.community.successStoryBySlug(idOrSlug));
+  },
+
+  /** `GET /portal/success-stories/slug/{slug}` — a single published success story by slug. */
+  getSuccessStoryBySlug(slug: string): Promise<SuccessStoryResponse> {
+    return apiGet<SuccessStoryResponse>(API_ROUTES.community.successStoryBySlug(slug));
+  },
+
+  /** `POST /portal/stories` — submit a new adopter success story (auth required, status pending_review). */
+  submitStory(data: SuccessStoryUserSubmit): Promise<SuccessStoryResponse> {
+    return apiPost<SuccessStoryResponse>(API_ROUTES.community.stories, data);
+  },
+
+  /** `GET /portal/stories/me` — retrieve current user's submitted stories (auth required). */
+  getMyStories(params?: SuccessStoryQueryParams): Promise<Page<SuccessStoryResponse>> {
+    return apiGetPage<SuccessStoryResponse>(API_ROUTES.community.myStories, params);
   },
 };
 
@@ -146,4 +168,7 @@ export type {
   RescueRequestCreate,
   RescueRequestResponse,
   SuccessStoryResponse,
+  SuccessStoryStatus,
+  SuccessStoryUserSubmit,
+  SuccessStoryQueryParams,
 };
