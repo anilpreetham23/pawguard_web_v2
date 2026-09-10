@@ -98,11 +98,10 @@ export const sectionReveal: SectionTransition = {
   scale: buildReveal("scale"),
   fade: buildReveal("fade"),
   section: {
-    hidden: { opacity: 0, y: 24, scale: 0.995 },
+    hidden: { opacity: 0, y: 24 },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1,
       transition: { duration: duration.reveal / 1000, ease: ease.narrative },
     },
   },
@@ -157,9 +156,9 @@ export const routeTransition: RouteTransitionCollection = {
     transition: { duration: duration.fast / 1000, ease: ease.snap },
   },
   warm: {
-    initial: { opacity: 0, x: 24 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -24 },
+    initial: { opacity: 0, y: 16 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -12 },
     transition: { duration: duration.gentle / 1000, ease: ease.emerge },
   },
   minimal: {

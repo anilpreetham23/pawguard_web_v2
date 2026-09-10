@@ -915,20 +915,16 @@
     font-size: var(--font-size);
     scroll-padding-top: calc(var(--header-height) + 8px);
     overflow-x: clip;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
   ::-webkit-scrollbar {
-    width: 8px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 99px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--muted-foreground);
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   :focus-visible {

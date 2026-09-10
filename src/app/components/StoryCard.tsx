@@ -89,7 +89,7 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
       {!isReduced && !isMobile && (
         <motion.div
           aria-hidden="true"
-          className="pointer-events-none absolute -inset-6 rounded-[28px] z-0"
+          className="pointer-events-none absolute -inset-2 sm:-inset-6 rounded-[28px] z-0"
           style={{ opacity: glowOpacity, background: glowBg }}
         />
       )}
