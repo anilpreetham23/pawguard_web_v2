@@ -593,7 +593,7 @@ export default function AccountPage() {
                       icon={<PiggyBank size={18} />}
                       label="Donations"
                       count={donationsCount}
-                      to="/donate"
+                      to="/account/donations"
                       hint="Contributions made"
                     />
                     <DashboardCard
