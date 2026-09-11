@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Heart, Truck, Stethoscope, Activity, Navigation } from "lucide-react";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
-import { getErrorMessage } from "@/lib/api";
+import { getErrorMessage, QUERY_KEYS } from "@/lib/api";
+import { queryClient } from "@/lib/react-query";
 import { donationService } from "@/services/api/donation";
 import type { DonationOrderResponse, DonationResponse } from "@/lib/api";
 
@@ -90,7 +91,7 @@ export function getImpactLine(
 /** Minimal Razorpay Checkout.js surface used by the donation flow. */
 interface RazorpayResponse {
   razorpay_payment_id: string;
-  razorpay_order_id: string;
+  razorpay_order_id?: string;
   razorpay_signature: string;
 }
 
@@ -104,9 +105,16 @@ interface RazorpayConstructor {
     description?: string;
     prefill?: { name?: string; email?: string };
     theme?: { color?: string };
-    modal?: { ondismiss?: () => void };
+    modal?: {
+      ondismiss?: () => void;
+      escape?: boolean;
+      backdropclose?: boolean;
+    };
     handler: (response: RazorpayResponse) => void;
-  }): { open: () => void };
+  }): {
+    open: () => void;
+    on: (event: string, callback: (response: any) => void) => void;
+  };
 }
 
 declare global {
@@ -191,6 +199,12 @@ export function useDonationState({
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [isReceiptLoading, setIsReceiptLoading] = useState(false);
   const [receiptError, setReceiptError] = useState(false);
+
+  // Guards against duplicate clicks, event firing, and concurrent submissions
+  const isSubmittingRef = useRef(false);
+  const isVerifyingRef = useRef(false);
+  const paymentCompletedRef = useRef(false);
+  const verifiedDonationIdsRef = useRef<Set<string>>(new Set());
 
   const customValidation = useMemo(() => {
     if (!customAmount || customAmount.trim() === "") {
@@ -306,6 +320,10 @@ export function useDonationState({
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
+      // Guard against rapid duplicate clicks or submissions while loading
+      if (isSubmittingRef.current || isLoading) {
+        return;
+      }
       if (!isAuthenticated) {
         openAuthDialog();
         return;
@@ -321,6 +339,9 @@ export function useDonationState({
         );
         return;
       }
+
+      isSubmittingRef.current = true;
+      paymentCompletedRef.current = false;
       setIsLoading(true);
       setHasError(false);
       setErrorMsg("");
@@ -358,35 +379,121 @@ export function useDonationState({
             theme: { color: "#1E3A8A" },
             modal: {
               ondismiss: () => {
-                setIsLoading(false);
+                // If payment was not completed and verification is not running, treat as cancellation
+                if (!paymentCompletedRef.current && !isVerifyingRef.current) {
+                  isSubmittingRef.current = false;
+                  setIsLoading(false);
+                  toast.info("Donation checkout cancelled", {
+                    description:
+                      "You closed the payment window before completing the transaction. Your donation was not processed.",
+                  });
+                }
               },
             },
-            handler: async (response) => {
+            handler: async (response: RazorpayResponse) => {
+              // Mark payment completed by gateway so ondismiss does not treat it as cancellation
+              paymentCompletedRef.current = true;
+
+              // Duplicate submission guard: prevent duplicate verification requests
+              if (
+                isVerifyingRef.current ||
+                verifiedDonationIdsRef.current.has(order.donation_id)
+              ) {
+                return;
+              }
+
+              // Verify required payment credentials from gateway
+              if (
+                !response.razorpay_payment_id ||
+                !response.razorpay_signature
+              ) {
+                paymentCompletedRef.current = false;
+                isSubmittingRef.current = false;
+                setIsLoading(false);
+                setHasError(true);
+                const errText =
+                  "Incomplete payment credentials received from gateway.";
+                setErrorMsg(errText);
+                toast.error("Payment verification failed", {
+                  description: errText,
+                });
+                return;
+              }
+
+              isVerifyingRef.current = true;
+              setIsLoading(true);
+
               try {
+                // Preserving the original PawGuard donation_id from initiateCheckout
+                const gatewayOrderId =
+                  response.razorpay_order_id || order.order_id;
                 const donation = await donationService.verifyDonation({
                   donation_id: order.donation_id,
-                  gateway_order_id: response.razorpay_order_id,
+                  gateway_order_id: gatewayOrderId,
                   gateway_payment_id: response.razorpay_payment_id,
                   gateway_signature: response.razorpay_signature,
                 });
+
+                verifiedDonationIdsRef.current.add(order.donation_id);
+                isVerifyingRef.current = false;
+                isSubmittingRef.current = false;
                 setConfirmedDonation(donation);
                 setIsLoading(false);
                 setSubmitted(true);
+
                 toast.success("Donation received", {
-                  description: `Your ${frequency === "monthly" ? "monthly " : ""}donation of ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount)} is helping dogs in need.`,
+                  description: `Your ${frequency === "monthly" ? "monthly " : ""}donation of ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount)} is confirmed. Thank you!`,
                 });
+
+                // Refresh/invalidate donation history and account dashboard summary queries
+                void Promise.allSettled([
+                  queryClient.invalidateQueries({
+                    queryKey: QUERY_KEYS.donation.history,
+                  }),
+                  queryClient.invalidateQueries({
+                    queryKey: QUERY_KEYS.community.meDashboard,
+                  }),
+                ]);
+
                 // Immediately request official receipt from backend
                 void fetchReceipt(donation.id);
               } catch (verifyErr) {
+                isVerifyingRef.current = false;
+                isSubmittingRef.current = false;
+                paymentCompletedRef.current = false;
                 setIsLoading(false);
                 setHasError(true);
-                setErrorMsg(getErrorMessage(verifyErr));
+                const errMsg =
+                  getErrorMessage(verifyErr) ||
+                  "Payment verification failed. Please contact support if your account was debited.";
+                setErrorMsg(errMsg);
+                toast.error("Payment verification failed", {
+                  description: errMsg,
+                });
               }
             },
           });
+
+          // Handle gateway-side payment failure event
+          checkout.on("payment.failed", (failedRes: any) => {
+            paymentCompletedRef.current = false;
+            isVerifyingRef.current = false;
+            isSubmittingRef.current = false;
+            setIsLoading(false);
+            setHasError(true);
+            const desc =
+              failedRes?.error?.description ||
+              "Payment could not be completed by the payment provider. Please try again.";
+            setErrorMsg(desc);
+            toast.error("Payment unsuccessful", { description: desc });
+          });
+
           checkout.open();
         } catch (err) {
           clearInterval(interval);
+          isSubmittingRef.current = false;
+          isVerifyingRef.current = false;
+          paymentCompletedRef.current = false;
           setIsLoading(false);
           setHasError(true);
           setErrorMsg(getErrorMessage(err));
@@ -404,6 +511,7 @@ export function useDonationState({
       userName,
       userEmail,
       fetchReceipt,
+      isLoading,
     ],
   );
 
@@ -468,6 +576,9 @@ export function useDonationState({
   }, [confirmedDonation, receiptUrl]);
 
   function makeAnotherDonation() {
+    isSubmittingRef.current = false;
+    isVerifyingRef.current = false;
+    paymentCompletedRef.current = false;
     setSubmitted(false);
     setHasError(false);
     setErrorMsg("");
@@ -479,6 +590,9 @@ export function useDonationState({
   }
 
   function clearError() {
+    isSubmittingRef.current = false;
+    isVerifyingRef.current = false;
+    paymentCompletedRef.current = false;
     setHasError(false);
     setErrorMsg("");
     setIsLoading(false);
