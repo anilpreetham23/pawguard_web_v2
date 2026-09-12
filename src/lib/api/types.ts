@@ -687,6 +687,40 @@ export interface PetReminderResponse {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Automated dog medical reminders DTOs (PAW-VET-REM-029)                     */
+/* -------------------------------------------------------------------------- */
+
+/** Clinical status of an automated reminder item. */
+export type MedicalReminderStatus = "overdue" | "due_today" | "upcoming";
+
+/** An automated medical reminder item (vaccination, medication, preventative care). */
+export interface DogMedicalReminderItem {
+  id: string;
+  kind: string;
+  title: string;
+  due_date: string | null;
+  status: MedicalReminderStatus;
+  details: string | null;
+  days_until_due: number | null;
+}
+
+/**
+ * `GET /api/v1/medical/dogs/{dog_id}/reminders` payload (`DogMedicalRemindersResponse`).
+ */
+export interface DogMedicalRemindersResponse {
+  dog_id: string;
+  dog_name: string;
+  total_reminders: number;
+  overdue_count: number;
+  upcoming_count: number;
+  reminders: DogMedicalReminderItem[];
+  vaccinations: DogMedicalReminderItem[];
+  medications: DogMedicalReminderItem[];
+  preventative_care: DogMedicalReminderItem[];
+}
+
+
+/* -------------------------------------------------------------------------- */
 /* Rescue DTOs                                                                */
 /* -------------------------------------------------------------------------- */
 

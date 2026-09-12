@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import RemindersPage from "../pages/RemindersPage";
 
 export const metadata: Metadata = {
@@ -9,5 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <RemindersPage />;
+  return (
+    <Suspense>
+      <RemindersPage />
+    </Suspense>
+  );
 }

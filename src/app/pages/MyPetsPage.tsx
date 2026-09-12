@@ -152,13 +152,22 @@ function AdoptedPetCard({ app }: { app: AdoptionApplicationResponse }) {
           Manage this pet&apos;s veterinary visits, reminders, and QR safety tag
           through its pet profile.
         </p>
-        <Link
-          href={`/adopt/${app.dog_id}`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
-        >
-          View dog profile
-          <ArrowRight size={13} />
-        </Link>
+        <div className="flex items-center justify-between pt-1 flex-wrap gap-2">
+          <Link
+            href={`/reminders?dog_id=${app.dog_id}`}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+          >
+            <CalendarClock size={13} />
+            Automated medical reminders
+          </Link>
+          <Link
+            href={`/adopt/${app.dog_id}`}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
+          >
+            Dog profile
+            <ArrowRight size={13} />
+          </Link>
+        </div>
       </div>
     </Card>
   );
@@ -357,7 +366,11 @@ function CompanionPetCard({
           Book vet visit
         </Link>
         <Link
-          href="/reminders"
+          href={
+            pet.original_dog_id
+              ? `/reminders?dog_id=${pet.original_dog_id}`
+              : "/reminders"
+          }
           className="inline-flex items-center gap-1.5 bg-card border border-border text-foreground text-xs font-semibold tracking-wider uppercase px-4 py-2.5 rounded-btn hover:border-primary hover:text-primary transition-all duration-fast"
         >
           <CalendarClock size={14} />

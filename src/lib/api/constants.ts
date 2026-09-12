@@ -234,6 +234,10 @@ export const API_ROUTES = {
     notification: (id: string) => `/notifications/${id}`,
     preferences: "/notifications/preferences",
   },
+
+  medical: {
+    dogReminders: (dogId: string) => `/medical/dogs/${dogId}/reminders`,
+  },
 } as const;
 
 /* -------------------------------------------------------------------------- */
@@ -342,5 +346,10 @@ export const QUERY_KEYS = {
     list: ["notifications", "list"] as const,
     unreadCount: ["notifications", "unread-count"] as const,
     preferences: ["notifications", "preferences"] as const,
+  },
+
+  medical: {
+    dogReminders: (dogId: string) =>
+      ["medical", "dogs", dogId, "reminders"] as const,
   },
 } as const;

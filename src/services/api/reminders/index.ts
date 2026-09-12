@@ -17,7 +17,13 @@
  */
 
 import { API_ROUTES, apiDelete, apiGet, apiPost } from "@/lib/api";
-import type { PetReminderCreate, PetReminderResponse } from "@/lib/api";
+import type {
+  DogMedicalReminderItem,
+  DogMedicalRemindersResponse,
+  MedicalReminderStatus,
+  PetReminderCreate,
+  PetReminderResponse,
+} from "@/lib/api";
 
 export const remindersService = {
   /**
@@ -51,6 +57,21 @@ export const remindersService = {
       API_ROUTES.companionPets.reminder(petId, reminderId)
     );
   },
+
+  /**
+   * `GET /api/v1/medical/dogs/{dog_id}/reminders` — automated clinical reminders
+   * (vaccinations, medications, preventative care) for a shelter/adopted dog.
+   * Backed by backend commit f39277c (PAW-VET-REM-029).
+   */
+  getDogMedicalReminders(dogId: string): Promise<DogMedicalRemindersResponse> {
+    return apiGet<DogMedicalRemindersResponse>(API_ROUTES.medical.dogReminders(dogId));
+  },
 };
 
-export type { PetReminderCreate, PetReminderResponse };
+export type {
+  DogMedicalReminderItem,
+  DogMedicalRemindersResponse,
+  MedicalReminderStatus,
+  PetReminderCreate,
+  PetReminderResponse,
+};
