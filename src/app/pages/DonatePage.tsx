@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckCircle2, Download, ExternalLink, FileText, Lock, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, Clock, ExternalLink, ArrowRight, Lock } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import { useAuth } from "../providers/auth-provider";
 import {
@@ -8,6 +9,7 @@ import {
   Section,
   Button,
   Card,
+  Badge,
   Reveal,
   DonationTransparencyLedger,
 } from "../components/pawguard";
@@ -99,143 +101,157 @@ export default function DonatePage() {
                 </Card>
               </div>
             ) : submitted ? (
-              <div className="max-w-[600px] mx-auto">
-                <Card variant="elevated" role="status" aria-live="polite">
-                  <div className="w-14 h-14 bg-primary rounded-full flex items-center justify-center animate-celebration-pop">
-                    <CheckCircle2
-                      size={28}
-                      className="text-primary-foreground"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <h2 className="text-foreground font-bold text-2xl">
-                      Thank You
-                    </h2>
-                    <p className="text-muted-foreground text-base leading-relaxed">
-                      Your {frequency === "monthly" ? "monthly" : "one-time"}{" "}
-                      gift of{" "}
-                      <strong>
-                        {displayAmount
-                          ? new Intl.NumberFormat("en-IN", {
-                              style: "currency",
-                              currency: "INR",
-                              maximumFractionDigits: 0,
-                            }).format(displayAmount)
-                          : ""}
-                      </strong>{" "}
-                      is confirmed.{" "}
-                      {user?.email ? (
-                        <span>
-                          We've sent a confirmation to{" "}
-                          <strong>{user.email}</strong>.
-                        </span>
-                      ) : (
-                        "We've sent a confirmation to your inbox."
-                      )}
-                    </p>
-                    {confirmedDonation && (
-                      <p className="text-muted-foreground text-sm font-mono">
-                        Donation reference: {confirmedDonation.id}
+              confirmedDonation?.status === "pending" ? (
+                <div className="max-w-[600px] mx-auto">
+                  <Card variant="elevated" role="status" aria-live="polite">
+                    <div className="w-14 h-14 bg-amber-500/10 rounded-full flex items-center justify-center">
+                      <Clock size={28} className="text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-foreground font-bold text-2xl">
+                          Payment Processing
+                        </h2>
+                        <Badge
+                          variant="neutral"
+                          className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/25 text-xs font-semibold"
+                        >
+                          Verification Pending
+                        </Badge>
+                      </div>
+                      <p className="text-muted-foreground text-base leading-relaxed">
+                        Your {frequency === "monthly" ? "monthly" : "one-time"} gift of{" "}
+                        <strong>
+                          {displayAmount
+                            ? new Intl.NumberFormat("en-IN", {
+                                style: "currency",
+                                currency: "INR",
+                                maximumFractionDigits: 0,
+                              }).format(displayAmount)
+                            : ""}
+                        </strong>{" "}
+                        has been received. Your payment is being verified with the payment gateway.
                       </p>
-                    )}
-                    <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 flex items-center gap-4">
-                      <span className="font-serif text-primary font-bold text-3xl">
-                        {displayAmount && displayAmount >= 40000 ? "1" : "7"}
-                      </span>
-                      <div className="flex flex-col">
-                        <span className="text-foreground font-semibold text-sm">
-                          Your direct impact
-                        </span>
-                        <span className="text-muted-foreground text-sm leading-relaxed">
-                          {displayAmount && displayAmount >= 40000
-                            ? "full rescue operation deployed to save a dog in crisis."
-                            : displayAmount && displayAmount >= 20000
-                              ? "dog sponsored through full rehabilitation — from rescue to adoption."
-                              : displayAmount && displayAmount >= 8000
-                                ? "emergency triage treatment provided for an injured dog."
-                                : displayAmount && displayAmount >= 4000
-                                  ? "emergency transport and initial veterinary assessment covered."
-                                  : "weeks of foster care funded for a recovering dog."}
+                      {confirmedDonation && (
+                        <p className="text-muted-foreground text-sm font-mono">
+                          Donation reference: {confirmedDonation.id}
+                        </p>
+                      )}
+                      <div className="bg-muted/50 border border-border rounded-xl p-4 flex flex-col gap-1 text-sm">
+                        <span className="text-foreground font-semibold">Status Update</span>
+                        <span className="text-muted-foreground leading-relaxed">
+                          We are waiting for final confirmation from Razorpay. Once verified, your status will update to <strong>Completed</strong> and your official 80G tax receipt will become available in your account history.
                         </span>
                       </div>
-                    </div>
-                    <div className="flex flex-col gap-3 pt-2">
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        {isReceiptLoading ? (
-                          <Button
-                            variant="outline"
-                            size="md"
-                            isLoading
-                            disabled
-                          >
-                            Preparing Official Receipt...
+                      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                        <Link href="/account/donations" className="flex-1">
+                          <Button variant="primary" size="md" className="w-full inline-flex items-center justify-center gap-2">
+                            <span>View in My Donations</span>
+                            <ArrowRight size={16} aria-hidden="true" />
                           </Button>
-                        ) : receiptUrl ? (
-                          <>
-                            <Button
-                              variant="primary"
-                              size="md"
-                              onClick={() => void viewReceipt()}
-                            >
-                              <ExternalLink size={16} aria-hidden="true" />
-                              View Receipt
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="md"
-                              onClick={() => void downloadReceipt()}
-                            >
-                              <Download size={16} aria-hidden="true" />
-                              Download PDF Receipt
-                            </Button>
-                          </>
-                        ) : receiptError ? (
-                          <Button
-                            variant="outline"
-                            size="md"
-                            isLoading={isReceiptLoading}
-                            onClick={() => void fetchReceipt()}
-                          >
-                            <RefreshCw size={16} aria-hidden="true" />
-                            Retry Fetching Receipt
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="md"
-                            isLoading={isReceiptLoading}
-                            onClick={() => void fetchReceipt()}
-                          >
-                            <FileText size={16} aria-hidden="true" />
-                            Get Official Receipt
-                          </Button>
-                        )}
+                        </Link>
                         <Button
-                          variant={receiptUrl ? "secondary" : "primary"}
+                          variant="outline"
                           size="md"
                           onClick={makeAnotherDonation}
+                          className="flex-1"
                         >
                           Make Another Donation
                         </Button>
                       </div>
-                      {receiptUrl ? (
+                    </div>
+                  </Card>
+                </div>
+              ) : (
+                <div className="max-w-[600px] mx-auto">
+                  <Card variant="elevated" role="status" aria-live="polite">
+                    <div className="w-14 h-14 bg-primary rounded-full flex items-center justify-center animate-celebration-pop">
+                      <CheckCircle2
+                        size={28}
+                        className="text-primary-foreground"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <h2 className="text-foreground font-bold text-2xl">
+                        Thank You
+                      </h2>
+                      <p className="text-muted-foreground text-base leading-relaxed">
+                        Your {frequency === "monthly" ? "monthly" : "one-time"}{" "}
+                        gift of{" "}
+                        <strong>
+                          {displayAmount
+                            ? new Intl.NumberFormat("en-IN", {
+                                style: "currency",
+                                currency: "INR",
+                                maximumFractionDigits: 0,
+                              }).format(displayAmount)
+                            : ""}
+                        </strong>{" "}
+                        is confirmed.{" "}
+                        {user?.email ? (
+                          <span>
+                            We've sent a confirmation to{" "}
+                            <strong>{user.email}</strong>.
+                          </span>
+                        ) : (
+                          "We've sent a confirmation to your inbox."
+                        )}
+                      </p>
+                      {confirmedDonation && (
+                        <p className="text-muted-foreground text-sm font-mono">
+                          Donation reference: {confirmedDonation.id}
+                        </p>
+                      )}
+                      <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 flex items-center gap-4">
+                        <span className="font-serif text-primary font-bold text-3xl">
+                          {displayAmount && displayAmount >= 40000 ? "1" : "7"}
+                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-foreground font-semibold text-sm">
+                            Your direct impact
+                          </span>
+                          <span className="text-muted-foreground text-sm leading-relaxed">
+                            {displayAmount && displayAmount >= 40000
+                              ? "full rescue operation deployed to save a dog in crisis."
+                              : displayAmount && displayAmount >= 20000
+                                ? "dog sponsored through full rehabilitation — from rescue to adoption."
+                                : displayAmount && displayAmount >= 8000
+                                  ? "emergency triage treatment provided for an injured dog."
+                                  : displayAmount && displayAmount >= 4000
+                                    ? "emergency transport and initial veterinary assessment covered."
+                                    : "weeks of foster care funded for a recovering dog."}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-3 pt-2">
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <Button
+                            variant="primary"
+                            size="md"
+                            isLoading={isReceiptLoading}
+                            onClick={() => void viewReceipt()}
+                            className="inline-flex items-center justify-center gap-2"
+                          >
+                            <ExternalLink size={16} aria-hidden="true" />
+                            <span>View Receipt</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="md"
+                            onClick={makeAnotherDonation}
+                          >
+                            Make Another Donation
+                          </Button>
+                        </div>
                         <p className="text-emerald-600 dark:text-emerald-400 text-xs font-medium flex items-center gap-1.5">
                           <CheckCircle2 size={14} />
-                          Your official tax receipt is ready to view or download.
+                          Your official 80G tax receipt is ready. Clicking View Receipt will open the PDF and download a copy.
                         </p>
-                      ) : receiptError ? (
-                        <p className="text-amber-600 dark:text-amber-400 text-xs font-medium">
-                          Donation confirmed. Your receipt is taking a moment to generate — click retry to load.
-                        </p>
-                      ) : isReceiptLoading ? (
-                        <p className="text-muted-foreground text-xs animate-pulse">
-                          Retrieving your official tax receipt from backend...
-                        </p>
-                      ) : null}
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              </div>
+                  </Card>
+                </div>
+              )
             ) : (
               <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-[var(--space-12)] lg:gap-[var(--space-16)]">

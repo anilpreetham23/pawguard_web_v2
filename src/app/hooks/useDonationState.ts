@@ -6,7 +6,7 @@ import confetti from "canvas-confetti";
 import { toast } from "sonner";
 import { getErrorMessage, QUERY_KEYS } from "@/lib/api";
 import { queryClient } from "@/lib/react-query";
-import { donationService } from "@/services/api/donation";
+import { donationService, openAndViewReceipt } from "@/services/api/donation";
 import type { DonationOrderResponse, DonationResponse } from "@/lib/api";
 
 export type DonationFrequency = "monthly" | "once";
@@ -268,7 +268,7 @@ export function useDonationState({
   }, [displayAmount]);
 
   useEffect(() => {
-    if (!submitted) return;
+    if (!submitted || confirmedDonation?.status !== "success") return;
     const end = Date.now() + 1000;
     const interval = setInterval(() => {
       if (Date.now() > end) {
@@ -283,7 +283,7 @@ export function useDonationState({
       });
     }, 80);
     return () => clearInterval(interval);
-  }, [submitted]);
+  }, [submitted, confirmedDonation?.status]);
 
   function selectPreset(amount: number) {
     setSelectedAmount(amount);
@@ -437,26 +437,64 @@ export function useDonationState({
                 verifiedDonationIdsRef.current.add(order.donation_id);
                 isVerifyingRef.current = false;
                 isSubmittingRef.current = false;
-                setConfirmedDonation(donation);
                 setIsLoading(false);
-                setSubmitted(true);
 
-                toast.success("Donation received", {
-                  description: `Your ${frequency === "monthly" ? "monthly " : ""}donation of ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount)} is confirmed. Thank you!`,
-                });
+                // Status-aware verification: NEVER treat HTTP 200 alone as confirmation!
+                // donation.status is the single source of truth.
+                if (donation.status === "success") {
+                  setConfirmedDonation(donation);
+                  setSubmitted(true);
+                  setHasError(false);
+                  setErrorMsg("");
 
-                // Refresh/invalidate donation history and account dashboard summary queries
-                void Promise.allSettled([
-                  queryClient.invalidateQueries({
-                    queryKey: QUERY_KEYS.donation.history,
-                  }),
-                  queryClient.invalidateQueries({
-                    queryKey: QUERY_KEYS.community.meDashboard,
-                  }),
-                ]);
+                  toast.success("Donation received", {
+                    description: `Your ${frequency === "monthly" ? "monthly " : ""}donation of ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount)} is confirmed. Thank you!`,
+                  });
 
-                // Immediately request official receipt from backend
-                void fetchReceipt(donation.id);
+                  // Refresh/invalidate donation history and account dashboard summary queries
+                  void Promise.allSettled([
+                    queryClient.invalidateQueries({
+                      queryKey: QUERY_KEYS.donation.history,
+                    }),
+                    queryClient.invalidateQueries({
+                      queryKey: QUERY_KEYS.community.meDashboard,
+                    }),
+                  ]);
+                } else if (donation.status === "pending") {
+                  // Payment captured by provider but verification/settlement remains pending
+                  setConfirmedDonation(donation);
+                  setSubmitted(true);
+                  setHasError(false);
+                  setErrorMsg("");
+
+                  toast.info("Payment verification pending", {
+                    description:
+                      "Your payment was received and is currently being verified. Your status will update once verification finishes.",
+                  });
+
+                  // Invalidate history so pending record is visible in account donations
+                  void Promise.allSettled([
+                    queryClient.invalidateQueries({
+                      queryKey: QUERY_KEYS.donation.history,
+                    }),
+                    queryClient.invalidateQueries({
+                      queryKey: QUERY_KEYS.community.meDashboard,
+                    }),
+                  ]);
+                } else {
+                  // status === "failed" or other terminal failure status
+                  paymentCompletedRef.current = false;
+                  setConfirmedDonation(null);
+                  setSubmitted(false);
+                  setHasError(true);
+                  const failureMsg =
+                    donation.notes ||
+                    "Payment verification failed. Your transaction could not be confirmed.";
+                  setErrorMsg(failureMsg);
+                  toast.error("Payment not completed", {
+                    description: failureMsg,
+                  });
+                }
               } catch (verifyErr) {
                 isVerifyingRef.current = false;
                 isSubmittingRef.current = false;
@@ -510,70 +548,32 @@ export function useDonationState({
       openAuthDialog,
       userName,
       userEmail,
-      fetchReceipt,
       isLoading,
     ],
   );
 
   const viewReceipt = useCallback(async () => {
-    if (receiptUrl) {
-      window.open(receiptUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
-    if (!confirmedDonation) return;
+    if (!confirmedDonation || confirmedDonation.status !== "success") return;
     setIsReceiptLoading(true);
     setReceiptError(false);
     try {
-      const res = await donationService.getReceiptUrl(confirmedDonation.id);
-      setReceiptUrl(res.download_url);
-      window.open(res.download_url, "_blank", "noopener,noreferrer");
+      await openAndViewReceipt(confirmedDonation.id);
     } catch (err) {
       setReceiptError(true);
-      toast.error("Receipt preparation in progress", {
-        description:
-          "Could not load receipt at this moment. Please click retry below.",
+      const errMsg =
+        getErrorMessage(err) ||
+        "Could not load receipt at this moment. Please try again.";
+      toast.error("Receipt preparation failed", {
+        description: errMsg,
       });
     } finally {
       setIsReceiptLoading(false);
     }
-  }, [confirmedDonation, receiptUrl]);
+  }, [confirmedDonation]);
 
   const downloadReceipt = useCallback(async () => {
-    if (receiptUrl) {
-      const link = document.createElement("a");
-      link.href = receiptUrl;
-      link.target = "_blank";
-      link.rel = "noopener,noreferrer";
-      link.download = `PawGuard_Donation_Receipt_${confirmedDonation?.id || "official"}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      return;
-    }
-    if (!confirmedDonation) return;
-    setIsReceiptLoading(true);
-    setReceiptError(false);
-    try {
-      const res = await donationService.getReceiptUrl(confirmedDonation.id);
-      setReceiptUrl(res.download_url);
-      const link = document.createElement("a");
-      link.href = res.download_url;
-      link.target = "_blank";
-      link.rel = "noopener,noreferrer";
-      link.download = `PawGuard_Donation_Receipt_${confirmedDonation.id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-      setReceiptError(true);
-      toast.error("Receipt preparation in progress", {
-        description:
-          "Could not load receipt at this moment. Please click retry below.",
-      });
-    } finally {
-      setIsReceiptLoading(false);
-    }
-  }, [confirmedDonation, receiptUrl]);
+    return viewReceipt();
+  }, [viewReceipt]);
 
   function makeAnotherDonation() {
     isSubmittingRef.current = false;

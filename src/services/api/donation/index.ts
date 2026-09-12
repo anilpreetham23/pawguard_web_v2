@@ -101,6 +101,8 @@ export const donationService = {
   },
 };
 
+export { openAndViewReceipt } from "./receiptHelper";
+
 export type {
   DonationCampaignResponse,
   DonationCreate,

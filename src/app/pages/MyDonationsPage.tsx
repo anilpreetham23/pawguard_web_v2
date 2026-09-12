@@ -11,7 +11,6 @@ import {
   Clock,
   AlertCircle,
   RotateCcw,
-  Download,
   Calendar,
   Lock,
   PawPrint,
@@ -33,7 +32,7 @@ import {
 } from "../components/pawguard";
 import { useAuth } from "../providers/auth-provider";
 import { useMyDonations } from "../hooks/useMyDonations";
-import { donationService } from "@/services/api/donation";
+import { donationService, openAndViewReceipt } from "@/services/api/donation";
 import { getErrorMessage } from "@/lib/api";
 import type { DonationResponse } from "@/lib/api";
 
@@ -160,24 +159,18 @@ export default function MyDonationsPage() {
     }
   }, [donations, activeFilter]);
 
-  // ── Receipt Download Handler ──────────────────────────────────────────────
-  const handleDownloadReceipt = useCallback(async (donationId: string) => {
+  // ── Receipt View & Download Handler ─────────────────────────────────────────
+  const handleViewReceipt = useCallback(async (donationId: string) => {
     setDownloadingId(donationId);
     setReceiptError(null);
     try {
-      const res = await donationService.getReceiptUrl(donationId);
-      if (res?.download_url) {
-        window.open(res.download_url, "_blank", "noopener,noreferrer");
-      } else {
-        setReceiptError({
-          id: donationId,
-          message: "Receipt link is currently unavailable. Please try again in a few moments.",
-        });
-      }
+      await openAndViewReceipt(donationId);
     } catch (err) {
       setReceiptError({
         id: donationId,
-        message: getErrorMessage(err) || "Failed to retrieve receipt. Please try again.",
+        message:
+          getErrorMessage(err) ||
+          "Failed to retrieve receipt. Please try again.",
       });
     } finally {
       setDownloadingId(null);
@@ -435,18 +428,18 @@ export default function MyDonationsPage() {
                                 variant="outline"
                                 size="sm"
                                 disabled={isDownloading}
-                                onClick={() => void handleDownloadReceipt(donation.id)}
+                                onClick={() => void handleViewReceipt(donation.id)}
                                 className="inline-flex items-center gap-2 text-xs"
                               >
                                 {isDownloading ? (
                                   <>
                                     <Loader2 size={14} className="animate-spin text-primary" />
-                                    <span>Fetching Receipt...</span>
+                                    <span>Opening Receipt...</span>
                                   </>
                                 ) : (
                                   <>
-                                    <Download size={14} className="text-primary" />
-                                    <span>Download Receipt</span>
+                                    <FileText size={14} className="text-primary" />
+                                    <span>View Receipt</span>
                                   </>
                                 )}
                               </Button>
@@ -488,7 +481,7 @@ export default function MyDonationsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => void handleDownloadReceipt(donation.id)}
+                              onClick={() => void handleViewReceipt(donation.id)}
                               className="text-xs shrink-0"
                             >
                               Retry
