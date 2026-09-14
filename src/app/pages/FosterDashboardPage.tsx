@@ -22,6 +22,14 @@ import {
   Activity,
   Stethoscope,
   Smile,
+  Scale,
+  Pill,
+  Upload,
+  ImageIcon,
+  Camera,
+  Loader2,
+  X,
+  Trash2,
 } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import SectionHeading from "../components/SectionHeading";
@@ -38,6 +46,7 @@ import { useAuth } from "../providers/auth-provider";
 import { useFosterStatus, type FosterLifecycleStatus } from "../hooks/useFosterStatus";
 import { useFosterPlacements } from "../hooks/useFosterPlacements";
 import { fosterService } from "@/services/api/foster";
+import { lostFoundService } from "@/services/api/lost-found";
 import {
   QUERY_KEYS,
   getErrorMessage,
@@ -100,7 +109,9 @@ export default function FosterDashboardPage() {
   const { status, fosterProfile, isLoading, refetch: refetchStatus } = useFosterStatus();
   const { placements, activePlacement, isLoading: placementsLoading, refetch: refetchPlacements } = useFosterPlacements();
 
-  const selectedPlacement = activePlacement ?? placements[0] ?? null;
+  const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
+  const selectedPlacement =
+    placements.find((p) => p.id === selectedPlacementId) ?? activePlacement ?? placements[0] ?? null;
   const placementId = selectedPlacement?.id;
 
   // Placement Progress Logs Query
@@ -117,8 +128,8 @@ export default function FosterDashboardPage() {
     queryFn: () => fosterService.getPlacementSupplies(placementId!),
   });
 
-  // Active Modals / Forms State
-  const [activeTab, setActiveTab] = useState<"overview" | "progress" | "supplies">("overview");
+  // Active Modals / Forms State (default to progress for immediate daily logging access)
+  const [activeTab, setActiveTab] = useState<"progress" | "overview" | "supplies">("progress");
 
   // Progress Log Form State
   const [logForm, setLogForm] = useState({
@@ -130,6 +141,9 @@ export default function FosterDashboardPage() {
     behavior_notes: "",
     notes: "",
   });
+  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [mediaUploadError, setMediaUploadError] = useState<string | null>(null);
   const [isSubmittingLog, setIsSubmittingLog] = useState(false);
   const [logError, setLogError] = useState<string | null>(null);
   const [logSuccess, setLogSuccess] = useState(false);
@@ -147,6 +161,50 @@ export default function FosterDashboardPage() {
   // Convert to Adopt State
   const [isConverting, setIsConverting] = useState(false);
   const [convertError, setConvertError] = useState<string | null>(null);
+
+  // Media File Upload Handler
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setMediaUploadError(null);
+    setIsUploadingMedia(true);
+
+    try {
+      const newUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.startsWith("image/")) {
+          throw new Error(`File "${file.name}" is not a valid image file.`);
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error(`File "${file.name}" exceeds the maximum 10MB size limit.`);
+        }
+
+        const uploadData = await lostFoundService.getPhotoUploadUrl({
+          filename: file.name,
+          mime_type: file.type,
+          file_size: file.size,
+        });
+
+        await lostFoundService.uploadPhotoFile(uploadData.upload_url, file);
+        const finalPhotoUrl =
+          ((uploadData as unknown) as Record<string, string>).public_url ||
+          uploadData.upload_url.split("?")[0] ||
+          uploadData.object_key;
+        setUploadedPhotos((prev) => [...prev, finalPhotoUrl]);
+      }
+    } catch (err: unknown) {
+      setMediaUploadError(getErrorMessage(err) || "Failed to upload media photo.");
+    } finally {
+      setIsUploadingMedia(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setUploadedPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
 
   // Progress Log Submit Handler
   const handleProgressSubmit = async (e: React.FormEvent) => {
@@ -182,10 +240,12 @@ export default function FosterDashboardPage() {
         feeding_notes: logForm.feeding_notes.trim() || null,
         medication_notes: logForm.medication_notes.trim() || null,
         behavior_notes: logForm.behavior_notes.trim() || null,
+        photo_urls: uploadedPhotos.length > 0 ? uploadedPhotos : null,
         notes: logForm.notes.trim() || null,
       });
 
       setLogSuccess(true);
+      setUploadedPhotos([]);
       setLogForm({
         weight_kg: "",
         mood_rating: "5",
@@ -479,6 +539,26 @@ export default function FosterDashboardPage() {
                   {/* Active Placement Card */}
                   {selectedPlacement && (
                     <Card className="p-6 flex flex-col gap-6 border-primary/20 bg-primary/5">
+                      {placements.length > 1 && (
+                        <div className="flex items-center gap-3 bg-background p-3 rounded-card border border-border/80">
+                          <label htmlFor="select-foster-placement" className="text-xs font-semibold text-muted-foreground shrink-0">
+                            Select Assigned Foster Dog:
+                          </label>
+                          <select
+                            id="select-foster-placement"
+                            value={selectedPlacement.id}
+                            onChange={(e) => setSelectedPlacementId(e.target.value)}
+                            className="rounded-card border border-border bg-background px-3 py-1.5 text-xs text-foreground font-semibold focus:outline-none focus:ring-1 focus:ring-primary flex-1"
+                          >
+                            {placements.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.dog?.name ?? "Foster Dog"} ({p.dog?.breed ?? "Rescue Dog"})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
                       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 pb-4">
                         <div className="flex items-center gap-4">
                           {(selectedPlacement.dog?.image_urls?.[0] ?? selectedPlacement.dog?.photo_gallery_urls?.[0] ?? selectedPlacement.dog?.image_url ?? selectedPlacement.dog?.photo_url) ? (
@@ -584,116 +664,210 @@ export default function FosterDashboardPage() {
                         </div>
                       )}
 
-                      {/* TAB 2: CARE PROGRESS LOGGING */}
+                      {/* TAB 2: DAILY FOSTER PROGRESS PORTAL */}
                       {activeTab === "progress" && (
                         <div className="flex flex-col gap-6">
                           {/* Progress Log Submission Form */}
-                          <div className="bg-background p-6 rounded-card border border-border flex flex-col gap-4">
-                            <h4 className="text-foreground font-bold text-base flex items-center gap-2">
-                              <Activity size={18} className="text-primary" />
-                              Log Daily Care & Progress Update
-                            </h4>
+                          <div className="bg-background p-6 rounded-card border border-border flex flex-col gap-6">
+                            <div className="flex flex-col gap-1 border-b border-border/60 pb-3">
+                              <h4 className="text-foreground font-bold text-lg flex items-center gap-2">
+                                <Activity size={20} className="text-primary" />
+                                Today&apos;s Daily Foster Progress Portal
+                              </h4>
+                              <p className="text-xs text-muted-foreground">
+                                Record daily health, behavioral observations, medication verification, and progress media for {selectedPlacement.dog?.name ?? "your foster dog"}.
+                              </p>
+                            </div>
 
                             {logSuccess && (
-                              <div className="p-3 bg-emerald-500/10 text-emerald-700 text-xs rounded-card border border-emerald-500/20">
-                                Care progress log submitted successfully!
+                              <div className="p-3.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-semibold rounded-card border border-emerald-500/20 flex items-center gap-2">
+                                <CheckCircle2 size={16} />
+                                Daily foster progress log and media submitted successfully!
                               </div>
                             )}
 
                             {logError && (
-                              <div className="p-3 bg-destructive/10 text-destructive text-xs rounded-card border border-destructive/20">
+                              <div className="p-3.5 bg-destructive/10 text-destructive text-xs rounded-card border border-destructive/20 flex items-center gap-2">
+                                <AlertCircle size={16} />
                                 {logError}
                               </div>
                             )}
 
-                            <form onSubmit={handleProgressSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                              <div>
-                                <label className="block text-xs font-semibold text-muted-foreground mb-1">
-                                  Weight (kg)
-                                </label>
-                                <input
-                                  type="number"
-                                  step="0.1"
-                                  value={logForm.weight_kg}
-                                  onChange={(e) => setLogForm({ ...logForm, weight_kg: e.target.value })}
-                                  placeholder="e.g. 14.5"
-                                  className="w-full rounded-card border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                                />
+                            <form onSubmit={handleProgressSubmit} className="flex flex-col gap-6">
+                              {/* 1. WEIGHT LOG */}
+                              <div className="p-4 bg-muted/20 rounded-card border border-border/60 flex flex-col gap-3">
+                                <div className="flex items-center gap-2 text-foreground font-semibold text-sm">
+                                  <Scale size={16} className="text-primary" />
+                                  <span>1. Weight Log</span>
+                                </div>
+                                <div className="max-w-xs">
+                                  <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                                    Current Dog Weight (kg)
+                                  </label>
+                                  <input
+                                    type="number"
+                                    step="0.1"
+                                    value={logForm.weight_kg}
+                                    onChange={(e) => setLogForm({ ...logForm, weight_kg: e.target.value })}
+                                    placeholder="e.g. 14.5"
+                                    className="w-full rounded-card border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                  />
+                                </div>
                               </div>
 
-                              <div>
-                                <label className="block text-xs font-semibold text-muted-foreground mb-1">
-                                  Mood Rating (1 to 5)
-                                </label>
-                                <select
-                                  value={logForm.mood_rating}
-                                  onChange={(e) => setLogForm({ ...logForm, mood_rating: e.target.value })}
-                                  className="w-full rounded-card border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                                >
-                                  <option value="5">5 - Excellent & Energetic</option>
-                                  <option value="4">4 - Happy & Relaxed</option>
-                                  <option value="3">3 - Neutral / Calm</option>
-                                  <option value="2">2 - Shy / Anxious</option>
-                                  <option value="1">1 - Lethargic / Unwell</option>
-                                </select>
+                              {/* 2. BEHAVIORAL LOG */}
+                              <div className="p-4 bg-muted/20 rounded-card border border-border/60 flex flex-col gap-4">
+                                <div className="flex items-center gap-2 text-foreground font-semibold text-sm">
+                                  <Smile size={16} className="text-primary" />
+                                  <span>2. Behavioral Log &amp; Daily Observations</span>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                                      Mood &amp; Energy Rating (1 to 5)
+                                    </label>
+                                    <select
+                                      value={logForm.mood_rating}
+                                      onChange={(e) => setLogForm({ ...logForm, mood_rating: e.target.value })}
+                                      className="w-full rounded-card border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                    >
+                                      <option value="5">🌟 5 - Excellent &amp; Energetic</option>
+                                      <option value="4">😊 4 - Happy &amp; Relaxed</option>
+                                      <option value="3">😐 3 - Neutral / Calm</option>
+                                      <option value="2">😟 2 - Shy / Anxious</option>
+                                      <option value="1">🤒 1 - Lethargic / Unwell</option>
+                                    </select>
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                                      Daily Exercise (Minutes)
+                                    </label>
+                                    <input
+                                      type="number"
+                                      value={logForm.exercise_minutes}
+                                      onChange={(e) => setLogForm({ ...logForm, exercise_minutes: e.target.value })}
+                                      placeholder="e.g. 45"
+                                      className="w-full rounded-card border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                                    Feeding &amp; Appetite Observations
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={logForm.feeding_notes}
+                                    onChange={(e) => setLogForm({ ...logForm, feeding_notes: e.target.value })}
+                                    placeholder="e.g. Ate full morning kibble meal, good appetite..."
+                                    className="w-full rounded-card border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                                    Behavior, Socialization &amp; Health Progress Notes
+                                  </label>
+                                  <textarea
+                                    rows={2}
+                                    value={logForm.behavior_notes}
+                                    onChange={(e) => setLogForm({ ...logForm, behavior_notes: e.target.value })}
+                                    placeholder="e.g. Socialized well with visitors, responded to leash commands, calm demeanor..."
+                                    className="w-full rounded-card border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                  />
+                                </div>
                               </div>
 
-                              <div>
-                                <label className="block text-xs font-semibold text-muted-foreground mb-1">
-                                  Exercise (Minutes)
-                                </label>
-                                <input
-                                  type="number"
-                                  value={logForm.exercise_minutes}
-                                  onChange={(e) => setLogForm({ ...logForm, exercise_minutes: e.target.value })}
-                                  placeholder="e.g. 45"
-                                  className="w-full rounded-card border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                                />
+                              {/* 3. MEDICATION VERIFICATION / CHECK-IN */}
+                              <div className="p-4 bg-muted/20 rounded-card border border-border/60 flex flex-col gap-3">
+                                <div className="flex items-center gap-2 text-foreground font-semibold text-sm">
+                                  <Pill size={16} className="text-primary" />
+                                  <span>3. Medication Verification &amp; Check-in</span>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                                    Medication Administration &amp; Dosage Check-in
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={logForm.medication_notes}
+                                    onChange={(e) => setLogForm({ ...logForm, medication_notes: e.target.value })}
+                                    placeholder="e.g. Administered morning oral antibiotic dose at 09:00 AM with meal..."
+                                    className="w-full rounded-card border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                  />
+                                </div>
                               </div>
 
-                              <div className="sm:col-span-3">
-                                <label className="block text-xs font-semibold text-muted-foreground mb-1">
-                                  Feeding & Appetite Notes
-                                </label>
-                                <input
-                                  type="text"
-                                  value={logForm.feeding_notes}
-                                  onChange={(e) => setLogForm({ ...logForm, feeding_notes: e.target.value })}
-                                  placeholder="e.g. Ate full meal, good appetite..."
-                                  className="w-full rounded-card border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                                />
+                              {/* 4. MEDIA UPLOAD */}
+                              <div className="p-4 bg-muted/20 rounded-card border border-border/60 flex flex-col gap-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-foreground font-semibold text-sm">
+                                    <Camera size={16} className="text-primary" />
+                                    <span>4. Progress Media Upload</span>
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">Photos (JPG, PNG, WEBP, max 10MB)</span>
+                                </div>
+
+                                {mediaUploadError && (
+                                  <div className="p-2.5 bg-destructive/10 text-destructive text-xs rounded-card border border-destructive/20">
+                                    {mediaUploadError}
+                                  </div>
+                                )}
+
+                                <div className="flex flex-col gap-3">
+                                  <label className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-card bg-background border border-dashed border-border text-xs font-semibold text-primary cursor-pointer hover:bg-secondary/60 transition-colors w-full sm:w-auto self-start">
+                                    {isUploadingMedia ? (
+                                      <>
+                                        <Loader2 size={16} className="animate-spin text-primary" />
+                                        Uploading Photo Media...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Upload size={16} />
+                                        Upload Progress Photos
+                                      </>
+                                    )}
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      multiple
+                                      onChange={handleMediaUpload}
+                                      disabled={isUploadingMedia || isSubmittingLog}
+                                      className="hidden"
+                                    />
+                                  </label>
+
+                                  {/* Uploaded Photo Previews */}
+                                  {uploadedPhotos.length > 0 && (
+                                    <div className="flex flex-wrap gap-3 pt-2">
+                                      {uploadedPhotos.map((url, idx) => (
+                                        <div key={idx} className="relative w-20 h-20 rounded-card overflow-hidden border border-border shadow-sm group">
+                                          <img
+                                            src={url}
+                                            alt={`Uploaded progress ${idx + 1}`}
+                                            className="w-full h-full object-cover"
+                                          />
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRemovePhoto(idx)}
+                                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground p-1 rounded-full opacity-90 hover:opacity-100 transition-opacity"
+                                            title="Remove photo"
+                                          >
+                                            <X size={12} />
+                                          </button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
 
-                              <div className="sm:col-span-3">
-                                <label className="block text-xs font-semibold text-muted-foreground mb-1">
-                                  Medication Check-In
-                                </label>
-                                <input
-                                  type="text"
-                                  value={logForm.medication_notes}
-                                  onChange={(e) => setLogForm({ ...logForm, medication_notes: e.target.value })}
-                                  placeholder="e.g. Administered morning oral medication..."
-                                  className="w-full rounded-card border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                                />
-                              </div>
-
-                              <div className="sm:col-span-3">
-                                <label className="block text-xs font-semibold text-muted-foreground mb-1">
-                                  Behavior & Health Notes
-                                </label>
-                                <textarea
-                                  rows={2}
-                                  value={logForm.behavior_notes}
-                                  onChange={(e) => setLogForm({ ...logForm, behavior_notes: e.target.value })}
-                                  placeholder="e.g. Socialized well with family, learned crate command..."
-                                  className="w-full rounded-card border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                                />
-                              </div>
-
-                              <div className="sm:col-span-3 flex justify-end">
-                                <Button type="submit" variant="primary" size="sm" disabled={isSubmittingLog}>
-                                  <Send size={14} />
-                                  {isSubmittingLog ? "Saving Log..." : "Submit Progress Log"}
+                              <div className="flex justify-end pt-2">
+                                <Button type="submit" variant="primary" size="md" disabled={isSubmittingLog || isUploadingMedia}>
+                                  <Send size={16} />
+                                  {isSubmittingLog ? "Submitting Progress Log..." : "Submit Daily Progress Log"}
                                 </Button>
                               </div>
                             </form>
@@ -711,15 +885,33 @@ export default function FosterDashboardPage() {
                               </p>
                             ) : (
                               progressLogs.map((log) => (
-                                <div key={log.id} className="bg-background p-4 rounded-card border border-border flex flex-col gap-2 text-xs">
+                                <div key={log.id} className="bg-background p-4 rounded-card border border-border flex flex-col gap-2.5 text-xs">
                                   <div className="flex items-center justify-between text-muted-foreground">
                                     <span>Logged on <strong>{formatDate(log.logged_at)}</strong></span>
                                     {log.mood_rating && <Badge variant="default">Mood: {log.mood_rating}/5</Badge>}
                                   </div>
-                                  {log.weight_kg && <p className="text-foreground"><strong>Weight:</strong> {log.weight_kg} kg</p>}
-                                  {log.feeding_notes && <p className="text-foreground"><strong>Feeding:</strong> {log.feeding_notes}</p>}
-                                  {log.medication_notes && <p className="text-foreground"><strong>Medication:</strong> {log.medication_notes}</p>}
-                                  {log.behavior_notes && <p className="text-foreground"><strong>Behavior:</strong> {log.behavior_notes}</p>}
+                                  {log.weight_kg && <p className="text-foreground"><strong>Weight Log:</strong> {log.weight_kg} kg</p>}
+                                  {log.feeding_notes && <p className="text-foreground"><strong>Feeding Observations:</strong> {log.feeding_notes}</p>}
+                                  {log.medication_notes && <p className="text-foreground"><strong>Medication Check-In:</strong> {log.medication_notes}</p>}
+                                  {log.behavior_notes && <p className="text-foreground"><strong>Behavioral Progress:</strong> {log.behavior_notes}</p>}
+                                  {log.photo_urls && log.photo_urls.length > 0 && (
+                                    <div className="flex flex-col gap-1.5 pt-2 border-t border-border/50">
+                                      <span className="text-2xs font-semibold text-muted-foreground uppercase">Progress Media Photos ({log.photo_urls.length})</span>
+                                      <div className="flex flex-wrap gap-2">
+                                        {log.photo_urls.map((photoUrl, pIdx) => (
+                                          <a
+                                            key={pIdx}
+                                            href={photoUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-16 h-16 rounded-card overflow-hidden border border-border hover:opacity-85 transition-opacity"
+                                          >
+                                            <img src={photoUrl} alt={`Progress ${pIdx + 1}`} className="w-full h-full object-cover" />
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               ))
                             )}

@@ -202,6 +202,11 @@ export const API_ROUTES = {
     veterinaryNetwork: "/portal/veterinary-network",
     feedback: "/grievance/feedback",
     grievance: "/grievance",
+    meContactInquiries: "/portal/me/contact-inquiries",
+    meContactInquiry: (id: string) => `/portal/me/contact-inquiries/${id}`,
+    meGrievances: "/grievance/me",
+    meGrievance: (id: string) => `/grievance/me/${id}`,
+    meGrievanceComments: (id: string) => `/grievance/me/${id}/comments`,
   },
 
   foster: {
@@ -322,6 +327,11 @@ export const QUERY_KEYS = {
     locations: ["contact", "locations"] as const,
     veterinaryNetwork: ["contact", "veterinary-network"] as const,
     feedback: ["contact", "feedback"] as const,
+    meInquiries: ["contact", "me-inquiries"] as const,
+    meInquiry: (id: string) => ["contact", "me-inquiries", id] as const,
+    meGrievances: ["contact", "me-grievances"] as const,
+    meGrievance: (id: string) => ["contact", "me-grievances", id] as const,
+    meGrievanceComments: (id: string) => ["contact", "me-grievances", id, "comments"] as const,
   },
 
   foster: {

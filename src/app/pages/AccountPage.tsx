@@ -32,6 +32,8 @@ import {
   AlertTriangle,
   Smartphone,
   Sliders,
+  MessageSquare,
+  HelpCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import PageHeader from "../components/PageHeader";
@@ -62,10 +64,12 @@ import { useMyAppointments } from "../hooks/useMyAppointments";
 import { useMyReminders } from "../hooks/useMyReminders";
 import { useMyStories } from "../hooks/useMyStories";
 import { getErrorMessage, getAvatarUrl, resolveAvatarUrl, QUERY_KEYS } from "@/lib/api";
+import type { UserContactInquiryResponse, UserGrievanceResponse, GrievanceCommentResponse } from "@/lib/api";
 import { queryClient } from "@/lib/react-query";
 import { authService } from "@/services/api/auth";
 import { notificationsService } from "@/services/api/notifications";
 import { lostFoundService } from "@/services/api/lost-found";
+import { contactService } from "@/services/api/contact";
 import { cn } from "../components/ui/utils";
 
 function initials(name: string): string {
@@ -136,7 +140,7 @@ function DashboardCard({
   );
 }
 
-type SettingsTab = "overview" | "profile" | "notifications" | "security";
+type SettingsTab = "overview" | "inquiries" | "profile" | "notifications" | "security";
 
 export default function AccountPage() {
   const { user, isAuthenticated, status: authStatus, openAuthDialog, refreshProfile, deleteAccount } = useAuth();
@@ -151,6 +155,10 @@ export default function AccountPage() {
   const { total: appointmentsTotal } = useMyAppointments(isAuthenticated);
   const { reminders } = useMyReminders(pets, isAuthenticated);
   const { stories: myStories, meta: myStoriesMeta } = useMyStories(undefined, isAuthenticated);
+
+  // ── Ticket Dialog State ────────────────────────────────────────────────────
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
 
   // ── Navigation Tab State ───────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<SettingsTab>("overview");
@@ -498,6 +506,7 @@ export default function AccountPage() {
           <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto scrollbar-none">
             {[
               { id: "overview", label: "Overview & Activity", icon: LayoutDashboard },
+              { id: "inquiries", label: "My Inquiries & Tickets", icon: MessageSquare },
               { id: "profile", label: "Profile & Settings", icon: User },
               { id: "notifications", label: "Notifications", icon: Bell },
               { id: "security", label: "Security & Password", icon: Lock },
@@ -610,6 +619,172 @@ export default function AccountPage() {
                       to="/account/stories"
                       hint="Your submitted adoption tales"
                     />
+                    <DashboardCard
+                      icon={<Mail size={18} />}
+                      label="Contact Inquiries"
+                      count={summary?.contact_inquiries?.length ?? 0}
+                      to="#"
+                      hint="Submitted support queries"
+                    />
+                    <DashboardCard
+                      icon={<ShieldCheck size={18} />}
+                      label="Grievance Tickets"
+                      count={summary?.grievance_tickets?.length ?? 0}
+                      to="#"
+                      hint="Tracked complaints &amp; SLA"
+                    />
+                  </div>
+                )}
+              </section>
+            </div>
+          )}
+
+          {/* ── TAB 1.5: INQUIRIES & GRIEVANCE TICKETS ──────────────────────── */}
+          {activeTab === "inquiries" && (
+            <div className="flex flex-col gap-10">
+              {/* Section 1: Contact Inquiries */}
+              <section className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-foreground font-bold text-2xl">Submitted Contact Inquiries</h2>
+                    <p className="text-muted-foreground text-sm mt-1">General support inquiries and messages sent to PawGuard.</p>
+                  </div>
+                  <Link href="/contact" className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground font-semibold text-xs tracking-wider uppercase px-4 py-2 rounded-btn hover:bg-primary-hover transition-colors">
+                    <Mail size={14} /> New Inquiry
+                  </Link>
+                </div>
+
+                {(!summary?.contact_inquiries || summary.contact_inquiries.length === 0) ? (
+                  <Card className="p-8">
+                    <EmptyState
+                      icon="heart"
+                      title="No contact inquiries yet"
+                      description="You haven't submitted any general inquiries. Reach out to our team anytime."
+                      action={{ label: "Contact Us", onClick: () => window.location.href = "/contact" }}
+                    />
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4">
+                    {(summary.contact_inquiries as UserContactInquiryResponse[]).map((inquiry) => (
+                      <Card key={inquiry.id} className="p-5 lg:p-6 flex flex-col gap-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-3">
+                            <span className="font-semibold text-foreground text-base">{inquiry.subject}</span>
+                            <span className="text-2xs bg-primary/10 text-primary font-semibold uppercase px-2.5 py-0.5 rounded-full">
+                              {inquiry.category}
+                            </span>
+                          </div>
+                          <span className={cn(
+                            "text-2xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border",
+                            inquiry.status === "resolved" ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/25" :
+                            inquiry.status === "in_progress" ? "bg-blue-500/10 text-blue-700 border-blue-500/25" :
+                            "bg-amber-500/10 text-amber-700 border-amber-500/25"
+                          )}>
+                            {inquiry.status}
+                          </span>
+                        </div>
+
+                        <p className="text-muted-foreground text-sm leading-relaxed">{inquiry.message}</p>
+
+                        <div className="flex items-center justify-between text-2xs text-muted-foreground pt-2 border-t border-border mt-1">
+                          <span>Submitted: {new Date(inquiry.created_at).toLocaleDateString()}</span>
+                          <span className="font-mono">Ref ID: {inquiry.id.slice(0, 8)}...</span>
+                        </div>
+
+                        {inquiry.staff_response && (
+                          <div className="bg-primary/5 border border-primary/20 rounded-card p-4 flex flex-col gap-1 mt-1">
+                            <div className="flex items-center justify-between text-xs font-semibold text-primary">
+                              <span>Staff Response</span>
+                              {inquiry.responded_at && <span>{new Date(inquiry.responded_at).toLocaleString()}</span>}
+                            </div>
+                            <p className="text-sm text-foreground leading-relaxed">{inquiry.staff_response}</p>
+                          </div>
+                        )}
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* Section 2: Grievance Tickets */}
+              <section className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-foreground font-bold text-2xl">Tracked Grievance Tickets</h2>
+                    <p className="text-muted-foreground text-sm mt-1">Formal complaints routed to Rescue Centre Administrators with 72-hour SLA tracking.</p>
+                  </div>
+                  <Link href="/contact" className="inline-flex items-center gap-1.5 bg-card border border-border text-foreground font-semibold text-xs tracking-wider uppercase px-4 py-2 rounded-btn hover:border-primary transition-colors">
+                    <ShieldCheck size={14} /> File Complaint
+                  </Link>
+                </div>
+
+                {(!summary?.grievance_tickets || summary.grievance_tickets.length === 0) ? (
+                  <Card className="p-8">
+                    <EmptyState
+                      icon="heart"
+                      title="No grievance tickets filed"
+                      description="You haven't filed any formal complaints. Formal complaints come with 72-hour Rescue Centre SLA tracking."
+                      action={{ label: "File a Complaint", onClick: () => window.location.href = "/contact" }}
+                    />
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4">
+                    {(summary.grievance_tickets as UserGrievanceResponse[]).map((ticket) => (
+                      <Card key={ticket.id} className="p-5 lg:p-6 flex flex-col gap-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono text-xs bg-muted px-2.5 py-1 rounded font-bold text-foreground">
+                              ID: {ticket.id}
+                            </span>
+                            <span className="font-bold text-foreground text-lg">{ticket.complaint_type}</span>
+                          </div>
+                          <span className={cn(
+                            "text-2xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border",
+                            ticket.status === "resolved" ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/25" :
+                            ticket.status === "investigating" ? "bg-blue-500/10 text-blue-700 border-blue-500/25" :
+                            ticket.status === "escalated" ? "bg-destructive/10 text-destructive border-destructive/25" :
+                            "bg-amber-500/10 text-amber-700 border-amber-500/25"
+                          )}>
+                            {ticket.status}
+                          </span>
+                        </div>
+
+                        <p className="text-muted-foreground text-sm leading-relaxed">{ticket.details}</p>
+
+                        {ticket.sla_due_at && (
+                          <div className="bg-amber-500/10 border border-amber-500/20 rounded-card p-3.5 flex items-center justify-between text-xs">
+                            <span className="text-amber-800 dark:text-amber-300 font-semibold flex items-center gap-1.5">
+                              <Clock size={14} /> SLA Response Target
+                            </span>
+                            <span className="font-mono font-bold text-amber-900 dark:text-amber-200">
+                              {new Date(ticket.sla_due_at).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+
+                        {ticket.resolution_notes && (
+                          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-card p-4 flex flex-col gap-1">
+                            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">Resolution Details</span>
+                            <p className="text-sm text-foreground leading-relaxed">{ticket.resolution_notes}</p>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-3 border-t border-border">
+                          <span className="text-2xs text-muted-foreground">Filed: {new Date(ticket.created_at).toLocaleString()}</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedTicketId(ticket.id);
+                              setIsTicketDialogOpen(true);
+                            }}
+                          >
+                            <MessageSquare size={14} />
+                            View Details &amp; Staff Comments
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
                   </div>
                 )}
               </section>
@@ -1158,6 +1333,154 @@ export default function AccountPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ── GRIEVANCE DETAIL & COMMENTS DIALOG ─────────────────────────── */}
+      <GrievanceDetailDialog
+        ticketId={selectedTicketId}
+        open={isTicketDialogOpen}
+        onOpenChange={(open) => {
+          setIsTicketDialogOpen(open);
+          if (!open) setSelectedTicketId(null);
+        }}
+      />
     </PageShell>
+  );
+}
+
+function GrievanceDetailDialog({
+  ticketId,
+  open,
+  onOpenChange,
+}: {
+  ticketId: string | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [ticket, setTicket] = useState<UserGrievanceResponse | null>(null);
+  const [comments, setComments] = useState<GrievanceCommentResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open && ticketId) {
+      setLoading(true);
+      setError(null);
+      Promise.all([
+        contactService.getMyGrievance(ticketId),
+        contactService.getMyGrievanceComments(ticketId).catch(() => []),
+      ])
+        .then(([t, c]) => {
+          setTicket(t);
+          setComments(c);
+        })
+        .catch((err) => setError(getErrorMessage(err)))
+        .finally(() => setLoading(false));
+    }
+  }, [open, ticketId]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[650px] w-full p-6 sm:p-8 rounded-card border-border bg-card shadow-2xl gap-6 max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="text-left gap-1">
+          <div className="flex items-center justify-between">
+            <span className="text-2xs font-mono bg-muted text-foreground px-2.5 py-1 rounded font-bold">
+              ID: {ticketId}
+            </span>
+            {ticket && (
+              <span className="capitalize px-2.5 py-0.5 rounded-full text-2xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                {ticket.status}
+              </span>
+            )}
+          </div>
+          <DialogTitle className="font-serif font-bold text-2xl text-foreground mt-2">
+            {ticket?.complaint_type || "Grievance Ticket Details"}
+          </DialogTitle>
+          {ticket?.created_at && (
+            <DialogDescription className="text-xs text-muted-foreground">
+              Submitted on {new Date(ticket.created_at).toLocaleString()}
+            </DialogDescription>
+          )}
+        </DialogHeader>
+
+        {loading ? (
+          <div className="flex flex-col gap-3 py-6">
+            <div className="h-6 bg-muted rounded animate-pulse" />
+            <div className="h-20 bg-muted rounded animate-pulse" />
+          </div>
+        ) : error ? (
+          <Alert variant="error" title="Failed to load ticket details">
+            {error}
+          </Alert>
+        ) : ticket ? (
+          <div className="flex flex-col gap-6">
+            {ticket.sla_due_at && (
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-card p-4 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
+                  <Clock size={16} />
+                  <span className="text-xs font-semibold">SLA Response Deadline</span>
+                </div>
+                <span className="text-xs font-bold font-mono text-amber-900 dark:text-amber-200">
+                  {new Date(ticket.sla_due_at).toLocaleString()}
+                </span>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-condensed">
+                Reported By
+              </span>
+              <p className="text-sm font-medium text-foreground">
+                {ticket.reporter_name} ({ticket.reporter_phone}
+                {ticket.reporter_email ? ` • ${ticket.reporter_email}` : ""})
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-condensed">
+                Complaint Details
+              </span>
+              <p className="text-sm text-foreground bg-muted/40 border border-border p-4 rounded-card whitespace-pre-wrap leading-relaxed">
+                {ticket.details}
+              </p>
+            </div>
+
+            {ticket.resolution_notes && (
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-emerald-600 font-condensed">
+                  Resolution Notes
+                </span>
+                <p className="text-sm text-foreground bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-card leading-relaxed">
+                  {ticket.resolution_notes}
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3 pt-4 border-t border-border">
+              <h4 className="text-foreground font-bold text-base flex items-center gap-2">
+                <MessageSquare size={16} className="text-primary" />
+                Staff Updates &amp; Responses ({comments.length})
+              </h4>
+              {comments.length === 0 ? (
+                <p className="text-muted-foreground text-xs italic">
+                  No public staff responses have been added yet. Your ticket is queued for Rescue Centre Administrator review.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="bg-card border border-border p-3.5 rounded-card flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between text-2xs text-muted-foreground">
+                        <span className="font-semibold text-foreground">Rescue Centre Administrator</span>
+                        <span>{new Date(comment.created_at).toLocaleString()}</span>
+                      </div>
+                      <p className="text-sm text-foreground leading-relaxed">{comment.body}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
+      </DialogContent>
+    </Dialog>
   );
 }

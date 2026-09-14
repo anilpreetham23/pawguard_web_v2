@@ -1310,6 +1310,35 @@ export interface ContactMessageCreate {
   has_consent?: boolean;
 }
 
+/** Contact inquiry lifecycle status. */
+export type ContactInquiryStatus =
+  | "pending"
+  | "in_progress"
+  | "resolved"
+  | "closed"
+  | string;
+
+/** `GET /portal/me/contact-inquiries` single item payload (`UserContactInquiryResponse`). */
+export interface UserContactInquiryResponse {
+  id: string;
+  user_id?: string | null;
+  email: string;
+  name?: string | null;
+  phone?: string | null;
+  category: string;
+  subject: string;
+  message: string;
+  status: ContactInquiryStatus;
+  staff_response?: string | null;
+  responded_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** `POST /portal/contact` response payload alias. */
+export type ContactInquiryResponse = UserContactInquiryResponse;
+
+
 /** `POST /grievance/feedback` request body (`ServiceFeedbackCreate`). */
 export interface ServiceFeedbackCreate {
   rescue_case_id?: string | null;
@@ -1673,7 +1702,9 @@ export type GrievanceStatus =
   | "investigating"
   | "awaiting_response"
   | "resolved"
-  | "closed";
+  | "closed"
+  | "escalated"
+  | string;
 
 /** `POST /grievance` request body (`GrievanceCreate`). */
 export interface GrievanceCreate {
@@ -1700,6 +1731,34 @@ export interface GrievanceResponse {
   escalation_level: number;
   escalated_at: string | null;
   escalated_to_admin_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** `GET /grievance/me` payload (`UserGrievanceResponse`). */
+export interface UserGrievanceResponse {
+  id: string;
+  reporter_name: string;
+  reporter_phone: string;
+  reporter_email?: string | null;
+  complaint_type: string;
+  details: string;
+  status: GrievanceStatus;
+  resolution_notes?: string | null;
+  sla_due_at?: string | null;
+  first_responded_at?: string | null;
+  escalation_level: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/** `GET /grievance/me/{ticket_id}/comments` single item payload (`GrievanceCommentResponse`). */
+export interface GrievanceCommentResponse {
+  id: string;
+  ticket_id: string;
+  author_id: string | null;
+  body: string;
+  is_internal: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -1894,6 +1953,8 @@ export interface UserDashboardSummary {
   foster_profile: Record<string, unknown> | null;
   donations: Record<string, unknown>[];
   lost_found_reports: Record<string, unknown>[];
+  contact_inquiries?: UserContactInquiryResponse[];
+  grievance_tickets?: UserGrievanceResponse[];
 }
 
 /* -------------------------------------------------------------------------- */

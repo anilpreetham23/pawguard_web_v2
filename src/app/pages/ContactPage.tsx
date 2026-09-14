@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import * as Accordion from "@radix-ui/react-accordion";
-import { ChevronDown, Phone } from "lucide-react";
+import { ChevronDown, Phone, CheckCircle2, AlertCircle, Clock, FileText } from "lucide-react";
 import Link from "next/link";
 import SectionHeading from "../components/SectionHeading";
 import { useFocusOnError } from "../hooks/useFocusOnError";
@@ -10,6 +10,7 @@ import PageHeader from "../components/PageHeader";
 import { PageShell, Section, Button, Input, Textarea, Reveal, DispatchReveal, StaggerGrid, StaggerItem } from "../components/pawguard";
 import { contactService } from "@/services/api/contact";
 import { getErrorMessage } from "@/lib/api";
+import type { ContactInquiryResponse, GrievanceResponse } from "@/lib/api";
 
 import { useFaqEntries } from "../hooks/useFaqEntries";
 import { useContactLocations } from "../hooks/useContactLocations";
@@ -46,15 +47,19 @@ export default function ContactPage() {
     has_consent: true,
   });
   const [submitted, setSubmitted] = useState(false);
+  const [inquiryResult, setInquiryResult] = useState<ContactInquiryResponse | null>(null);
+  const [grievanceResult, setGrievanceResult] = useState<GrievanceResponse | null>(null);
   const [hasError, setHasError] = useState(false);
   const [formError, setFormError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { setRef } = useFocusOnError(errors);
 
+  const isGrievance = form.category === "grievance";
+
   function validateField(field: string, value: string) {
     const e: Record<string, string> = {};
-    if (!value.trim() && (field === "email" || field === "subject" || field === "message")) {
+    if (!value.trim() && (field === "email" || field === "subject" || field === "message" || (isGrievance && (field === "name" || field === "phone")))) {
       e[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
     }
     setErrors((prev) => ({ ...prev, ...e }));
@@ -64,20 +69,26 @@ export default function ContactPage() {
 
   function validate() {
     const e: Record<string, string> = {};
+    if (isGrievance && !form.name.trim()) {
+      e.name = "Please enter your name for formal complaint tracking.";
+    }
     if (!form.email.trim()) {
       e.email = "Please enter your email address.";
     } else if (!EMAIL_REGEX.test(form.email.trim())) {
       e.email = "Please enter a valid email address (e.g. name@example.com).";
     }
+    if (isGrievance && !form.phone.trim()) {
+      e.phone = "Please enter a contact phone number for grievance follow-up.";
+    }
     if (!form.subject.trim()) {
-      e.subject = "Please enter a subject for your inquiry.";
+      e.subject = isGrievance ? "Please specify the complaint type/subject." : "Please enter a subject for your inquiry.";
     } else if (form.subject.trim().length > 255) {
       e.subject = "Subject must be 255 characters or fewer.";
     }
     if (!form.message.trim()) {
-      e.message = "Please enter your message.";
+      e.message = isGrievance ? "Please describe the details of your complaint." : "Please enter your message.";
     } else if (form.message.trim().length < 5) {
-      e.message = "Message must be at least 5 characters long.";
+      e.message = "Message details must be at least 5 characters long.";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -88,22 +99,48 @@ export default function ContactPage() {
     if (!validate()) return;
     setIsLoading(true);
     setHasError(false);
-    contactService
-      .submitContactMessage({
-        name: form.name.trim() || undefined,
-        email: form.email.trim(),
-        phone: form.phone.trim() || undefined,
-        subject: form.subject.trim(),
-        category: form.category || "general",
-        message: form.message.trim(),
-        has_consent: form.has_consent,
-      })
-      .then(() => setSubmitted(true))
-      .catch((err) => {
-        setHasError(true);
-        setFormError(getErrorMessage(err));
-      })
-      .finally(() => setIsLoading(false));
+    setInquiryResult(null);
+    setGrievanceResult(null);
+
+    if (isGrievance) {
+      contactService
+        .submitComplaint({
+          reporter_name: form.name.trim(),
+          reporter_phone: form.phone.trim(),
+          reporter_email: form.email.trim() || undefined,
+          complaint_type: form.subject.trim(),
+          details: form.message.trim(),
+        })
+        .then((res) => {
+          setGrievanceResult(res);
+          setSubmitted(true);
+        })
+        .catch((err) => {
+          setHasError(true);
+          setFormError(getErrorMessage(err));
+        })
+        .finally(() => setIsLoading(false));
+    } else {
+      contactService
+        .submitContactMessage({
+          name: form.name.trim() || undefined,
+          email: form.email.trim(),
+          phone: form.phone.trim() || undefined,
+          subject: form.subject.trim(),
+          category: form.category || "general",
+          message: form.message.trim(),
+          has_consent: form.has_consent,
+        })
+        .then((res) => {
+          setInquiryResult(res ?? null);
+          setSubmitted(true);
+        })
+        .catch((err) => {
+          setHasError(true);
+          setFormError(getErrorMessage(err));
+        })
+        .finally(() => setIsLoading(false));
+    }
   }
 
   return (
@@ -162,11 +199,7 @@ export default function ContactPage() {
             {hasError ? (
               <div className="bg-card border border-border rounded-modal p-7 flex flex-col gap-3 shadow-sm" role="alert">
                 <div className="w-12 h-12 bg-destructive/10 rounded-2xl flex items-center justify-center">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-destructive">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
+                  <AlertCircle size={22} className="text-destructive" />
                 </div>
                 <h3 className="text-foreground font-bold text-xl">Submission Error</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
@@ -177,20 +210,146 @@ export default function ContactPage() {
                 </Button>
               </div>
             ) : submitted ? (
-              <div className="bg-card border border-border rounded-modal p-7 flex flex-col gap-3 shadow-sm animate-celebration-pop" role="status" aria-live="polite">
-                <h3 className="text-foreground font-bold text-xl">Message Sent</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  Thank you for reaching out. We typically respond within 1–2 business days.
-                </p>
-              </div>
+              grievanceResult ? (
+                <div className="bg-card border border-primary/30 rounded-modal p-7 flex flex-col gap-5 shadow-sm animate-celebration-pop" role="status" aria-live="polite">
+                  <div className="flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <CheckCircle2 size={22} />
+                    </span>
+                    <div>
+                      <h3 className="text-foreground font-bold text-xl">Formal Complaint Registered</h3>
+                      <p className="text-muted-foreground text-xs">Tracked under Rescue Centre Administrator SLA</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-muted/60 border border-border rounded-card p-4 flex flex-col gap-2 font-mono text-xs">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground font-sans font-medium">Ticket ID:</span>
+                      <span className="text-foreground font-bold truncate max-w-[220px]">{grievanceResult.id}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground font-sans font-medium">Status:</span>
+                      <span className="capitalize px-2.5 py-0.5 rounded-full text-2xs font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/25">
+                        {grievanceResult.status}
+                      </span>
+                    </div>
+                    {grievanceResult.sla_due_at && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground font-sans font-medium">SLA Response Due:</span>
+                        <span className="text-foreground font-semibold font-sans">
+                          {new Date(grievanceResult.sla_due_at).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Your complaint has been assigned to the Rescue Centre Administrator queue. You can monitor ticket progress, SLA timers, and staff responses from your Account Dashboard.
+                  </p>
+
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    <Link
+                      href="/account"
+                      className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold text-xs tracking-wider uppercase px-5 py-2.5 rounded-btn hover:bg-primary-hover transition-colors"
+                    >
+                      <FileText size={15} />
+                      View Account Dashboard
+                    </Link>
+                    <Button
+                      variant="outline"
+                      size="md"
+                      onClick={() => {
+                        setSubmitted(false);
+                        setGrievanceResult(null);
+                        setInquiryResult(null);
+                        setForm({ name: "", email: "", phone: "", category: "general", subject: "", message: "", has_consent: true });
+                      }}
+                    >
+                      Submit Another Inquiry
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-card border border-border rounded-modal p-7 flex flex-col gap-5 shadow-sm animate-celebration-pop" role="status" aria-live="polite">
+                  <div className="flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-700 flex items-center justify-center shrink-0">
+                      <CheckCircle2 size={22} />
+                    </span>
+                    <div>
+                      <h3 className="text-foreground font-bold text-xl">Inquiry Submitted</h3>
+                      <p className="text-muted-foreground text-xs">We typically respond within 1–2 business days</p>
+                    </div>
+                  </div>
+
+                  {inquiryResult?.id && (
+                    <div className="bg-muted/60 border border-border rounded-card p-4 flex justify-between items-center font-mono text-xs">
+                      <span className="text-muted-foreground font-sans font-medium">Inquiry Reference ID:</span>
+                      <span className="text-foreground font-bold truncate max-w-[220px]">{inquiryResult.id}</span>
+                    </div>
+                  )}
+
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Thank you for reaching out. If you are signed in, your inquiry has been recorded and will be accessible from your Account Dashboard.
+                  </p>
+
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    <Link
+                      href="/account"
+                      className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold text-xs tracking-wider uppercase px-5 py-2.5 rounded-btn hover:bg-primary-hover transition-colors"
+                    >
+                      <FileText size={15} />
+                      View Account Dashboard
+                    </Link>
+                    <Button
+                      variant="outline"
+                      size="md"
+                      onClick={() => {
+                        setSubmitted(false);
+                        setInquiryResult(null);
+                        setGrievanceResult(null);
+                        setForm({ name: "", email: "", phone: "", category: "general", subject: "", message: "", has_consent: true });
+                      }}
+                    >
+                      Send Another Message
+                    </Button>
+                  </div>
+                </div>
+              )
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                <div className="flex flex-col gap-2">
+                  <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
+                    Category / Submission Type
+                  </label>
+                  <select
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    className="w-full h-12 bg-input-background border border-border rounded-input px-4 text-foreground text-base focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+                  >
+                    <option value="general">General Inquiry</option>
+                    <option value="adoption">Adoption &amp; Fostering</option>
+                    <option value="volunteer">Volunteering &amp; Community</option>
+                    <option value="donation">Donations &amp; Sponsorship</option>
+                    <option value="medical">Medical &amp; Shelter Care</option>
+                    <option value="grievance">Formal Complaint / Grievance (Tracked Ticket with SLA)</option>
+                    <option value="other">Other</option>
+                  </select>
+                  {isGrievance && (
+                    <p className="text-xs text-primary font-medium flex items-center gap-1.5 mt-1">
+                      <Clock size={13} />
+                      Formal grievances generate a tracked ticket routed to Rescue Centre Administrators with mandatory 72-hour SLA due dates.
+                    </p>
+                  )}
+                </div>
+
                 <Input
-                  label="Name (Optional)"
+                  label={isGrievance ? "Name *" : "Name (Optional)"}
                   placeholder="Your full name"
                   ref={setRef("name")}
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  onChange={(e) => { setForm({ ...form, name: e.target.value }); if (errors.name) setErrors({ ...errors, name: "" }); }}
+                  onBlur={() => { if (isGrievance && !form.name.trim()) validateField("name", form.name); }}
+                  error={errors.name}
                   autoComplete="name"
                 />
                 <Input
@@ -207,35 +366,20 @@ export default function ContactPage() {
                   className="w-full text-sm sm:text-base tracking-normal min-w-0"
                 />
                 <Input
-                  label="Phone Number (Optional)"
+                  label={isGrievance ? "Phone Number *" : "Phone Number (Optional)"}
                   type="tel"
                   placeholder="+91 98765 43210"
                   ref={setRef("phone")}
                   value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  onChange={(e) => { setForm({ ...form, phone: e.target.value }); if (errors.phone) setErrors({ ...errors, phone: "" }); }}
+                  onBlur={() => { if (isGrievance && !form.phone.trim()) validateField("phone", form.phone); }}
+                  error={errors.phone}
                   autoComplete="tel"
                   inputMode="tel"
                 />
-                <div className="flex flex-col gap-2">
-                  <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
-                    Category
-                  </label>
-                  <select
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="w-full h-12 bg-input-background border border-border rounded-input px-4 text-foreground text-base focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
-                  >
-                    <option value="general">General Inquiry</option>
-                    <option value="adoption">Adoption &amp; Fostering</option>
-                    <option value="volunteer">Volunteering &amp; Community</option>
-                    <option value="donation">Donations &amp; Sponsorship</option>
-                    <option value="medical">Medical &amp; Shelter Care</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
                 <Input
-                  label="Subject *"
-                  placeholder="What is your inquiry about?"
+                  label={isGrievance ? "Complaint Type / Subject *" : "Subject *"}
+                  placeholder={isGrievance ? "e.g. Rescue Delay, Staff Feedback, Shelter Condition" : "What is your inquiry about?"}
                   ref={setRef("subject")}
                   value={form.subject}
                   onChange={(e) => { setForm({ ...form, subject: e.target.value }); if (errors.subject) setErrors({ ...errors, subject: "" }); }}
@@ -244,8 +388,8 @@ export default function ContactPage() {
                   maxLength={255}
                 />
                 <Textarea
-                  label="Message *"
-                  placeholder="Describe your inquiry..."
+                  label={isGrievance ? "Complaint Details *" : "Message *"}
+                  placeholder={isGrievance ? "Please provide details of your complaint or grievance..." : "Describe your inquiry..."}
                   ref={setRef("message")}
                   value={form.message}
                   onChange={(e) => { setForm({ ...form, message: e.target.value }); if (errors.message) setErrors({ ...errors, message: "" }); }}
@@ -270,7 +414,7 @@ export default function ContactPage() {
                   </span>
                 </label>
                 <Button type="submit" variant="secondary" size="lg" isLoading={isLoading} context="contact">
-                  Send Message
+                  {isGrievance ? "Submit Formal Grievance Ticket" : "Send Message"}
                 </Button>
               </form>
             )}

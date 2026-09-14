@@ -17,15 +17,21 @@
  * location endpoints respectively.
  */
 
-import { API_ROUTES, apiGet, apiPost } from "@/lib/api";
+import { API_ROUTES, apiGet, apiGetPage, apiPost } from "@/lib/api";
 import type {
+  ContactInquiryResponse,
   ContactLocationResponse,
   ContactMessageCreate,
   FAQEntryResponse,
+  GrievanceCommentResponse,
   GrievanceCreate,
   GrievanceResponse,
+  Page,
+  QueryParams,
   ServiceFeedbackCreate,
   ServiceFeedbackResponse,
+  UserContactInquiryResponse,
+  UserGrievanceResponse,
   VeterinaryPartnerResponse,
 } from "@/lib/api";
 
@@ -38,10 +44,8 @@ export const contactService = {
   /** `POST /portal/contact` — submit a general inquiry message. */
   submitContactMessage(
     data: ContactMessageCreate
-  ): Promise<null> {
-    return apiPost<null>(API_ROUTES.contact.locations, data, {
-      auth: false,
-    });
+  ): Promise<ContactInquiryResponse> {
+    return apiPost<ContactInquiryResponse>(API_ROUTES.contact.locations, data);
   },
 
   /** `GET /portal/faq` — published FAQ entries (all categories). */
@@ -64,22 +68,63 @@ export const contactService = {
   },
 
   /**
-   * `POST /grievance` — create a public grievance/support ticket (no auth,
+   * `POST /grievance` — create a public grievance/support ticket (no auth required,
    * rate-limited). A ticket number / tracking reference is returned on the
    * response for the reporter to follow up.
    */
   submitComplaint(data: GrievanceCreate): Promise<GrievanceResponse> {
     return apiPost<GrievanceResponse>(API_ROUTES.contact.grievance, data);
   },
+
+  /** `GET /portal/me/contact-inquiries` — list contact inquiries submitted by authenticated user. */
+  getMyContactInquiries(params?: QueryParams): Promise<Page<UserContactInquiryResponse>> {
+    return apiGetPage<UserContactInquiryResponse>(
+      API_ROUTES.contact.meContactInquiries,
+      params
+    );
+  },
+
+  /** `GET /portal/me/contact-inquiries/{inquiry_id}` — get single contact inquiry for authenticated user. */
+  getMyContactInquiry(inquiryId: string): Promise<UserContactInquiryResponse> {
+    return apiGet<UserContactInquiryResponse>(
+      API_ROUTES.contact.meContactInquiry(inquiryId)
+    );
+  },
+
+  /** `GET /api/v1/grievance/me` — list grievance tickets submitted by authenticated user. */
+  getMyGrievances(params?: QueryParams): Promise<Page<UserGrievanceResponse>> {
+    return apiGetPage<UserGrievanceResponse>(
+      API_ROUTES.contact.meGrievances,
+      params
+    );
+  },
+
+  /** `GET /api/v1/grievance/me/{ticket_id}` — get details of single grievance ticket for authenticated user. */
+  getMyGrievance(ticketId: string): Promise<UserGrievanceResponse> {
+    return apiGet<UserGrievanceResponse>(
+      API_ROUTES.contact.meGrievance(ticketId)
+    );
+  },
+
+  /** `GET /api/v1/grievance/me/{ticket_id}/comments` — list public comments on a grievance ticket for authenticated user. */
+  getMyGrievanceComments(ticketId: string): Promise<GrievanceCommentResponse[]> {
+    return apiGet<GrievanceCommentResponse[]>(
+      API_ROUTES.contact.meGrievanceComments(ticketId)
+    );
+  },
 };
 
 export type {
+  ContactInquiryResponse,
   ContactLocationResponse,
   ContactMessageCreate,
   FAQEntryResponse,
+  GrievanceCommentResponse,
   GrievanceCreate,
   GrievanceResponse,
   ServiceFeedbackCreate,
   ServiceFeedbackResponse,
+  UserContactInquiryResponse,
+  UserGrievanceResponse,
   VeterinaryPartnerResponse,
 };
