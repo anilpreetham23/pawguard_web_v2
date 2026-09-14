@@ -23,6 +23,8 @@ import { useAdoptionPets } from "../hooks/useAdoptionPets";
 import { useFaqEntries } from "../hooks/useFaqEntries";
 import { InteractiveImage } from "../../motion/components/InteractiveImage";
 import { useMotionStore } from "../../motion/motion-store";
+import { useUrgentAlerts } from "../hooks/useUrgentAlerts";
+import UrgentAlertBanner from "../components/UrgentAlertBanner";
 
 const ANIMALS = [
   { name: "Bella", breed: "Labrador Mix", age: "2 years", gender: "Female", img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=280&fit=crop&auto=format", urgent: true, newArrival: true },
@@ -421,9 +423,12 @@ function FaqSection() {
 
 
 export default function HomePage() {
+  const { data: urgentAlerts } = useUrgentAlerts();
+
   return (
     <PageShell>
       <main id="main-content" className="flex-1">
+        <UrgentAlertBanner alerts={urgentAlerts} />
         <Hero />
         <TrustBar />
         <EmergencyStory />
