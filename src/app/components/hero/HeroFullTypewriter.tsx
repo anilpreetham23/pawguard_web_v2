@@ -149,11 +149,13 @@ export function HeroFullTypewriter({ className }: { className?: string }) {
   if (!enabled) {
     return (
       <div className={cn("hero-full-typewriter flex flex-col", className)}>
-        <span className={HEADLINE_CLS}>{HERO_HEADLINE_TOP}</span>
-        <span className={HEADLINE_CLS}>{HERO_HEADLINE_MIDDLE}</span>
-        <span className={cn(HEADLINE_CLS, "italic text-amber-200")}>
-          {HERO_HEADLINE_HIGHLIGHT}
-        </span>
+        <h1 className="contents">
+          <span className={HEADLINE_CLS}>{HERO_HEADLINE_TOP}</span>
+          <span className={HEADLINE_CLS}>{HERO_HEADLINE_MIDDLE}</span>
+          <span className={cn(HEADLINE_CLS, "italic text-amber-200")}>
+            {HERO_HEADLINE_HIGHLIGHT}
+          </span>
+        </h1>
         <p className="hero-deck mt-5 lg:mt-6 font-serif text-lg lg:text-xl italic text-white/70 max-w-[52ch] font-normal leading-relaxed">
           {HERO_DECK}
         </p>
@@ -166,7 +168,25 @@ export function HeroFullTypewriter({ className }: { className?: string }) {
 
   return (
     <div ref={containerRef} className={cn("hero-full-typewriter flex flex-col", className)}>
-      {SEGMENTS.map((seg, i) => {
+      <h1 className="contents">
+        {SEGMENTS.slice(0, 3).map((seg, i) => {
+          if (!seg.text) return null;
+          const isActive = i === activeSegment;
+          return (
+            <span key={i} className={cn("relative", seg.className)}>
+              <span ref={(el) => { spanRefs.current[i] = el; }} />
+              {isActive && (
+                <span
+                  aria-hidden="true"
+                  className="inline-block w-[2ch] align-baseline text-amber-200 animate-hero-caret"
+                />
+              )}
+            </span>
+          );
+        })}
+      </h1>
+      {SEGMENTS.slice(3).map((seg, idx) => {
+        const i = idx + 3;
         if (!seg.text) return null;
         const isActive = i === activeSegment;
         return (

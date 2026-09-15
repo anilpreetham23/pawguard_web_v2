@@ -50,10 +50,19 @@ function CardSkeleton() {
 
 export default function AdoptionPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedAge, setSelectedAge] = useState<string[]>([]);
   const [selectedSize, setSelectedSize] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("default");
   const [page, setPage] = useState(1);
+
+  // Debounce search query by 300ms before sending to API params
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   const apiParams = useMemo(() => {
     let min_age_months: number | undefined;
@@ -77,7 +86,7 @@ export default function AdoptionPage() {
     }
 
     return {
-      search: searchQuery.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
       min_age_months,
       max_age_months,
       min_weight,
@@ -85,7 +94,7 @@ export default function AdoptionPage() {
       page,
       page_size: 24,
     };
-  }, [searchQuery, selectedAge, selectedSize, page]);
+  }, [debouncedSearch, selectedAge, selectedSize, page]);
 
   const { data: pets = [], isLoading, isError, error, refetch } = useAdoptionPets(apiParams);
 
