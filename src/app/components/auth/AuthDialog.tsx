@@ -197,7 +197,9 @@ export default function AuthDialog() {
     }
     setPending(true);
     try {
-      const redirectUri = `${window.location.origin}/auth/callback`;
+      const redirectUri =
+        process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI ||
+        `${window.location.origin}/auth/callback`;
       const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
       if (typeof window !== "undefined") {
         sessionStorage.setItem("oauth_state", state);
