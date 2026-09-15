@@ -3,11 +3,12 @@
 import { useEffect, useRef } from "react";
 import {
   QUERY_KEYS,
+  auth,
   useApiMutation,
   useApiQuery,
 } from "@/lib/api";
-import { notificationsService } from "@/services/api/notifications";
 import type { NotificationResponse } from "@/lib/api";
+import { notificationsService } from "@/services/api/notifications";
 import { queryClient } from "@/lib/react-query";
 import { useAuth } from "../providers/auth-provider";
 
@@ -37,7 +38,8 @@ export interface NotificationsResult {
  */
 export function useNotifications(page = 1, pageSize = 20): NotificationsResult {
   const { isAuthenticated, status } = useAuth();
-  const enabled = isAuthenticated && status === "authenticated";
+  const hasToken = typeof window !== "undefined" && Boolean(auth.getAccessToken());
+  const enabled = isAuthenticated && status === "authenticated" && hasToken;
 
   const list = useApiQuery({
     queryKey: [QUERY_KEYS.notifications.list, page, pageSize],
@@ -99,7 +101,8 @@ export function useNotifications(page = 1, pageSize = 20): NotificationsResult {
  */
 export function useUnreadCount(refreshMs = 60_000): number {
   const { isAuthenticated, status } = useAuth();
-  const enabled = isAuthenticated && status === "authenticated";
+  const hasToken = typeof window !== "undefined" && Boolean(auth.getAccessToken());
+  const enabled = isAuthenticated && status === "authenticated" && hasToken;
   const prevCountRef = useRef<number | null>(null);
 
   const unread = useApiQuery({

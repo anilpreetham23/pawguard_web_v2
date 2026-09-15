@@ -103,8 +103,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // pre_auth_token captured when sign-in hits an MFA challenge.
   const [preAuthToken, setPreAuthToken] = useState<string | null>(null);
 
+  const hasToken = typeof window !== "undefined" && Boolean(auth.getAccessToken());
+
   const meQuery = useApiQuery<AuthUser | null>({
     queryKey: QUERY_KEYS.auth.me,
+    enabled: hasToken,
     queryFn: async () => {
       try {
         return await authService.getMe();

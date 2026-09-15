@@ -38,90 +38,62 @@ export function useHeroTimeline(
     if (!enabled || !ready) return;
 
     const ctx = gsap.context(() => {
+      const target = (selector: string) => {
+        const found = section.querySelectorAll(selector);
+        return found.length > 0 ? found : null;
+      };
+
+      const scene = target(".hero-scene");
+      const sun = target(".hero-light-sun");
+      const rays = target(".hero-light-rays");
+      const bloom = target(".hero-light-bloom");
+      const eyebrow = target(".hero-eyebrow");
+      const fullTypewriter = target(".hero-full-typewriter");
+      const typewriter = target(".hero-typewriter");
+      const decorations = target(".hero-decorations > *");
+      const trustBadges = target(".hero-trust-badges > *");
+      const scroll = target(".hero-scroll");
+
       // ── Main Entrance Timeline: Emotional Choreography ──
-      gsap
-        .timeline({ defaults: { ease: ease.gentle } })
-        // 0.00 ── Video base layer fades in (the film is already running)
-        .from(
-          ".hero-scene",
-          { opacity: 0, duration: 0.7, ease: ease.emerge, immediateRender: true },
-          0.0,
-        )
-        // 0.10 ── Directional sun key light
-        .from(
-          ".hero-light-sun",
-          { opacity: 0, scale: 0.9, duration: 0.6, ease: ease.emerge, immediateRender: true },
-          0.1,
-        )
-        // 0.20 ── Volumetric rays (god rays) breathe in
-        .from(
-          ".hero-light-rays",
-          { opacity: 0, y: 20, duration: 0.7, ease: ease.gentle, immediateRender: true },
-          0.2,
-        )
-        // 0.30 ── Atmospheric bloom swells
-        .from(
-          ".hero-light-bloom",
-          { opacity: 0, scale: 0.95, duration: 0.5, ease: ease.emerge, immediateRender: true },
-          0.3,
-        )
-        // 0.40 ── Eyebrow kicker
-        .from(
-          ".hero-eyebrow",
-          { opacity: 0, y: 12, duration: 0.55, immediateRender: true },
-          0.4,
-        )
-        // 0.55 ── Typed editorial narrative fades in as one living block;
-        //           the typewriter itself drives the internal line-by-line loop
-        .from(
-          ".hero-full-typewriter",
-          { opacity: 0, y: 22, duration: 0.8, immediateRender: true },
-          0.55,
-        )
-        // 1.30 ── Live rescue feed begins typing
-        .from(".hero-typewriter", { opacity: 0, y: 12, duration: 0.45, immediateRender: true }, 1.3)
-        // 1.45 ── Decorations assemble one by one — environment comes alive
-        .from(
-          ".hero-decorations > *",
-          { opacity: 0, duration: 0.7, stagger: 0.07, ease: ease.gentle, immediateRender: true },
-          1.45,
-        )
-        // 1.65 ── Trust indicators (quiet credibility)
-        .from(
-          ".hero-trust-badges > *",
-          { opacity: 0, y: 10, scale: 0.95, duration: 0.35, stagger: 0.06, immediateRender: true },
-          1.65,
-        )
-        // 1.95 ── Scroll invitation appears last
-        .from(
-          ".hero-scroll",
-          { opacity: 0, y: 12, duration: 0.45, immediateRender: true },
-          1.95,
-        );
+      const mainTl = gsap.timeline({ defaults: { ease: ease.gentle } });
+
+      if (scene) mainTl.from(scene, { opacity: 0, duration: 0.7, ease: ease.emerge, immediateRender: true }, 0.0);
+      if (sun) mainTl.from(sun, { opacity: 0, scale: 0.9, duration: 0.6, ease: ease.emerge, immediateRender: true }, 0.1);
+      if (rays) mainTl.from(rays, { opacity: 0, y: 20, duration: 0.7, ease: ease.gentle, immediateRender: true }, 0.2);
+      if (bloom) mainTl.from(bloom, { opacity: 0, scale: 0.95, duration: 0.5, ease: ease.emerge, immediateRender: true }, 0.3);
+      if (eyebrow) mainTl.from(eyebrow, { opacity: 0, y: 12, duration: 0.55, immediateRender: true }, 0.4);
+      if (fullTypewriter) mainTl.from(fullTypewriter, { opacity: 0, y: 22, duration: 0.8, immediateRender: true }, 0.55);
+      if (typewriter) mainTl.from(typewriter, { opacity: 0, y: 12, duration: 0.45, immediateRender: true }, 1.3);
+      if (decorations) mainTl.from(decorations, { opacity: 0, duration: 0.7, stagger: 0.07, ease: ease.gentle, immediateRender: true }, 1.45);
+      if (trustBadges) mainTl.from(trustBadges, { opacity: 0, y: 10, scale: 0.95, duration: 0.35, stagger: 0.06, immediateRender: true }, 1.65);
+      if (scroll) mainTl.from(scroll, { opacity: 0, y: 12, duration: 0.45, immediateRender: true }, 1.95);
 
       // ── Scroll Exit Timeline (scrubbed) ──
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger: section,
-            start: "top top",
-            end: "bottom top",
-            scrub: 0.4,
-            invalidateOnRefresh: true,
-          },
-        })
-        .to(".hero-cinematic-lighting", { opacity: 0, duration: 0.35 }, 0.2)
-        .to(".hero-atmosphere-particles", { opacity: 0, duration: 0.3 }, 0.15)
-        .to(".hero-light-bloom", { opacity: 0, duration: 0.35 }, 0.25)
-        .to(".hero-decorations", { opacity: 0, duration: 0.3 }, 0.15)
-        .to(
-          ".hero-scene-exit",
-          { opacity: 0.55, duration: 0.45 },
-          0.3,
-        )
-        .to(".hero-content", { opacity: 0, y: -36, duration: 0.4 }, 0.5)
-        .to(".hero-cursor-light", { opacity: 0, duration: 0.25 }, 0.35)
-        .to(".hero-scroll", { opacity: 0, duration: 0.2 }, 0);
+      const lighting = target(".hero-cinematic-lighting");
+      const particles = target(".hero-atmosphere-particles");
+      const sceneExit = target(".hero-scene-exit");
+      const content = target(".hero-content");
+      const cursorLight = target(".hero-cursor-light");
+      const decs = target(".hero-decorations");
+
+      const scrollTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: "bottom top",
+          scrub: 0.4,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      if (lighting) scrollTl.to(lighting, { opacity: 0, duration: 0.35 }, 0.2);
+      if (particles) scrollTl.to(particles, { opacity: 0, duration: 0.3 }, 0.15);
+      if (bloom) scrollTl.to(bloom, { opacity: 0, duration: 0.35 }, 0.25);
+      if (decs) scrollTl.to(decs, { opacity: 0, duration: 0.3 }, 0.15);
+      if (sceneExit) scrollTl.to(sceneExit, { opacity: 0.55, duration: 0.45 }, 0.3);
+      if (content) scrollTl.to(content, { opacity: 0, y: -36, duration: 0.4 }, 0.5);
+      if (cursorLight) scrollTl.to(cursorLight, { opacity: 0, duration: 0.25 }, 0.35);
+      if (scroll) scrollTl.to(scroll, { opacity: 0, duration: 0.2 }, 0);
     }, section);
 
     return () => ctx.revert();
