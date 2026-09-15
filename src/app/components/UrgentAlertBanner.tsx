@@ -1,13 +1,42 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Siren, Info, ArrowRight, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Siren, Info, ArrowRight, ShieldAlert, X } from "lucide-react";
 import type { AlertSeverity, UrgentAlertResponse } from "@/lib/api";
 import { Badge } from "./pawguard/Badge";
 
 export interface UrgentAlertBannerProps {
   alerts?: UrgentAlertResponse[] | null;
   className?: string;
+}
+
+const STORAGE_KEY = "pawguard_dismissed_urgent_alerts";
+
+function getDismissedAlertIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return new Set(parsed.filter((id): id is string => typeof id === "string"));
+    }
+  } catch {
+    // Fallback if sessionStorage is disabled or restricted
+  }
+  return new Set();
+}
+
+function saveDismissedAlertId(id: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getDismissedAlertIds();
+    current.add(id);
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(current)));
+  } catch {
+    // Fallback if sessionStorage is disabled or restricted
+  }
 }
 
 const SEVERITY_WEIGHT: Record<AlertSeverity, number> = {
@@ -56,13 +85,28 @@ export default function UrgentAlertBanner({
   alerts,
   className = "",
 }: UrgentAlertBannerProps) {
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    setDismissedIds(getDismissedAlertIds());
+  }, []);
+
+  const handleDismiss = useCallback((alertId: string) => {
+    saveDismissedAlertId(alertId);
+    setDismissedIds((prev) => {
+      const next = new Set(prev);
+      next.add(alertId);
+      return next;
+    });
+  }, []);
+
   if (!alerts || alerts.length === 0) {
     return null;
   }
 
-  // Filter active alerts and sort by severity (critical first), then sort_order
+  // Filter active, non-dismissed alerts and sort by severity (critical first), then sort_order
   const activeAlerts = [...alerts]
-    .filter((a) => a.is_active !== false)
+    .filter((a) => a.is_active !== false && !dismissedIds.has(a.id))
     .sort((a, b) => {
       const weightA = SEVERITY_WEIGHT[a.severity] ?? 99;
       const weightB = SEVERITY_WEIGHT[b.severity] ?? 99;
@@ -122,6 +166,15 @@ export default function UrgentAlertBanner({
                   Emergency Rescue
                   <ArrowRight size={13} />
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => handleDismiss(alert.id)}
+                  aria-label={`Dismiss ${alert.title || "alert"}`}
+                  title="Dismiss alert for this session"
+                  className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-background/60 focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors duration-fast"
+                >
+                  <X size={16} />
+                </button>
               </div>
             </div>
           );
