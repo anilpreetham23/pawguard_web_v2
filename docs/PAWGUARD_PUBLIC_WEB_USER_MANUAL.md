@@ -1,1115 +1,843 @@
-# PawGuard Public Web — End User Manual
+# PAWGUARD PUBLIC WEB APPLICATION
+## User Manual
 
-Welcome to the official End User Manual for the **PawGuard Public Web Application**. This comprehensive guide provides step-by-step instructions for pet owners, animal lovers, finders, and community members using PawGuard to protect, adopt, rescue, and care for animals.
+**Document Type:** End-User Product Manual  
+**Application:** PawGuard Public Web Application  
+**Scope:** Public Web Features & User Services  
+**Version:** Current Release  
+**Last Updated:** September 2026  
+
+---
+
+## Executive Overview & Welcome
+
+Welcome to the **PawGuard Public Web Application User Manual**. PawGuard is a comprehensive community pet safety and animal welfare platform. This manual provides detailed, step-by-step instructions for all public web features, helping pet owners, adopters, volunteers, foster families, and community members navigate the platform effectively.
+
+### Purpose of this Manual
+This guide is designed for normal users and client stakeholders. It explains how to access features, navigate interfaces, complete common tasks, and resolve issues using the PawGuard Public Web application.
+
+### Document Scope
+This manual covers **ONLY** the PawGuard Public Web Application. Technical backend architecture, administrative shelter management portals, mobile native background services, and developer setup procedures are intentionally excluded to keep this guide focused entirely on the end-user experience.
 
 ---
 
 ## Table of Contents
 
-1. [About PawGuard](#1-about-pawguard)
-2. [Getting Started](#2-getting-started)
-3. [Home Page and Public Content](#3-home-page-and-public-content)
-4. [Registration and Login](#4-registration-and-login)
-5. [Google Login](#5-google-login)
-6. [Account and Dashboard](#6-account-and-dashboard)
-7. [Pet Management](#7-pet-management)
-8. [QR Safety Tag](#8-qr-safety-tag)
-9. [Lost and Found](#9-lost-and-found)
-10. [Veterinarians and Appointments](#10-veterinarians-and-appointments)
-11. [Pet Health and Reminders](#11-pet-health-and-reminders)
-12. [Adoption and Rescue](#12-adoption-and-rescue)
-13. [Emergency and Urgent Alerts](#13-emergency-and-urgent-alerts)
-14. [Donations](#14-donations)
-15. [Notifications](#15-notifications)
-16. [Contact and Grievance](#16-contact-and-grievance)
-17. [Privacy and Safety](#17-privacy-and-safety)
-18. [Common Problems and Solutions](#18-common-problems-and-solutions)
-19. [Complete User Journeys](#19-complete-user-journeys)
-20. [Quick Reference](#20-quick-reference)
+- [Chapter 1 — Welcome & Getting Started](#chapter-1--welcome--getting-started)
+- [Chapter 2 — Account Registration & Authentication](#chapter-2--account-registration--authentication)
+- [Chapter 3 — Pet Adoption & Foster-to-Adopt](#chapter-3--pet-adoption--foster-to-adopt)
+- [Chapter 4 — Lost & Found Pet Network](#chapter-4--lost--found-pet-network)
+- [Chapter 5 — Emergency Rescue Assistance](#chapter-5--emergency-rescue-assistance)
+- [Chapter 6 — QR Safety Tags & Scanner](#chapter-6--qr-safety-tags--scanner)
+- [Chapter 7 — Companion Pets & Health Management](#chapter-7--companion-pets--health-management)
+- [Chapter 8 — Veterinary Clinics & Appointment Booking](#chapter-8--veterinary-clinics--appointment-booking)
+- [Chapter 9 — Volunteer Hub & Portal](#chapter-9--volunteer-hub--portal)
+- [Chapter 10 — Foster Care Program & Portal](#chapter-10--foster-care-program--portal)
+- [Chapter 11 — Donations & Community Support](#chapter-11--donations--community-support)
+- [Chapter 12 — Education, Stories & Support](#chapter-12--education-stories--support)
+- [Chapter 13 — User Profile & Account Settings](#chapter-13--user-profile--account-settings)
+- [Chapter 14 — Frequently Asked Questions & Troubleshooting](#chapter-14--frequently-asked-questions--troubleshooting)
+- [Quick User Workflows](#quick-user-workflows)
+- [Safety & Privacy Guidance](#safety--privacy-guidance)
+- [Accessibility & Browser Guidance](#accessibility--browser-guidance)
 
 ---
 
-## 1. About PawGuard
+## Chapter 1 — Welcome & Getting Started
 
-PawGuard is an end-to-end digital platform dedicated to animal welfare, pet safety, and community rescue. The Public Web application provides accessible tools to ensure every companion and stray animal receives timely care, shelter, and protection.
+### 1.1 About PawGuard Public Web
+PawGuard connects pet owners, animal rescue organizations, veterinary professionals, and community volunteers on a single platform. Through PawGuard Public Web, you can search for adoption-ready companion pets, report missing or found animals, request emergency rescue assistance, register smart QR safety tags, schedule veterinary visits, apply to volunteer or foster, and support local animal welfare efforts.
 
-### 1.1 Purpose of the Website
+### 1.2 What You Can Do on PawGuard
+- **Adopt or Foster:** Browse shelter animals, review medical histories, and submit digital adoption or foster-to-adopt applications.
+- **Report Lost & Found Pets:** Broadcast missing pet alerts with last-seen map locations or submit community sighting reports.
+- **Request Emergency Rescue:** Send instant location-tagged SOS requests for injured or endangered animals.
+- **Protect Pets with QR Safety Tags:** Link physical QR safety tags to companion pet profiles so finders can instantly contact you.
+- **Manage Health & Appointments:** Store companion pet medical records, track vaccination schedules, and book veterinary appointments online.
+- **Volunteer & Foster:** Apply for volunteer roles, log community hours, manage foster pets, and request care supplies.
+- **Donate & Support:** Make secure monetary contributions or fulfill physical supply wishlists for shelter animals.
 
-The PawGuard Public Web application empowers users to:
-* **Protect Companion Pets:** Register pets, generate QR Safety Tags, and track vaccination & health reminders.
-* **Reunite Lost & Found Animals:** Submit community lost pet alerts, report found strays, and broadcast live location sightings.
-* **Adopt & Rescue:** Browse shelter animals, submit adoption applications, and track application progress through a 7-step status tracker.
-* **Emergency Rescue:** Request urgent medical and rescue intervention for animals in life-threatening distress with live GPS map pinning.
-* **Veterinary Access:** Locate nearby partner vet clinics, filter by emergency services, and book medical appointments.
-* **Community Support:** Make transparent donations via Razorpay checkout, receive 80G tax receipts, and track support inquiries or grievance tickets.
+### 1.3 Homepage Overview
+The PawGuard homepage serves as the central hub for accessing core services, emergency rescue controls, active community statistics, and featured adoption profiles.
 
-### 1.2 Who Can Use PawGuard?
+![Figure 1.1 — PawGuard Public Web Homepage and Navigation](user-manual/images/01-getting-started/fig-1-1-homepage.png)
 
-* **Pet Owners:** Register companion pets, create QR Safety Tags, track vaccinations, and manage health reminders.
-* **Good Samaritans & Finders:** Scan QR tags on roaming animals, report found pets, and log GPS location sightings.
-* **Animal Lovers & Adopters:** Discover adoptable shelter pets, submit adoption applications, and sponsor rescue care.
-* **Emergency Responders & Citizens:** File emergency rescue reports for injured, trapped, or distressed animals.
+*Figure 1.1 — PawGuard Public Web Homepage and Navigation.*
 
----
+**Key Homepage Elements:**
+- **Top Announcement Bar:** Displays active lost pet broadcasts and urgent community alerts.
+- **Hero Banner:** Features high-priority action buttons for pet adoption, lost pet reporting, and emergency SOS requests.
+- **Impact Metrics:** Shows real-time platform statistics including total rescues, successful adoptions, and active foster pets.
+- **Featured Companion Pets:** Highlights animals currently awaiting adoption or foster placement.
 
-## 2. Getting Started
+### 1.4 Main Navigation
+The top navigation bar provides quick access to all major sections of the web application.
 
-Welcome to PawGuard Public Web! PawGuard is a modern web platform designed to protect pets, connect communities, and assist animals in need.
+![Figure 1.2 — Main Navigation and Public Web Sections](user-manual/images/01-getting-started/fig-1-2-navigation.png)
 
----
+*Figure 1.2 — Main Navigation and Public Web Sections.*
 
-### 1. What is PawGuard Public Web?
+**How to navigate PawGuard:**
+1. **Adoption:** Select **Adopt** to view available shelter pets and filtering options.
+2. **Lost & Found:** Select **Lost & Found** to view community missing pet feeds or lodge a report.
+3. **Emergency:** Select the highlighted **Emergency SOS** button for immediate rescue assistance.
+4. **Services & Community:** Use the **Veterinary**, **Volunteer**, **Foster**, **Donate**, and **Education** links to open dedicated service portals.
+5. **Account & Auth:** Select **Sign In** or your user avatar to open account settings and applications.
 
-PawGuard Public Web is the public-facing online platform accessible at [https://pawguard-web-v2.vercel.app](https://pawguard-web-v2.vercel.app). It provides animal protection tools for companion pet owners, animal lovers, finders, and volunteers.
+### 1.5 Emergency Access
+In critical situations involving injured or trapped animals, click the prominent **Emergency SOS** button located in the top navigation bar or homepage banner to open the immediate rescue form without needing prior registration.
 
----
+### 1.6 Using PawGuard on Desktop and Mobile Browsers
+PawGuard Public Web is fully responsive and optimized for modern web browsers on desktop computers, laptops, tablets, and smartphones. No app installation is required.
 
-### 2. Who Can Use PawGuard?
-
-* **Pet Owners:** Register companion pets, create QR Safety Tags, track vaccinations, and manage health reminders.
-* **Finders & Good Samaritans:** Scan QR tags on lost pets, report found animals, and submit location sightings.
-* **Adopters:** Browse rescued dogs and cats looking for homes and submit adoption applications.
-* **Community Members:** Report animal emergencies, make tax-deductible donations, and access educational resources.
-
----
-
-### 3. Account Requirements & Features
-
-#### Browsing Without an Account
-You can use PawGuard without signing in to perform public tasks:
-* View home page content, live rescue tickers, and urgent community alerts.
-* Search the veterinarian clinic directory.
-* Scan a QR Safety Tag on a found pet to view public safety notes and report a sighting.
-* Report an injured animal emergency with GPS coordinates.
-* Browse adoptable animals and read community success stories.
-* Make a donation via Razorpay.
-
-#### Features That Require a Free Account
-Signing up takes less than 1 minute and unlocks personalized tools:
-* Registering companion pets under your profile.
-* Assigning and editing QR Safety Tags.
-* Booking veterinary checkup appointments.
-* Submitting and tracking adoption applications.
-* Managing pet health schedules and reminders.
-* Accessing your user dashboard, donation receipts, and real-time notifications.
+> [!TIP]
+> Bookmark the PawGuard Public Web application on your smartphone home screen for instant 1-tap access to QR safety tag scanning and emergency rescue requests.
 
 ---
 
-### 4. Device & Browser Compatibility
+## Chapter 2 — Account Registration & Authentication
 
-PawGuard Public Web is fully responsive and optimized for:
-* **Desktop & Laptops:** Chrome, Firefox, Safari, Edge (latest versions).
-* **Smartphones & Tablets:** iOS Safari and Android Chrome.
-* **Camera Access:** Required on mobile devices when scanning QR tags directly through the web scanner.
-* **Location Services:** Recommended when reporting emergencies or lost/found animal sightings so your current GPS coordinates can be automatically captured.
+### 2.1 Creating a PawGuard Account
+Creating a free account unlocks personal features such as managing companion pets, registering QR safety tags, tracking adoption applications, and saving medical reminders.
 
----
+![Figure 2.2 — New User Registration](user-manual/images/02-authentication/fig-2-2-registration.png)
 
-## 3. Home Page and Public Content
+*Figure 2.2 — New User Registration.*
 
-The PawGuard home page (`/`) is the central hub of the application, designed to give visitors immediate access to rescue tools, adoptable pets, and community impact data.
+**How to create an account:**
+1. Select **Sign In** in the top navigation bar.
+2. In the modal, select **Create your account** (or **Sign Up**).
+3. Enter your **Full Name**, valid **Email Address**, **Phone Number**, and a strong **Password**.
+4. Select **Create account**.
 
----
+**Expected result:** Your account is created, you are automatically signed in, and your user dashboard opens.
 
-### 1. Top Urgent Alert Banner
+### 2.2 Signing In
+Registered users can sign in using their registered email and password credentials.
 
-When a critical community emergency is active, a high-visibility banner appears at the very top of the website.
-* **Purpose:** Displays time-sensitive safety alerts (e.g., severe weather pet warnings, urgent medical rescue needs).
-* **Dismissal:** You can dismiss the banner by clicking the **X** icon. The dismissal is saved in your browser session for that alert ID so it won't interrupt your browsing experience.
+![Figure 2.1 — User Authentication Interface](user-manual/images/02-authentication/fig-2-1-login-modal.png)
 
----
+*Figure 2.1 — User Authentication Interface.*
 
-### 2. Hero Banner & Live Ticker
-
-The top section features a cinematic hero video and an interactive live ticker:
-* **Live Rescue Feed:** Displays real-time updates on active rescue cases, recent lost pet reports, and adoption milestones.
-* **Quick Action Buttons:**
-  * **Report Lost Pet:** Direct link to report a missing companion.
-  * **Adopt a Pet:** Direct link to explore animals seeking homes.
-  * **Emergency SOS:** Direct link to report an injured animal.
-
----
-
-### 3. Interactive Service Cards
-
-The home page highlights PawGuard's core services with interactive cards:
-* **QR Safety Tags:** Learn how digital QR tags protect pets.
-* **Lost & Found:** Understand how community reporting reunites lost animals.
-* **Veterinary Care:** Access partner vet clinics and online booking.
-* **Adoption & Rescue:** Discover how rescued strays find forever homes.
-
----
-
-### 4. Public Content Sections
-
-* **Success Stories (`/stories`):** Read heartwarming real-world stories of adopted pets and reunited lost animals. Click any story card to read the full journey or click **Share Your Story** (`/stories/share`) to submit your own adoption story.
-* **Educational Resources (`/education`):** Articles on pet care, emergency first aid for animals, vaccination schedules, and urban stray management.
-* **About PawGuard (`/about`):** Overview of PawGuard's mission, team, and animal protection partners.
-* **Impact Statistics:** Transparency metrics showcasing total rescues completed, animals adopted, and active QR tags in the community.
-
----
-
-## 4. Registration and Login
-
-Signing up for a PawGuard account is free, fast, and secure.
-
----
-
-### 1. Opening the Sign In / Sign Up Dialog
-
-You can open the authentication window at any time:
-* **Desktop:** Click the **Sign in** button in the top right of the navigation bar.
-* **Mobile:** Open the menu panel and tap **Sign in / Create account**.
-
----
-
-### 2. Creating a New Account (Sign Up)
-
-To register a new account:
-1. Open the sign-in modal and switch to the **Sign Up** tab.
-2. Enter your required details:
-   * **Full Name:** Your complete display name.
-   * **Email Address:** Your valid email address (used for sign-in and notifications).
-   * **Phone Number:** Your contact phone number.
-   * **Password:** A strong password (minimum 8 characters).
-3. Click **Create Account**.
-4. Upon successful registration, you are signed in automatically and redirected to your account dashboard.
-
----
-
-### 3. Signing In to Your Account (Sign In)
-
-If you already have an account:
-1. Open the sign-in modal (defaults to the **Sign In** tab).
+**How to sign in:**
+1. Select **Sign In** in the top navigation bar.
 2. Enter your registered **Email Address** and **Password**.
-3. Click **Sign In**.
-4. Your user avatar and name will now appear in the header navigation.
+3. Select **Sign in**.
 
----
+**Expected result:** The interface updates to display your avatar and personalized menu options.
 
-### 4. Two-Factor Authentication (MFA)
+### 2.3 Sign In with Google
+You can sign in or register instantly using your existing Google Account.
 
-If your account has Two-Step Verification (MFA) enabled:
-1. After entering your password, an MFA verification step will appear.
-2. Enter the 6-digit code sent to your registered device or authenticator app.
-3. Click **Verify Code** to complete sign-in.
+**How to use Google Sign-In:**
+1. Open the **Sign In** modal.
+2. Select **Continue with Google**.
+3. Choose your Google account in the popup window and grant basic profile permissions.
 
----
+**Expected result:** PawGuard authenticates your Google account and redirects you back to your active page.
 
-### 5. Forgotten Password Recovery
+### 2.4 Forgot Password
+If you forget your password, you can request a secure reset link sent directly to your registered email address.
 
-If you forget your password:
-1. On the Sign In form, click **Forgot password?** (or visit `/auth/reset-password`).
-2. Enter your registered email address.
-3. Click **Send Reset Link**.
-4. Check your email inbox for password reset instructions and follow the link to set a new password.
+![Figure 2.3 — Password Recovery](user-manual/images/02-authentication/fig-2-3-password-reset.png)
 
----
+*Figure 2.3 — Password Recovery.*
 
-### 6. Signing Out
+**How to request a password reset:**
+1. Open the **Sign In** modal.
+2. Select **Forgot Password?**.
+3. Enter your registered **Email Address** and select **Send Reset Link**.
 
-To end your session safely:
-1. Click your name/avatar in the header navigation to open the account menu.
-2. Select **Sign Out**.
-3. You will be signed out immediately and returned to the home page.
+**Expected result:** A confirmation message appears advising you to check your email inbox for password recovery instructions.
 
----
+### 2.5 Password Reset
+1. Open the reset link received in your email.
+2. Enter your new password in both password fields.
+3. Select **Update Password** to complete the reset.
 
-## 5. Google Login
+### 2.6 Signing Out
+To sign out on a shared computer, select your profile avatar in the top right header and select **Sign Out**.
 
-PawGuard supports instant sign-in using your existing Google account for maximum convenience and security.
+### 2.7 Managing Basic Account Information
+Account details such as your phone number, avatar, and emergency contact details can be updated at any time under **Account Settings**.
 
 ---
 
-### 1. How to Sign In with Google
+## Chapter 3 — Pet Adoption & Foster-to-Adopt
 
-1. Open the Sign In / Sign Up dialog on the website.
-2. Click the **Continue with Google** button at the top of the dialog.
-3. A secure Google authorization window will open:
-   * Select your Google account.
-   * Review the permissions (PawGuard requests basic profile info: email, full name, and avatar photo).
-4. Click **Continue** / **Allow**.
-5. Google will securely return you to PawGuard at `/auth/callback`, where your session is established automatically.
+### 3.1 Browsing Available Companion Pets
+The Adoption Gallery displays rescue animals currently seeking permanent or foster-to-adopt homes.
 
----
+![Figure 3.1 — Pet Adoption Search and Filter Interface](user-manual/images/03-adoption/fig-3-1-gallery.png)
 
-### 2. Benefits of Google Sign-In
+*Figure 3.1 — Pet Adoption Search and Filter Interface.*
 
-* **No Password to Remember:** Sign in instantly with one click.
-* **Automatic Profile Sync:** Your full name, email address, and Google profile picture are automatically synced to your PawGuard profile.
-* **Instant Account Setup:** If you don't have a PawGuard account yet, signing in with Google creates one for you automatically.
+### 3.2 Searching for a Pet
+Use the search bar at the top of the adoption page to search for animals by name, breed, location, or shelter keyword.
 
----
+### 3.3 Using Adoption Filters
+Narrow down available animals using the filter sidebar:
+- **Species:** Filter by Dog, Cat, or other rescue animals.
+- **Age:** Filter by Puppy/Kitten, Young, Adult, or Senior.
+- **Gender:** Filter by Male or Female.
+- **Size:** Filter by Small, Medium, or Large.
+- **Special Needs:** Display pets requiring dedicated medical or behavioral care.
 
-### 3. Privacy & Security
+### 3.4 Opening a Pet Profile
+Select any pet card to view their full profile, photographic gallery, background story, and health history.
 
-* PawGuard **NEVER** receives or stores your Google password.
-* Sign-in uses OAuth 2.0 with state token verification to prevent unauthorized account access.
-* You can disconnect or manage app permissions at any time through your Google Account security settings.
+![Figure 3.2 — Companion Pet Profile and Adoption Options](user-manual/images/03-adoption/fig-3-2-pet-profile.png)
 
----
+*Figure 3.2 — Companion Pet Profile and Adoption Options.*
 
-## 6. Account and Dashboard
+### 3.5 Reviewing Pet Information
+Each profile includes essential adoption details:
+- **Personality Traits:** Activity level, temperament, and compatibility with children or other pets.
+- **Medical Overview:** Vaccination status, spay/neuter status, microchip verification, and ongoing health needs.
+- **Shelter/Location:** Current rescue facility or active foster family location.
 
-Your PawGuard User Dashboard (`/account`) is your personal control center for managing registered pets, tracking adoption applications, reviewing donations, and updating personal details.
+### 3.6 Applying to Adopt
+When you find a companion pet you wish to welcome into your home, select **Apply to Adopt**.
 
----
+![Figure 3.3 — Adoption Application Form](user-manual/images/03-adoption/fig-3-3-application-form.png)
 
-### 1. Accessing Your Account
+*Figure 3.3 — Adoption Application Form.*
 
-Click your avatar/name in the header navigation and select **My Account** (`/account`).
+### 3.7 Foster-to-Adopt
+If you prefer to care for a pet temporarily before committing to full adoption, select **Foster-to-Adopt** on the pet profile page. This allows you to experience daily life with the companion pet while receiving shelter guidance and support.
 
----
+### 3.8 Submitting an Adoption Application
+**How to submit an Adoption Application:**
+1. On the pet detail profile page, select **Apply to Adopt** (or **Foster-to-Adopt**).
+2. Complete the digital questionnaire covering your home environment, pet ownership experience, household members, and yard fencing.
+3. Review your contact information and select **Submit Application**.
 
-### 2. Dashboard Overview & Activity Summary
+**Expected result:** Your application is registered, and a confirmation modal displays your reference ID. You can monitor progress under **My Applications**.
 
-The main dashboard screen displays your personal activity summary:
-* **Registered Pets Count:** Total companion pets registered under your account.
-* **Active Applications Count:** Adoption applications currently in review.
-* **Total Donations:** Lifetime donations contributed to animal welfare.
-* **Lost & Found Reports:** Reports submitted or tracked by you.
+### 3.9 Checking Application Status
+Navigate to **Account -> My Applications** to view submitted adoption applications and their status (*Under Review*, *Approved*, *Home Visit Scheduled*, or *Completed*).
 
 ---
-
-### 3. Editing Profile Information
 
-Under the **Profile Settings** tab:
-1. View your current account details (Full Name, Email, Phone Number, Location).
-2. Click **Edit Profile** to update:
-   * **Full Name**
-   * **Phone Number** (used for vet bookings and adoption application updates)
-   * **Address / City**
-3. Click **Save Changes**. Your updated profile information is saved instantly.
+## Chapter 4 — Lost & Found Pet Network
 
----
-
-### 4. My Saved Dogs (Favorites)
+### 4.1 Viewing the Lost & Found Feed
+The Lost & Found network helps reunite missing animals with their families through public broadcasts and interactive map pins.
 
-While browsing adoptable pets or lost/found listings, you can click the **Heart** icon on any animal card to save it.
-* **Where to find:** Go to `/account` and click **Saved Dogs**.
-* **Browser Persistence:** Saved dogs remain in your favorites list so you can easily return to review them later, even if you navigate away.
+![Figure 4.1 — Lost & Found Feed and Location View](user-manual/images/04-lost-found/fig-4-1-public-feed.png)
 
----
+*Figure 4.1 — Lost & Found Feed and Location View.*
 
-### 5. Account Management & Security
+### 4.2 Searching for a Lost or Found Pet
+Search active notices by pet breed, color, collar description, microchip ID, or city neighborhood.
 
-* **Change Password:** Update your sign-in password under security settings.
-* **Delete Account:** If you wish to delete your account, click **Delete Account** at the bottom of the account page. This will permanently remove your account profile from PawGuard.
+### 4.3 Filtering Results
+Toggle between **Lost Pets** (missing from home) and **Found Pets** (spotted or rescued strays awaiting their owners).
 
----
+### 4.4 Viewing a Report
+Select any notice to inspect high-resolution photographs, last-seen date and time, detailed markings, and map pin coordinates.
 
-## 7. Pet Management
+### 4.5 Reporting a Lost Pet
+If your companion pet goes missing, broadcast an alert immediately across the PawGuard network.
 
-Registering your companion pets on PawGuard ensures they are protected with digital profiles, QR Safety Tags, and medical reminder schedules.
+![Figure 4.2 — Lost or Found Pet Report Form](user-manual/images/04-lost-found/fig-4-2-report-form.png)
 
----
+*Figure 4.2 — Lost or Found Pet Report Form.*
 
-### 1. Accessing Pet Management
+**How to report a lost pet:**
+1. Navigate to **Lost & Found** and select **Report a Pet**.
+2. Select **I Lost a Pet**.
+3. Upload clear photographs of your companion pet.
+4. Enter pet name, species, breed, primary color, collar details, and microchip number if known.
+5. Select the last-seen date, time, and precise pin location on the map.
+6. Enter contact phone numbers and select **Submit Report**.
 
-Go to **My Account** -> **My Pets** (`/account/pets`).
+**Expected result:** The report is instantly published on the public feed and added to the interactive lost pet map.
 
----
+### 4.6 Reporting a Found Pet
+If you find a stray animal or temporary shelter a missing pet:
+1. Select **Report a Pet** and choose **I Found a Pet**.
+2. Upload clear photos of the animal.
+3. Mark the exact location where the animal was found and describe its current safe condition.
+4. Submit the report so the owner can identify and claim their companion pet.
 
-### 2. Registering a New Pet
-
-To add a pet to your account:
-1. Click the **Add Pet** button.
-2. Fill out the pet registration form:
-   * **Pet Name:** (e.g., "Max")
-   * **Species:** Dog, Cat, or Other companion animal.
-   * **Breed:** Breed name or "Mixed Breed / Indie".
-   * **Gender:** Male or Female.
-   * **Age / Birth Date:** Age in years/months or estimated birth date.
-   * **Microchip ID:** Optional microchip number if applicable.
-   * **Emergency Care Notes:** Important medical or behavioral instructions (e.g., "Requires daily insulin", "Allergic to penicillin", "Skittish around loud noises").
-   * **Photo Upload:** Upload a clear photo of your pet.
-3. Click **Save Pet**. Your pet's profile is now created.
+### 4.7 Adding Photos and Location
+Clear images and accurate map markers significantly increase reunification success. Use the location picker to drag the pin to the exact street or landmark.
 
----
+### 4.8 Submitting a Community Sighting
+If you spot an animal matching a lost pet report but cannot capture it, submit a quick sighting report.
 
-### 3. Managing Registered Pets
+![Figure 4.3 — Community Sighting Report](user-manual/images/04-lost-found/fig-4-3-sighting-modal.png)
 
-Your **My Pets** dashboard lists all your registered animals:
-* **View Details:** Click any pet card to view their full profile, assigned QR tag, and health schedule.
-* **Edit Profile:** Click **Edit Pet** to update photos, age, care notes, or microchip information.
-* **Remove Pet:** If a pet has passed away or been rehomed, you can archive or delete the pet profile.
+*Figure 4.3 — Community Sighting Report.*
 
----
+**How to submit a sighting:**
+1. Open the relevant lost pet notice.
+2. Select **Report Sighting**.
+3. Specify the date, time, direction of movement, and attach a photo if taken.
+4. Select **Submit Sighting**.
 
-### 4. Connecting Pets to Other Features
+**Expected result:** A notification is dispatched to the pet owner containing your sighting location and details.
 
-Once a pet is registered, you can:
-* Generate a **QR Safety Tag** for their collar (see Section 07).
-* Schedule **Vaccination & Health Reminders** (see Section 10).
-* Book **Veterinary Appointments** directly for that pet (see Section 09).
-* Instant-report if the pet ever goes missing (see Section 08).
+### 4.9 Contacting the Relevant Person
+Use the verified contact buttons on the report page to call or send a secure message directly to the pet owner or finder.
 
 ---
 
-## 8. QR Safety Tag
+## Chapter 5 — Emergency Rescue Assistance
 
-The PawGuard QR Safety Tag is a digital protection tool that links a physical collar tag to your pet's PawGuard profile.
+### 5.1 When to Use Emergency Rescue
+Use the **Emergency Rescue Request** feature when you encounter an animal in critical distress, such as:
+- Severely injured or hit-by-vehicle animals requiring urgent transport.
+- Animals trapped in drains, wells, or hazardous structures.
+- Abandoned animals experiencing extreme physical distress or heat exhaustion.
+- Situations posing immediate danger to animal life.
 
----
+> [!IMPORTANT]
+> Emergency Rescue is reserved for urgent animal distress. For non-urgent stray reports or general inquiries, please use the standard Lost & Found or Contact support channels.
 
-### 1. What is a QR Safety Tag?
+### 5.2 Opening the Emergency Rescue Request
+Select the red **Emergency SOS** button located prominently in the top header or visit `/emergency`.
 
-A QR Safety Tag is a scannable QR code worn on a pet's collar. If your pet strays or gets lost, anyone who finds your pet can scan the tag with any smartphone camera to instantly access vital safety instructions and contact PawGuard to report a sighting.
-
----
+![Figure 5.1 — Emergency Rescue Request Interface](user-manual/images/05-emergency/fig-5-1-emergency-sos.png)
 
-### 2. Generating & Assigning a QR Tag (Owner Guide)
+*Figure 5.1 — Emergency Rescue Request Interface.*
 
-1. Go to **My Pets** (`/account/pets`) and select your pet.
-2. Click **Generate QR Safety Tag**.
-3. A unique QR Safety Tag code is generated and linked to your pet.
-4. You can download the digital QR code image or order a physical scannable collar tag.
+### 5.3 Selecting Incident/Urgency Information
+Select the appropriate urgency tier:
+- **Critical / Life-Threatening:** Immediate vehicle injuries, severe bleeding, or active physical danger.
+- **High Urgency:** Trapped animals, severe sickness, or vulnerable stranded young puppies/kittens.
+- **Moderate Rescue:** Injured stray requiring non-immediate medical evaluation.
 
----
+### 5.4 Sharing Location
+Select **Use Current Location** to automatically capture your smartphone GPS coordinates, or manually pinpoint the rescue scene on the map.
 
-### 3. What Happens When Someone Scans the Tag? (Finder Guide)
-
-When a finder scans the QR tag on a found pet:
-1. Their smartphone camera opens the public scan page (`/scan` or `/api/v1/dogs/{id}/public-scan`).
-2. **What Information Is Displayed (Public Care Information):**
-   * Pet Name & Photo
-   * Species & Breed
-   * Lost Status Indicator (e.g., "REPORTED LOST")
-   * **Emergency Care Notes:** Medical conditions, allergies, dietary needs, or handling instructions provided by the owner.
-3. **What Information Is NOT Displayed (Strict Privacy Boundary):**
-   * **Owner's Phone Number:** Kept strictly private.
-   * **Owner's Email Address:** Kept strictly private.
-   * **Owner's Home Address:** Kept strictly private.
-   * **Full Medical/Vaccination Records:** Kept strictly private.
+### 5.5 Adding Supporting Information
+- Attach a photo or short video of the animal's condition.
+- Provide nearby landmarks, gate numbers, or access notes for the rescue team.
+- Enter your callback phone number so responders can contact you on arrival.
 
----
+### 5.6 Submitting the Emergency Rescue Request
+Review the entered emergency details and select **Dispatch Emergency Rescue**.
 
-### 4. Reporting a Sighting via Public QR Scan
-
-If you have found a tagged pet:
-1. On the public scan page, click **Report Sighting**.
-2. Enter the sighting details:
-   * **Location:** Current address or tap **Use Current Location** to capture GPS coordinates automatically.
-   * **Condition Note:** (e.g., "Safe in my yard", "Appears healthy", "Slightly scared").
-   * **Photo Upload:** Optional photo of the animal at the sighting spot.
-   * **Finder Contact:** Optional phone number if you wish to allow PawGuard or the owner to contact you.
-3. Click **Submit Sighting Report**.
-4. The owner receives an immediate notification on their PawGuard account with the exact sighting location map and notes!
+### 5.7 What Happens After Submission
+Upon submission, an instant high-priority alert is broadcast to nearby rescue team members and partner veterinary responders. An on-screen confirmation banner confirms your emergency request ID and hotline callback details.
 
 ---
 
-## 9. Lost and Found
+## Chapter 6 — QR Safety Tags & Scanner
 
-The PawGuard Lost & Found Hub (`/lost-found`) helps reunite missing pets with their families through community reporting, search filters, and location sightings.
+### 6.1 What Is a QR Safety Tag?
+A PawGuard QR Safety Tag is a physical collar tag featuring a unique QR code. When anyone scans the tag using a smartphone camera, they can instantly view public contact and medical information to return your lost companion pet safely.
 
----
+### 6.2 Scanning a QR Safety Tag
+If you find a lost animal wearing a PawGuard QR tag, open your smartphone camera app or browser and scan the QR code. You will be directed to the tag's public safety page.
 
-### 1. Browsing Lost & Found Listings
+![Figure 6.1 — QR Safety Tag Finder View](user-manual/images/06-safety-tags/fig-6-1-public-scan.png)
 
-Visit `/lost-found` to view all community reports:
-* **Filter by Status:** Select **Lost Pets** (missing companion animals) or **Found Animals** (strays/found pets reported by finders).
-* **Search & Filter:** Search by breed, city/area, or date reported.
-* **Listing Cards:** Display animal photos, last seen location, date, and status badges.
-
----
+*Figure 6.1 — QR Safety Tag Finder View.*
 
-### 2. Reporting a Lost Pet (Owner Guide)
-
-If your companion pet goes missing:
-1. Go to `/lost-found` and click **Report Lost Pet** (or visit `/lost-found/report/lost`).
-2. Fill out the report form:
-   * **Select Pet:** Choose one of your registered pets (or enter pet details manually).
-   * **Last Seen Location:** Address, landmark, or area where the pet went missing.
-   * **Date & Time Lost:** When the pet was last seen.
-   * **Distinctive Features:** Collar color, markings, microchip status.
-   * **Contact Preferences:** Choose how you prefer to be notified.
-   * **Photos:** Upload clear, recent photos of your pet.
-3. Click **Submit Lost Report**.
-4. Your pet's status updates to "LOST", and a public listing is created to alert nearby community members.
+### 6.3 Viewing the Public Pet Information
+The public scanner page displays:
+- **Companion Pet Name & Photograph**
+- **Critical Medical Alerts:** Allergies, required medications, or behavioral notes.
+- **Owner Contact Options:** Direct phone call button and messaging action.
 
----
+### 6.4 Contacting the Pet Owner
+Select **Call Owner** or **Send Message** on the finder page to establish direct communication with the pet owner.
 
-### 3. Reporting a Found Animal (Finder Guide)
-
-If you have found a stray or lost pet in your neighborhood:
-1. Go to `/lost-found` and click **Report Found Pet** (or visit `/lost-found/report/found`).
-2. Fill out the report form:
-   * **Animal Type:** Dog, Cat, or Other.
-   * **Breed / Appearance:** Color, size, gender if known.
-   * **Collar / Tag Details:** Describe any collar worn (or mention if a QR tag is present).
-   * **Found Location:** Exact location where you spotted or secured the animal.
-   * **Current Status:** Mention if the animal is secured in your home, at a shelter, or still roaming in the area.
-   * **Photo:** Upload a photo of the found animal.
-3. Click **Submit Found Report**.
+### 6.5 Sharing Finder Location
+Select **Send GPS Location to Owner** on the scanner page. With your permission, your current smartphone location is sent directly to the owner via instant notification.
 
----
+### 6.6 Registering a QR Safety Tag
+Pet owners can link physical QR safety tags to their registered companion pets in seconds.
 
-### 4. Submitting a Sighting Report
+![Figure 6.2 — Registering a QR Safety Tag](user-manual/images/06-safety-tags/fig-6-2-tag-registration.png)
 
-If you spot an animal listed in a Lost Pet report:
-1. Open the Lost Pet report detail page (`/lost-found/[id]`).
-2. Click **Report Sighting**.
-3. Provide your current location, date/time spotted, animal condition, and an optional photo.
-4. Click **Submit Sighting**. The owner is notified immediately.
+*Figure 6.2 — Registering a QR Safety Tag.*
 
----
+**How to register a QR Safety Tag:**
+1. Sign in to your account and navigate to **Account -> My Pets**.
+2. Select **Register QR Safety Tag**.
+3. Enter the 8-digit serial code printed on the physical tag (or scan the tag with your phone).
+4. Select the companion pet profile to associate with the tag.
+5. Select **Link Tag to Companion Pet**.
 
-### 5. Resolving a Lost Report (Reunited!)
+**Expected result:** The tag is activated and linked. Scanning the physical tag will now display your companion pet's public profile and contact options.
 
-When your pet is safely reunited:
-1. Go to your report page.
-2. Click **Mark as Reunited**.
-3. Your report status updates to "REUNITED", celebrating the happy outcome with the community!
+### 6.7 Managing a Registered Tag
+Under **Account -> My Pets**, you can update displayed phone numbers, toggle private address visibility, or transfer/deactivate a tag if needed.
 
 ---
 
-## 10. Veterinarians and Appointments
+## Chapter 7 — Companion Pets & Health Management
 
-PawGuard connects pet owners with trusted partner veterinary clinics for checkups, vaccinations, emergency care, and consultations.
+### 7.1 Adding a Companion Pet
+Keep all your pets' health records organized by creating companion pet profiles under your account.
 
----
+![Figure 7.1 — Managing Companion Pets](user-manual/images/07-companion-pets/fig-7-1-pet-list.png)
 
-### 1. Searching the Veterinary Directory
+*Figure 7.1 — Managing Companion Pets.*
 
-Visit `/veterinary` to explore partner vet clinics:
-* **Search by Location:** Enter your area, city, or pincode.
-* **Filter by Service:** General Checkup, Vaccination, Surgery, Dental Care, Emergency / Critical Care.
-* **Clinic Profiles:** View clinic photos, address, operating hours, contact details, and user ratings.
+**How to add a companion pet:**
+1. Go to **Account** and select **Add Companion Pet**.
+2. Enter pet name, species, breed, birth date / age, gender, microchip number, and upload a profile photo.
+3. Select **Save Pet Profile**.
 
----
+**Expected result:** The pet profile is created and listed under your active companion pets roster.
 
-### 2. Booking a Veterinary Appointment
-
-To book an appointment online:
-1. Click **Book Appointment** on any clinic profile (or visit `/appointments/book`).
-2. Complete the appointment booking form:
-   * **Select Companion Pet:** Choose a registered pet from your account.
-   * **Service Required:** Select the reason for visit (e.g., Annual Vaccination, General Wellness Checkup, Consultation).
-   * **Preferred Date:** Select an available date from the calendar.
-   * **Time Slot:** Choose your preferred morning or afternoon time slot.
-   * **Notes / Symptoms:** Describe any specific health concerns or symptoms.
-3. Click **Confirm Appointment**.
-4. You will receive an on-screen booking confirmation, and the appointment will appear under your appointments dashboard.
+### 7.2 Viewing Companion Pets
+Select any pet card under **My Pets** to view health history, registered QR safety tags, and scheduled care reminders.
 
----
+### 7.3 Updating Pet Information
+Update pet weight, dietary preferences, spay/neuter verification, or owner address at any time by selecting **Edit Profile**.
 
-### 3. Managing Your Appointments
+### 7.4 Managing Medical Records
+Store vaccination dates, medical conditions, prescription dosages, and veterinary reports safely online.
 
-Go to **My Appointments** (`/appointments`):
-* **View Scheduled Appointments:** Review upcoming visits, clinic address, and time slots.
-* **Appointment Status:** Track whether your appointment is **Scheduled**, **Confirmed**, **Completed**, or **Cancelled**.
-* **Cancel Appointment:** If you cannot attend, click **Cancel Appointment** at least 2 hours before your scheduled time slot.
+![Figure 7.2 — Companion Pet Health and Medical Records](user-manual/images/07-companion-pets/fig-7-2-medical-records.png)
 
----
+*Figure 7.2 — Companion Pet Health and Medical Records.*
 
-## 11. Pet Health and Reminders
+### 7.5 Vaccination Information
+Track essential immunizations (Rabies, DHPP, FVRCP) with date administered, expiration date, and veterinarian verification notes.
 
-Never miss a vaccination or health treatment! PawGuard provides a dedicated Pet Health & Reminders tool (`/reminders`) to keep your pets on schedule.
+### 7.6 Health Reminders
+PawGuard automatically generates health notifications for upcoming booster shots, deworming schedules, flea/tick treatments, and routine wellness checkups.
 
+### 7.7 Completing or Snoozing Reminders
+Under **Reminders**, select **Mark Complete** when a vaccination or treatment is administered, or select **Snooze** to defer the notification by 7 days.
+
 ---
 
-### 1. Supported Health Reminders
+## Chapter 8 — Veterinary Clinics & Appointment Booking
 
-You can set up reminders for:
-* **Vaccinations:** Rabies, DHPP, FVRCP, Booster shots.
-* **Deworming & Parasite Control:** Internal deworming tablets, flea & tick spot-on treatments.
-* **Veterinary Visits:** Routine checkups, dental cleanings, blood tests.
-* **Medication & Daily Care:** Special prescription schedules.
+### 8.1 Finding a Veterinary Clinic
+The Veterinary Directory helps you locate verified animal hospitals, emergency clinics, and specialist practitioners in your city.
 
----
+![Figure 8.1 — Veterinary Clinic Directory](user-manual/images/08-veterinary/fig-8-1-clinic-directory.png)
 
-### 2. Creating a Health Reminder
-
-To set a reminder for a pet:
-1. Go to `/reminders` and click **Add Reminder**.
-2. Fill out the reminder form:
-   * **Select Pet:** Choose your registered pet.
-   * **Reminder Category:** Vaccination, Deworming, Vet Checkup, Medication, Grooming, Other.
-   * **Title / Description:** (e.g., "Annual Rabies Booster").
-   * **Due Date & Time:** When the treatment is scheduled.
-   * **Recurring Schedule:** One-time, Monthly, Every 3 Months, Every 6 Months, or Annual.
-3. Click **Save Reminder**.
+*Figure 8.1 — Veterinary Clinic Directory.*
 
----
+### 8.2 Searching Clinics
+Search by clinic name, doctor surname, city district, or zip code.
 
-### 3. Managing Reminders & Receiving Alerts
+### 8.3 Using Service/Emergency Filters
+Filter clinic listings by specialized offerings:
+- **24/7 Emergency Care:** Clinics offering round-the-clock emergency surgical care.
+- **Vaccination & Wellness:** Routine health screenings and preventive care.
+- **Surgeries & Diagnostics:** X-ray, ultrasound, blood testing, and surgical suites.
+- **Grooming & Dental:** Dental scaling and pet hygiene services.
 
-* **Upcoming Reminders:** Displayed in order of due date.
-* **Notification Alerts:** On the due date, an alert appears in your PawGuard Notification Bell and account dashboard.
-* **Mark as Completed:** After administering the vaccine or treatment, click **Mark Completed**. If the reminder was set to recurring (e.g. Annual), PawGuard automatically calculates and schedules the next due date for you!
-* **Delete Reminder:** Click the Trash icon to remove an unnecessary reminder.
+### 8.4 Viewing Clinic Information
+Clinic cards display consultation fees, operating hours, emergency contact numbers, staff veterinarians, and physical street addresses.
 
----
+### 8.5 Booking an Appointment
+Schedule veterinary visits online without needing to make phone calls.
 
-## 12. Adoption and Rescue
+![Figure 8.2 — Veterinary Appointment Booking](user-manual/images/08-veterinary/fig-8-2-booking-form.png)
 
-PawGuard connects rescued stray and shelter animals with loving families through an interactive adoption catalog and transparent application tracking.
+*Figure 8.2 — Veterinary Appointment Booking.*
 
----
+**How to book an appointment:**
+1. Navigate to **Veterinary** or select **Book Appointment**.
+2. Select your preferred clinic and attending veterinarian.
+3. Choose an available calendar date and time slot.
+4. Select the registered **Companion Pet** attending the visit.
+5. Enter the consultation reason (e.g., Annual Rabies Booster, Skin Allergy Check).
+6. Select **Confirm Booking**.
 
-### 1. Browsing Adoptable Animals
+**Expected result:** Your appointment is scheduled, and a digital booking confirmation is saved under your account health calendar.
 
-Visit `/adopt` to explore rescued pets:
-* **Filters:** Filter by species (Dog, Cat), age group (Puppy/Kitten, Young, Adult, Senior), gender, size, and location.
-* **Animal Cards:** Feature photos, name, breed, age, and quick personality tags (e.g. "Friendly", "Good with cats", "Vaccinated").
+### 8.6 Selecting a Veterinarian
+Choose a specific doctor or select *First Available Practitioner* for faster booking.
 
----
+### 8.7 Selecting Date and Time
+Available consultation time slots are displayed in real-time. Grayed-out slots indicate fully booked hours.
 
-### 2. Animal Profile Details
+### 8.8 Selecting a Companion Pet
+Choose from your registered companion pets so the clinic receives your pet's medical background prior to the visit.
 
-Click any animal card to view their full profile (`/adopt/[slug]`):
-* **Photo Gallery:** High-resolution photos.
-* **Bio & Background:** Story of how the animal was rescued and their temperament.
-* **Health & Medical Status:** Spayed/Neutered status, vaccination history, and special care notes.
-* **Adoption Requirements:** Specific housing or family requirements (e.g. "Fenced yard required").
+### 8.9 Providing the Appointment Reason
+Adding detailed symptoms or service requests helps the veterinary clinic prepare necessary diagnostics in advance.
 
----
+### 8.10 Confirming the Appointment
+Review the clinic location, selected doctor, appointment fee, and scheduled time before selecting **Confirm Booking**.
 
-### 3. Submitting an Adoption Application
-
-If you wish to adopt an animal:
-1. On the animal's profile page, click **Apply to Adopt**.
-2. Complete the adoption application form:
-   * **Applicant Details:** Name, Contact Phone, Full Address, Occupation.
-   * **Housing Environment:** Own/Rent home, Apartment/Independent house, Fenced yard presence, Landlord approval status.
-   * **Pet Experience:** Current pets in household, previous pet ownership experience, veterinarian contact.
-   * **Care Plan:** Daily routine, exercise plan, and emergency care plan.
-   * **Agreement:** Review and accept the PawGuard Adoption Agreement terms (`/adoption-agreement`).
-3. Click **Submit Application**.
+### 8.11 Viewing Appointment/Reminder Information
+View all upcoming and past veterinary visits under **Account -> Appointments & Reminders**.
 
 ---
 
-### 4. Tracking Your Adoption Application Status
-
-Go to **My Applications** (`/applications`):
-* **7-Step Progress Tracker:** Visual pipeline showing your application's current stage:
-  1. **Submitted:** Application received.
-  2. **Screening:** Initial review by rescue team.
-  3. **Vetting:** Reference & vet verification.
-  4. **Interview:** Phone/video conversation.
-  5. **Home Check:** Virtual or in-person home safety review.
-  6. **Approved:** Adoption approved!
-  7. **Completed:** Handover complete & pet welcomed home!
-* **Status Updates:** If additional information is needed, your application card will display notes from the adoption coordinator.
-
----
+## Chapter 9 — Volunteer Hub & Portal
 
-## 13. Emergency and Urgent Alerts
+### 9.1 About Volunteering
+PawGuard relies on passionate community volunteers for shelter pet care, adoption event organizing, rescue transport, community outreach, and foster support.
 
-PawGuard provides emergency reporting tools (`/emergency`) to dispatch urgent aid for injured, trapped, or severely distressed animals.
+### 9.2 Submitting a Volunteer Application
+Join the PawGuard volunteer network by completing a digital volunteer application.
 
----
+![Figure 9.1 — Volunteer Application](user-manual/images/09-volunteers/fig-9-1-application.png)
 
-### 1. When to Submit an Emergency Report
+*Figure 9.1 — Volunteer Application.*
 
-Use the Emergency Rescue tool if you spot:
-* An injured stray or wild animal requiring immediate veterinary care.
-* An animal trapped in a drain, well, construction site, or dangerous area.
-* An animal in severe physical distress or extreme weather danger.
+**How to apply as a volunteer:**
+1. Navigate to **Volunteer** and select **Apply to Volunteer**.
+2. Fill out personal contact details, occupation, and weekly availability.
+3. Select your areas of interest (e.g., Event Coordination, Animal Handling, Transport, Photography, Public Awareness).
+4. Describe prior animal experience and select **Submit Application**.
 
-*Note: For non-urgent lost pet reports or routine inquiries, please use Lost & Found (`/lost-found`) or Contact Us (`/contact`) instead.*
+**Expected result:** Your application is submitted for coordinator review. You can track status under **My Applications**.
 
----
+### 9.3 Selecting Role Preferences
+Choose roles that align with your skills and schedule:
+- **Shelter Pet Care:** Dog walking, grooming, socialization, and feeding.
+- **Event Operations:** Assisting at weekend adoption pop-ups and awareness drives.
+- **Rescue Transport:** Driving rescued animals to veterinary clinics or foster homes.
+- **Media & Storytelling:** Capturing photos and writing adoption bios.
 
-### 2. Submitting an Emergency Rescue Report
-
-1. Go to `/emergency` and click **Report Emergency**.
-2. Complete the emergency submission form:
-   * **Incident Category:** Injury / Hit-and-Run, Trapped Animal, Extreme Distress, Severe Abuse/Neglect.
-   * **Animal Description:** Species, color, size, visible injuries.
-   * **Exact Location / GPS Map Picker:** Enter address or tap **Use My Current Location** on the map picker (`LocationMapPicker.tsx`) to pinpoint exact GPS coordinates.
-   * **Photo / Video Upload:** Upload clear photos or short video clips of the scene (`MediaUpload.tsx`).
-   * **Immediate Risks:** Mention nearby hazards (e.g., "Heavy traffic road", "Deep water channel").
-   * **Reporter Contact:** Your phone number so rescue volunteers can contact you for location guidance.
-3. Click **Submit Emergency Rescue Report**.
+### 9.4 Accessing the Volunteer Portal
+Once approved, select **Volunteer Portal** under your profile menu to open your dedicated volunteer dashboard.
 
----
+![Figure 9.2 — Volunteer Portal Dashboard](user-manual/images/09-volunteers/fig-9-2-dashboard.png)
 
-### 3. What Happens After Submission?
+*Figure 9.2 — Volunteer Portal Dashboard.*
 
-1. **Confirmation Screen:** You receive an immediate Emergency Ticket Reference Number (e.g. `EMG-84920`).
-2. **Rescue Notification:** PawGuard's emergency coordination team and nearby rescue partners are alerted instantly.
-3. **Reporter Responsibilities:** If safe to do so, stay near the animal at a safe distance to guide responders when they arrive.
+### 9.5 Viewing Assigned Tasks
+The portal dashboard displays your upcoming volunteer assignments, team messages, and shift times.
 
----
+### 9.6 Viewing Events
+Browse upcoming adoption drives and community awareness campaigns, and sign up for open volunteer shifts.
 
-### 4. Urgent Community Banners
+### 9.7 Managing Volunteer Activities
+Update your active availability status or request role changes directly inside the volunteer portal.
 
-* Severe emergencies or large-scale community rescue situations trigger an **Urgent Alert Banner** at the top of the PawGuard website.
-* Community members browsing the site can see active urgent alerts, share them on social media, or offer local assistance.
-* **Banner Dismissal:** Clicking **X** hides the banner for your current browsing session without affecting the emergency rescue ticket.
+### 9.8 Recording Volunteer Hours
+Log completed shift hours after attending events to track your service contributions and earn community recognition certificates.
 
 ---
-
-## 14. Donations
 
-PawGuard relies on generous public donations to fund stray animal feeding programs, emergency medical surgeries, shelter maintenance, and rescue operations.
+## Chapter 10 — Foster Care Program & Portal
 
----
-
-### 1. Making a Donation
+### 10.1 About Foster Care
+Foster Families provide temporary loving homes for rescue animals recovering from medical procedures, young orphaned litters, or pets awaiting permanent adoption placement.
 
-Visit `/donate` to make a contribution:
-1. **Choose Giving Type:**
-   * **One-Time Donation:** Single contribution.
-   * **Monthly Care Sponsor:** Recurring monthly support.
-   * **Specific Rescue Fund:** Contribute directly to an emergency rescue or medical case.
-2. **Select Amount:** Choose a preset tier (e.g. ₹500 for feeding, ₹1,500 for vaccination, ₹5,000 for emergency surgery) or enter a custom amount.
-3. **Donor Information:** Enter your Name, Email, and Phone Number (required for receipt issuance).
-4. Click **Proceed to Payment**.
+### 10.2 Applying to Become a Foster Family
+Prospective foster parents can submit a foster application detailing their living arrangements and pet experience.
 
----
+![Figure 10.1 — Foster Family Application](user-manual/images/10-foster/fig-10-1-application.png)
 
-### 2. Razorpay Payment Checkout Process
-
-PawGuard integrates directly with **Razorpay** for secure payments:
-1. The official Razorpay checkout modal opens seamlessly on your screen.
-2. Select your preferred payment method:
-   * **UPI / QR Code:** Google Pay, PhonePe, Paytm, BHIM.
-   * **Credit & Debit Cards:** Visa, Mastercard, RuPay, Maestro.
-   * **NetBanking:** All major Indian banks.
-   * **Wallets:** Paytm, Mobikwik, Freecharge.
-3. Authorize the payment through your banking or UPI app.
-4. Upon payment completion, Razorpay verifies the transaction with PawGuard's servers within seconds.
+*Figure 10.1 — Foster Family Application.*
 
----
+**How to apply as a Foster Family:**
+1. Navigate to **Foster** and select **Apply for Foster Care**.
+2. Provide home details (house vs. apartment, landlord approval, yard fencing).
+3. Select preferred foster animal types (Puppies/Kittens, Adult Dogs, Medical Recovery, Senior Pets).
+4. Enter household member and existing pet information.
+5. Select **Submit Foster Application**.
 
-### 3. Post-Payment Confirmation & Receipts
+**Expected result:** Your application is logged and assigned to a foster coordinator.
 
-* **Success Screen:** Displays your Payment ID, Order Number, Amount Paid, and Date.
-* **Tax-Exempt Receipt:** A digital receipt is generated and emailed to your registered address.
-* **Donation History (`/account/donations`):** Signed-in users can view their lifetime donation history and download past receipts at any time.
+### 10.3 Providing Availability Preferences
+Indicate whether you can accommodate short-term emergency fostering (1-2 weeks), long-term fostering (1-3 months), or specialized medical recovery care.
 
----
+### 10.4 Accessing the Foster Portal
+Approved foster families gain access to the dedicated **Foster Portal** dashboard.
 
-### 4. Payment Security & Support
+![Figure 10.2 — Foster Care Dashboard](user-manual/images/10-foster/fig-10-2-dashboard.png)
 
-* **100% PCI-DSS Compliant:** Payment credentials are handled entirely by Razorpay's encrypted gateway. PawGuard never sees or stores your card numbers, CVV, or UPI PIN.
-* **Failed / Cancelled Payments:** If a payment fails due to bank network issues, no money is deducted. You can retry the donation at any time.
+*Figure 10.2 — Foster Care Dashboard.*
 
----
+### 10.5 Viewing Assigned Companion Pets
+The Foster Dashboard displays profiles, medical requirements, diet plans, and adoption inquiry statuses for animals currently in your foster care.
 
-## 15. Notifications
+### 10.6 Recording Daily Care
+Log daily weight checks, appetite notes, medication doses, and behavioral progress so rescue coordinators can monitor pet well-being.
 
-The PawGuard Notification Center keeps you informed about your pets, applications, appointments, and community reports in real time.
+### 10.7 Requesting Food or Supplies
+Use the **Request Supplies** form in the portal to request food, crates, puppy pads, or veterinary care appointments for your foster companion pet.
 
 ---
 
-### 1. Navbar Bell & Live Badge
+## Chapter 11 — Donations & Community Support
 
-When signed in, a **Bell icon** appears in the top header navigation bar:
-* **Unread Count Badge:** Displays a red badge showing the number of unread notifications (e.g. `3` or `99+`).
-* **Live Polling:** The badge updates automatically as new events occur.
+### 11.1 Supporting PawGuard
+Your contributions directly fund emergency animal rescues, medical surgeries, shelter feeding programs, spay/neuter drives, and QR safety tag distributions.
 
----
+### 11.2 One-Time Donations
+Make a secure single contribution using credit cards, debit cards, net banking, or UPI via the integrated payment gateway.
 
-### 2. Notification Dropdown Panel
-
-Click the **Bell icon** to open the quick notification dropdown:
-* **Recent Updates:** Displays your 6 most recent notifications.
-* **Notification Types:**
-  * 🚨 **Emergency & Rescue:** Updates on emergency tickets you reported or nearby alerts.
-  * 🐕 **Lost & Found:** Sighting reports submitted for your lost pet.
-  * 🐶 **Adoption:** Progress updates on your submitted adoption application.
-  * 📅 **Appointments:** Confirmations or reminders for vet visits.
-  * ⏰ **Health Reminders:** Due date alerts for vaccinations and deworming.
-  * ❤️ **Donations:** Verification and receipt confirmations.
-* **Mark as Read:** Click the checkmark icon to mark all dropdown items as read.
-* **View All Notifications:** Click **View all notifications** at the bottom of the dropdown to open the full notification management page (`/notifications`).
+![Figure 11.1 — Monetary Donation Options](user-manual/images/11-donations/fig-11-1-donation-tiers.png)
 
----
+*Figure 11.1 — Monetary Donation Options.*
 
-### 3. Dedicated Notifications Page (`/notifications`)
+### 11.3 Recurring Donations
+Select **Monthly Giving** to support ongoing shelter operations with an automated monthly contribution that can be cancelled anytime.
 
-On the full notifications screen:
-* **Filter Notifications:** View All, Unread Only, or filter by category.
-* **Paginated List:** Browse your complete notification history page by page.
-* **Click-to-Action:** Clicking any notification item takes you directly to the relevant page (e.g. clicking an adoption update opens your application tracker page).
-* **Delete Notifications:** Click the Trash icon to remove unwanted notifications from your list.
+### 11.4 Selecting a Donation Amount
+Choose from predefined impact tiers:
+- **Emergency Medical Kit:** Fund basic first-aid supplies for a rescued stray.
+- **Monthly Feeding Care:** Provide nutritious food for a rescue pet for 30 days.
+- **Life-Saving Surgery:** Sponsor urgent veterinary surgical care for an injured animal.
 
----
+### 11.5 Entering a Custom Amount
+Select **Custom Amount** and enter any contribution amount of your choice.
 
-## 16. Contact and Grievance
+### 11.6 Completing a Donation
+**How to complete a monetary donation:**
+1. Navigate to **Donate**.
+2. Select **One-Time** or **Monthly**.
+3. Pick a donation tier or enter a custom amount.
+4. Select **Proceed to Payment**.
+5. Complete payment securely in the payment window.
 
-PawGuard is committed to open communication, user support, and transparent grievance resolution.
+**Expected result:** Your donation is processed, a tax-deductible receipt is displayed, and a copy is saved under **My Account -> Donations**.
 
----
+### 11.7 Supplies Wishlist
+In addition to monetary gifts, you can fulfill physical item wishlists requested by local shelters.
 
-### 1. Accessing the Contact Page
+![Figure 11.2 — Supplies Wishlist and Community Support](user-manual/images/11-donations/fig-11-2-supplies-wishlist.png)
 
-Visit `/contact` to get in touch with the PawGuard team.
+*Figure 11.2 — Supplies Wishlist and Community Support.*
 
----
+**How to donate supplies:**
+1. Scroll to the **Physical Supplies Wishlist** on the Donate page.
+2. View items needed (e.g., Dog Food, Blankets, Antiseptic Wash, Leashes, Crates).
+3. Select **Donate Items** to order directly or view drop-off shelter addresses.
 
-### 2. Submitting an Inquiry or Grievance Ticket
-
-To submit a message or report a grievance:
-1. Complete the Contact form on `/contact`:
-   * **Full Name:** Your complete name.
-   * **Email Address:** Your email address for responses.
-   * **Category:**
-     * *General Inquiry:* Questions about PawGuard platform features.
-     * *Adoption Information:* Questions regarding adoption requirements.
-     * *Veterinary Partner Inquiry:* Clinic onboarding or appointment assistance.
-     * *Grievance / Issue Report:* Reporting an issue, website problem, or service concern.
-   * **Subject:** Brief description of your inquiry.
-   * **Message / Grievance Details:** Provide full details, including relevant pet IDs, report numbers, or dates if applicable.
-2. Click **Submit Message**.
+### 11.8 Community Support Campaigns
+View active emergency fundraising campaigns for critical rescue operations and track overall progress bars toward financial targets.
 
 ---
 
-### 3. What Happens After Submission?
+## Chapter 12 — Education, Stories & Support
 
-1. **Ticket Reference ID:** You receive an on-screen confirmation with a Ticket Reference ID (e.g. `TKT-10492`).
-2. **Email Confirmation:** A copy of your inquiry details and ticket number is emailed to you.
-3. **Response Time:** General inquiries are typically answered within 24 to 48 hours. Grievance tickets are prioritized for swift review by our support desk.
+### 12.1 Educational Articles
+Access a rich library of expert articles covering pet health, nutrition, behavioral training, disaster preparedness, and animal welfare laws.
 
----
+![Figure 12.1 — Pet Care Education and Guides](user-manual/images/12-education-support/fig-12-1-education.png)
 
-### 4. PawGuard Contact Details & Office Locations
+*Figure 12.1 — Pet Care Education and Guides.*
 
-The `/contact` page also lists PawGuard's public contact information:
-* **Headquarters Address:** Main office location and rescue coordinator directory.
-* **Support Email:** `support@pawguard.org`
-* **Emergency Helpline:** Phone helpline for urgent animal rescue guidance.
-* **Operating Hours:** Customer support and rescue desk operational hours.
+### 12.2 Pet Care Guides
+Browse step-by-step care guides for first-time adopters, puppy care, cat behavior, senior pet wellness, and monsoon pet care.
 
----
+### 12.3 Searching and Filtering Educational Content
+Filter articles by categories (*Pet Care*, *Health & Medical*, *Training & Behavior*, *Rescue Stories*, *Safety Tips*) or search using keywords.
 
-## 17. Privacy and Safety
+### 12.4 Reading an Article
+Select any article card to open the complete guide with illustrative diagrams, expert veterinary tips, and printable PDF care checklists.
 
-PawGuard prioritizes the privacy and physical safety of both pet owners and animals.
+### 12.5 Success Stories
+Read inspiring tales of rescued animals who found loving forever homes through PawGuard.
 
----
+![Figure 12.3 — Rescue and Adoption Success Stories](user-manual/images/12-education-support/fig-12-3-success-stories.png)
 
-### 1. QR Safety Tag Privacy Boundaries
+*Figure 12.3 — Rescue and Adoption Success Stories.*
 
-Understanding what information is visible when someone scans your pet's QR tag is essential:
+### 12.6 Contacting PawGuard
+Reach out to PawGuard support for general inquiries, partnership opportunities, or technical assistance via the **Contact Us** page.
 
-* **Care-Critical Information (PUBLIC):**
-  * Pet Name, Photo, Breed, and Species.
-  * Lost Status (e.g. "REPORTED LOST").
-  * **Emergency Notes:** Medical conditions, allergies, or dietary needs provided by you to keep your pet safe if found by a stranger.
+### 12.7 Submitting a Grievance Ticket
+If you experience service issues, report animal cruelty, or have platform concerns, submit a confidential grievance ticket.
 
-* **Owner Personal Information (STRICTLY PRIVATE & HIDDEN):**
-  * **Owner Phone Number:** NOT visible on public scans.
-  * **Owner Email Address:** NOT visible on public scans.
-  * **Owner Home Address:** NOT visible on public scans.
-  * **Full Clinical / Medical Records:** NOT visible on public scans.
+![Figure 12.2 — Support and Grievance Submission](user-manual/images/12-education-support/fig-12-2-support-ticket.png)
 
-* **How Finders Contact You Safely:**
-  Finders use the secure **Report Sighting** form on the scan page. Sighting details (location, notes, photo) are routed directly to your private PawGuard notifications without revealing your private contact numbers to the finder unless you choose to share them.
+*Figure 12.2 — Support and Grievance Submission.*
 
----
+**How to submit a Grievance Ticket:**
+1. Navigate to **Contact** (or **Support**).
+2. Select **Submit Grievance Ticket**.
+3. Choose the issue category (*Cruelty Report*, *Application Concern*, *Platform Bug*, *General Grievance*).
+4. Enter a subject title and detailed description.
+5. Attach supporting images if available and select **Submit Ticket**.
 
-### 2. Safe Public Posting Guidelines for Lost Pets
+**Expected result:** Your ticket is generated with a tracking reference number for support follow-up.
 
-When posting a Lost Pet report:
-* **Provide Last Seen Area:** Mention general landmarks or neighborhood streets rather than your exact home address.
-* **Keep Microchip Numbers Private:** Do not post your pet's full microchip number publicly to prevent scam attempts.
-* **Verify Sighting Reports:** If a stranger claims to have found your pet, ask for a photo or confirm specific collar markings before meeting. Meet in a safe, public daytime location.
+### 12.8 Providing Support Details
+Providing clear dates, exact addresses, and photo attachments ensures rapid response by the support team.
 
 ---
-
-### 3. Account Data Protection & Payment Safety
 
-* **Account Passwords:** Stored using secure one-way encryption.
-* **Payment Security:** All financial transactions (donations) are processed through **Razorpay** using 256-bit SSL encryption. PawGuard does NOT store bank account numbers, credit card details, or UPI PINs.
-* **Legal Terms:** Review our full terms and privacy policies anytime at `/privacy` and `/terms`.
+## Chapter 13 — User Profile & Account Settings
 
----
+### 13.1 Opening Your Account
+Access your central dashboard by selecting your profile avatar in the top right menu and choosing **Account Settings**.
 
-## 18. Common Problems and Solutions
+![Figure 13.1 — User Profile and Account Settings](user-manual/images/13-account/fig-13-1-profile.png)
 
-Quick solutions for common issues encountered while using the PawGuard Public Web application.
+*Figure 13.1 — User Profile and Account Settings.*
 
----
+### 13.2 Updating Profile Information
+Keep your contact details up to date:
+- **Personal Details:** Full name, primary phone number, secondary emergency contact, and physical address.
+- **Profile Photo:** Upload or change your personal avatar.
+- **Communication Preferences:** Toggle SMS, email, and WhatsApp alert notifications.
 
-### 1. Sign In & Account Issues
+### 13.3 Managing Companion Pets
+Add new pets, update medical profiles, print QR code safety tag sheets, or edit health logs under **Account -> My Pets**.
 
-#### Problem: "Invalid email or password" error
-* **Solution:** Verify you are using the exact email address registered with PawGuard. Ensure Caps Lock is off. If you forgot your password, click **Forgot password?** to reset it.
+### 13.4 Managing QR Safety Tags
+View all registered QR safety tags, update emergency contact phone numbers linked to each tag, or mark a tag as lost/replaced.
 
-#### Problem: Google Sign-In pop-up closes or blocks
-* **Solution:** Ensure your browser is not blocking pop-up windows for PawGuard. If using Incognito / Private Browsing mode, disable third-party cookie blocking for Google sign-in.
+### 13.5 Reviewing Applications
+Track all active digital applications submitted across the platform.
 
-#### Problem: "Session Expired" message
-* **Solution:** For security, user sessions expire after a period of inactivity. Simply open the Sign In dialog and re-enter your credentials to resume your session.
+![Figure 13.2 — Application Status Tracking](user-manual/images/13-account/fig-13-2-applications.png)
 
----
+*Figure 13.2 — Application Status Tracking.*
 
-### 2. QR Tag & Scan Issues
+### 13.6 Understanding Application Status
+Application statuses are color-coded for clarity:
+- **Pending Review (Yellow):** Application received and awaiting initial coordinator screening.
+- **Under Review (Blue):** Application actively undergoing background or questionnaire check.
+- **Approved (Green):** Application approved! Next steps (e.g., home visit or shelter meet-and-greet) dispatched.
+- **Completed (Dark Green):** Adoption, volunteer placement, or foster onboarding finalized.
+- **Closed / Declined (Gray):** Application closed or not selected for the current pet.
 
-#### Problem: Smartphone camera will not scan the QR tag
-* **Solution:** Ensure your phone camera lens is clean and adequate lighting is available. If using the web scanner on `/scan`, allow camera permissions when prompted by your browser.
+### 13.7 Account Security Options
+Change your account password securely by entering your current password followed by your new password. You can also review active session history.
 
-#### Problem: Location picker is inaccurate or will not load
-* **Solution:** Check your browser's location permission settings. Ensure GPS/Location Services are turned ON on your smartphone and grant location access to PawGuard.
+### 13.8 Signing Out
+Select **Sign Out** from the account dropdown to safely end your web session.
 
 ---
-
-### 3. Form Submission & Media Upload Issues
-
-#### Problem: Photo upload fails or shows error
-* **Solution:** PawGuard supports image formats (JPG, PNG, WEBP). Ensure each photo file size is under 10 MB. If uploading multiple photos, upload them one at a time.
 
-#### Problem: Submit button is disabled or unresponsive
-* **Solution:** Scroll through the form to check for missed required fields marked with a red asterisk (`*`), such as missing phone numbers or unselected checkboxes.
+## Chapter 14 — Frequently Asked Questions & Troubleshooting
 
----
-
-### 4. Payment & Donation Issues
+### 14.1 I cannot sign in
+- **Check Credentials:** Ensure your email address is spelled correctly without extra trailing spaces.
+- **Password Case Sensitivity:** Verify caps lock is turned off when entering your password.
+- **Use Reset Link:** If credentials fail, select **Forgot Password?** to set a new password via email.
 
-#### Problem: Razorpay payment window closes or fails
-* **Solution:** Check your internet connection. If deducted, money is automatically refunded by your bank within 3 to 5 business days. You can retry the payment using UPI or another payment method.
+### 14.2 I forgot my password
+Open the Sign In window, select **Forgot Password?**, enter your registered email, and check your inbox (and spam folder) for the password recovery link.
 
-#### Problem: Donation receipt not received
-* **Solution:** Check your email Spam/Junk folder. If you were signed in during donation, go to **My Account** -> **Donations** (`/account/donations`) to download your digital receipt.
+### 14.3 I cannot find the pet I am searching for
+Try widening your search filters. Select *All Breeds* or expand your location radius. The companion pet may have been recently adopted or placed in a foster home.
 
----
+### 14.4 My adoption search shows no results
+If your filter combination yields no matching animals, a clear notification banner is displayed.
 
-### 5. Contacting Technical Support
+![Figure 14.1 — Example User-Facing Error or Validation Message](user-manual/images/14-troubleshooting/fig-14-1-common-error-state.png)
 
-If your problem is not resolved by the steps above:
-1. Visit the [Contact Us](file:///c:/Users/Dell/Desktop/PawGuard%20Homepage%20Design%20%282%29/PawGuard%20Homepage%20Design/docs/PAWGUARD_PUBLIC_WEB_USER_MANUAL/15-contact-and-grievance/README.md) page (`/contact`).
-2. Select **Grievance / Issue Report**.
-3. Describe the problem, including the device, browser, and error message displayed.
-4. Click **Submit Message** to receive a support ticket ID.
+*Figure 14.1 — Example User-Facing Error or Validation Message.*
 
----
+**How to resolve empty search results:**
+1. Select **Clear All Filters** on the search sidebar.
+2. Search by species alone (e.g., *Dog*) before applying age or size filters.
 
-## 19. Complete User Journeys
+### 14.5 I cannot submit a form
+- **Required Fields:** Ensure all fields highlighted with a red outline are filled.
+- **Phone Number Format:** Enter valid 10-digit phone numbers without special symbols.
+- **Email Validation:** Confirm your email follows standard format (`name@example.com`).
 
-This section provides complete, step-by-step walkthroughs for the 10 major real-world user journeys supported by the PawGuard Public Web application.
+### 14.6 Location permission is not working
+When submitting an Emergency SOS or Lost Pet report, your web browser requests permission to access location:
+1. When prompted by your browser, select **Allow Location Access**.
+2. If blocked previously, tap the lock/tune icon next to the browser URL bar, select **Permissions**, and set **Location** to **Allow**.
 
----
+### 14.7 I cannot upload a photo
+- **Supported Formats:** Ensure images are in standard PNG, JPG, JPEG, or WEBP format.
+- **File Size:** Upload photos smaller than 10 MB per file.
 
-### Journey 1: New Visitor Registration & Account Setup
-
-```mermaid
-graph LR
-    A["Visit Homepage"] --> B["Click Sign In"]
-    B --> C["Fill Registration Form / Google OAuth"]
-    C --> D["Account Created"]
-    D --> E["Access User Dashboard"]
-```
-
-1. **Starting Point:** Open `https://pawguard-web-v2.vercel.app`.
-2. **User Action:** Click **Sign in** in the top navigation header and select **Sign Up** (or click **Continue with Google**).
-3. **Form Entry:** Enter Full Name, Email Address, Phone Number, and Password.
-4. **Website Response:** PawGuard verifies details, creates the account, and signs the user in.
-5. **End Result:** User is logged in, their name appears in the header, and they can access **My Account** (`/account`).
+### 14.8 A QR Safety Tag cannot be found
+Verify the 8-digit serial code entered matches the physical tag exactly. If scanning a physical tag, clean the tag surface and ensure adequate lighting.
 
----
+### 14.9 A page is not loading
+Refresh your browser page (`Ctrl + R` or `Cmd + R`). Confirm your internet or Wi-Fi connection is active.
 
-### Journey 2: Registering a Companion Pet & Creating a QR Safety Tag
-
-```mermaid
-graph LR
-    A["Go to My Pets"] --> B["Click Add Pet"]
-    B --> C["Enter Pet Info & Photos"]
-    C --> D["Click Save Pet"]
-    D --> E["Click Generate QR Tag"]
-    E --> F["Download / Order QR Tag"]
-```
-
-1. **Starting Point:** Navigate to **My Account** -> **My Pets** (`/account/pets`).
-2. **User Action:** Click **Add Pet**.
-3. **Form Entry:** Enter Pet Name ("Max"), Species, Breed, Age, Gender, Microchip ID, Emergency Care Notes ("Requires daily eye drops"), and upload a photo.
-4. **Website Response:** Pet profile is created under your account.
-5. **Next Step:** Click **Generate QR Safety Tag**.
-6. **End Result:** Unique QR code is linked to Max's profile, ready for printing or attaching to his collar.
+### 14.10 What should I do if something goes wrong?
+If you encounter persistent issues, navigate to **Contact Us** and submit a support ticket describing the problem. Our team will assist you promptly.
 
 ---
 
-### Journey 3: Lost Pet Emergency & Finder QR Scan / Sighting Flow
-
-```mermaid
-graph LR
-    A["Pet Goes Missing"] --> B["Owner Reports Lost Pet"]
-    B --> C["Finder Spots Pet & Scans QR Tag"]
-    C --> D["Public Scan Page Shows Safety Notes"]
-    D --> E["Finder Submits Sighting Location & Photo"]
-    E --> F["Owner Receives Instant Alert & Reunites"]
-```
-
-1. **Pet Missing Event:** Owner's pet strays while outdoors.
-2. **Owner Action:** Owner opens `/lost-found`, selects pet, enters last seen location, and submits a **Lost Pet Report**. Pet status becomes "LOST".
-3. **Finder Action:** A neighbor spots the pet wearing a PawGuard QR tag and scans it with their phone camera.
-4. **Website Response:** The scan page opens, showing the pet's photo, name, and care notes ("Requires daily eye drops"), while keeping owner's phone/address private.
-5. **Finder Action:** Finder clicks **Report Sighting**, grants GPS location access, adds a photo, and clicks **Submit**.
-6. **End Result:** Owner receives an instant notification with exact map coordinates, locates the pet, and updates status to "REUNITED"!
+## Quick User Workflows
 
----
+### Workflow 1: Browse & Apply for Pet Adoption
+- **Starting Point:** Homepage -> Select **Adopt**.
+- **Steps:**
+  1. Filter by species, age, and size on the adoption gallery.
+  2. Select a pet card to inspect their profile and health history.
+  3. Select **Apply to Adopt**.
+  4. Complete the home questionnaire and submit.
+- **Expected Result:** Application logged with reference ID; trackable under **Account -> My Applications**.
 
-### Journey 4: Reporting a Stray or Found Animal
-
-```mermaid
-graph LR
-    A["Spot Found Animal"] --> B["Open Lost & Found Hub"]
-    B --> C["Click Report Found Animal"]
-    C --> D["Provide Animal Details & GPS Location"]
-    D --> E["Submit Report"]
-    E --> F["Public Listing Active for Owner Matching"]
-```
-
-1. **Starting Point:** A community member finds a roaming dog in a local park.
-2. **User Action:** Open `/lost-found` and click **Report Found Pet**.
-3. **Form Entry:** Select animal type (Dog), breed/color (Golden Retriever mix), found location (Central Park gate), upload photo, and mention current status ("Secured safely in my garden").
-4. **Website Response:** A public Found Animal listing is published.
-5. **End Result:** Community members searching the Lost & Found hub can match the listing and contact PawGuard to arrange reunion.
+### Workflow 2: Report a Lost Pet
+- **Starting Point:** Navigation Bar -> Select **Lost & Found** -> **Report a Pet**.
+- **Steps:**
+  1. Choose **I Lost a Pet**.
+  2. Upload clear photos and enter pet traits/microchip details.
+  3. Pin last-seen location on the map and enter contact phone.
+  4. Select **Submit Report**.
+- **Expected Result:** Notice published immediately on the public feed and lost pet map.
 
----
+### Workflow 3: Report a Found Pet
+- **Starting Point:** **Lost & Found** -> **Report a Pet** -> Choose **I Found a Pet**.
+- **Steps:** Upload stray photos, set map pin location, describe condition, and submit contact details.
+- **Expected Result:** Notice broadcasted so the owner can claim their pet.
 
-### Journey 5: Finding a Vet Clinic & Booking an Appointment
-
-```mermaid
-graph LR
-    A["Open Veterinary Directory"] --> B["Filter by Clinic / Service"]
-    B --> C["Click Book Appointment"]
-    C --> D["Select Pet, Service & Time Slot"]
-    D --> E["Confirm Booking"]
-    E --> F["Track Status in My Appointments"]
-```
-
-1. **Starting Point:** Open the Veterinary Directory (`/veterinary`).
-2. **User Action:** Filter clinics by location ("Indiranagar") and service ("Annual Vaccination"). Select a clinic profile and click **Book Appointment**.
-3. **Form Entry:** Choose registered pet ("Max"), service type ("Rabies & Booster Vaccine"), select date & time slot (10:30 AM), and add notes.
-4. **Website Response:** Appointment request is confirmed and assigned a booking reference.
-5. **End Result:** User views and tracks the scheduled appointment under **My Appointments** (`/appointments`).
+### Workflow 4: Submit a Community Sighting
+- **Starting Point:** Open any active Lost Pet report.
+- **Steps:** Select **Report Sighting**, enter date/time/direction, attach optional photo, and submit.
+- **Expected Result:** Instant sighting alert sent directly to the pet owner.
 
----
+### Workflow 5: Submit an Emergency Rescue Request
+- **Starting Point:** Click red **Emergency SOS** in header.
+- **Steps:** Select urgency level, tap **Use Current Location**, attach incident photo, add landmarks, and submit.
+- **Expected Result:** Immediate alert sent to local rescue team; on-screen confirmation hotline displayed.
 
-### Journey 6: Setting & Managing Pet Health Reminders
-
-```mermaid
-graph LR
-    A["Go to Pet Reminders"] --> B["Click Add Reminder"]
-    B --> C["Select Category, Date & Frequency"]
-    C --> D["Save Health Schedule"]
-    D --> E["Receive Due Date Alert"]
-    E --> F["Mark Completed -> Auto-Schedules Next"]
-```
-
-1. **Starting Point:** Open Pet Reminders (`/reminders`).
-2. **User Action:** Click **Add Reminder**.
-3. **Form Entry:** Select pet ("Max"), Category ("Deworming"), due date (March 25), and set frequency ("Every 3 Months").
-4. **Website Response:** Reminder is added to Max's health schedule.
-5. **Due Date Event:** On March 25, an alert badge appears in the user's notification bell.
-6. **End Result:** After giving the medication, user clicks **Mark Completed**. PawGuard automatically sets the next due date for June 25!
+### Workflow 6: Scan a QR Safety Tag
+- **Starting Point:** Scan tag with phone camera -> Opens `/scan` public page.
+- **Steps:** View pet medical alerts -> Select **Call Owner** or **Send GPS Location to Owner**.
+- **Expected Result:** Pet owner notified with finder's location and contact message.
 
----
+### Workflow 7: Register a QR Safety Tag
+- **Starting Point:** **Account -> My Pets**.
+- **Steps:** Select **Register QR Safety Tag**, enter 8-digit serial code, pick companion pet, and select **Link Tag**.
+- **Expected Result:** Tag activated; scanning physical tag displays your pet's public safety profile.
 
-### Journey 7: Adoptable Pet Discovery & Application Tracking
-
-```mermaid
-graph LR
-    A["Browse Adoptable Pets"] --> B["View Pet Profile Details"]
-    B --> C["Click Apply to Adopt"]
-    C --> D["Fill Housing & Experience Application"]
-    D --> E["Submit Application"]
-    E --> F["Track 7-Step Progress in Dashboard"]
-```
-
-1. **Starting Point:** Open the Adoption Catalog (`/adopt`).
-2. **User Action:** Filter by species ("Dog") and age ("Puppy"). Click on "Bella" to view her full bio, photos, and health status.
-3. **User Action:** Click **Apply to Adopt**.
-4. **Form Entry:** Fill out housing type (Apartment), landlord approval (Yes), previous pet experience, daily routine, and accept the adoption agreement.
-5. **Website Response:** Application submitted successfully.
-6. **End Result:** User tracks application progress through the 7-step visual pipeline (`/applications`) from "Submitted" to "Approved" and "Completed"!
+### Workflow 8: Book a Veterinary Appointment
+- **Starting Point:** Navigation Bar -> Select **Veterinary** -> **Book Appointment**.
+- **Steps:** Pick clinic and doctor, choose date/time slot, select companion pet, enter reason, and confirm.
+- **Expected Result:** Booking saved; appointment details added to your account calendar.
 
----
+### Workflow 9: Apply as a Volunteer
+- **Starting Point:** Navigation Bar -> **Volunteer** -> **Apply to Volunteer**.
+- **Steps:** Fill personal background, select role preferences, submit application, and await coordinator approval.
+- **Expected Result:** Application submitted; access to Volunteer Portal granted upon approval.
 
-### Journey 8: Reporting an Urgent Animal Rescue Emergency
-
-```mermaid
-graph LR
-    A["Spot Injured Stray"] --> B["Open Emergency Rescue"]
-    B --> C["Pin Exact Location on GPS Map"]
-    C --> D["Upload Photo/Video & Incident Description"]
-    D --> E["Submit Emergency SOS"]
-    E --> F["Receive Ticket Number & Emergency Dispatch"]
-```
-
-1. **Starting Point:** A passerby notices an injured dog on a highway median.
-2. **User Action:** Open `/emergency` and click **Report Emergency**.
-3. **Form Entry:** Select incident type ("Hit-and-Run / Severe Injury"), tap **Use My Current Location** on the GPS map picker, upload a photo of the injured dog, and describe hazards ("Heavy traffic nearby").
-4. **Website Response:** Emergency SOS report is dispatched instantly; user receives Emergency Reference Ticket `EMG-92841`.
-5. **End Result:** Local emergency rescue responders are alerted to dispatch medical aid.
+### Workflow 10: Apply as a Foster Family
+- **Starting Point:** Navigation Bar -> **Foster** -> **Apply for Foster Care**.
+- **Steps:** Complete home environment details, select preferred foster animals, and submit.
+- **Expected Result:** Application assigned to foster coordinator; access to Foster Care Dashboard enabled upon approval.
 
----
+### Workflow 11: Make a Donation
+- **Starting Point:** Navigation Bar -> Select **Donate**.
+- **Steps:** Choose One-Time or Monthly, select tier or enter custom amount, select **Proceed to Payment**, and complete transaction.
+- **Expected Result:** Donation processed; digital tax receipt displayed and saved under your account history.
 
-### Journey 9: Making a Tax-Deductible Donation via Razorpay
-
-```mermaid
-graph LR
-    A["Visit Donate Page"] --> B["Select Tier / Enter Custom Amount"]
-    B --> C["Enter Donor Details"]
-    C --> D["Click Proceed to Payment"]
-    D --> E["Complete Razorpay Checkout (UPI/Card)"]
-    E --> F["Receive Digital Tax Receipt"]
-```
-
-1. **Starting Point:** Open `/donate`.
-2. **User Action:** Select "One-Time Donation", pick ₹1,500 preset tier (Vaccination & Feeding Fund), and enter donor details.
-3. **User Action:** Click **Proceed to Payment**.
-4. **Payment Modal:** Official Razorpay checkout overlay appears. Select **UPI / Google Pay** and authorize payment in banking app.
-5. **Website Response:** Razorpay verifies transaction with PawGuard server in real time.
-6. **End Result:** Donation success screen displays transaction ID, and a tax-exempt receipt is generated and emailed to the user.
+### Workflow 12: Manage a Companion Pet
+- **Starting Point:** **Account -> My Pets**.
+- **Steps:** Select **Add Companion Pet**, enter health details/photo, save profile, and manage vaccination reminders.
+- **Expected Result:** Complete pet medical record stored securely online.
 
 ---
-
-### Journey 10: Submitting a Support Contact Inquiry or Grievance
-
-```mermaid
-graph LR
-    A["Open Contact Us Page"] --> B["Select Category (Grievance/Inquiry)"]
-    B --> C["Enter Subject & Detailed Message"]
-    C --> D["Click Submit Message"]
-    D --> E["Receive Ticket Reference ID"]
-    E --> F["Follow Up via Support Email"]
-```
-
-1. **Starting Point:** Open `/contact`.
-2. **User Action:** Select Category ("Grievance / Issue Report"), enter Name, Email, Subject ("Website form issue"), and detailed description of the problem.
-3. **User Action:** Click **Submit Message**.
-4. **Website Response:** Inquiry is created and assigned Reference Ticket `TKT-49201`.
-5. **End Result:** User receives an email confirmation and can quote the ticket number for follow-up support.
 
----
+## Safety & Privacy Guidance
 
-## 20. Quick Reference
-
-### 20.1 Core Page Navigation & URLs
-
-| Section | Page Description | Public URL | Sign-In Required? |
-|---|---|---|---|
-| **Home Page** | Central landing, urgent alert banner, emergency CTA | `/` | No |
-| **Lost & Found** | Search lost & found pets, report missing pet or found stray | `/lost-found` | No (Report Found) / Yes (Report Lost) |
-| **Emergency Rescue** | Report injured/trapped animal with location map pin | `/emergency` | No |
-| **Pet Adoption** | Browse adoptable shelter pets & submit applications | `/adopt` | No (Browse) / Yes (Apply) |
-| **Foster Care** | Apply for temporary animal fostering program | `/foster/apply` | Yes |
-| **Vet Directory** | Search vet clinics & book appointments | `/veterinary` | No (Directory) / Yes (Book) |
-| **Book Appointment** | Book a veterinary consultation or checkup slot | `/appointments/book` | Yes |
-| **Pet Health Reminders** | Manage pet vaccination, deworming & care schedules | `/reminders` | Yes |
-| **Make a Donation** | Contribute to rescue funds & feeding programs via Razorpay | `/donate` | No |
-| **My Account** | Profile dashboard, pets, applications, appointments, donations | `/account` | Yes |
-| **My Pets** | Register pets & generate QR Safety Tags | `/account/pets` | Yes |
-| **My Applications** | Track adoption application status (7-Step Stepper) | `/applications` | Yes |
-| **My Donations** | View donation history & download 80G tax receipts | `/account/donations` | Yes |
-| **Notifications** | View unread notification drawer & full history | `/notifications` | Yes |
-| **Contact & Grievance** | Send inquiry or submit grievance ticket (`GRV-...`) | `/contact` | No |
+- **Account Security:** Keep your account password private. PawGuard staff will never ask for your password.
+- **Privacy Controls:** Information displayed on public Lost & Found or QR tag scan pages is limited strictly to pet information and selected emergency contact numbers. Your full residential street address is kept secure.
+- **Location Sharing:** Share browser location carefully when reporting emergencies or tag scans to ensure accurate rescue response.
+- **Trusted Payment Processing:** Enter payment details only within the official PawGuard payment window. PawGuard never stores full card credentials on its servers.
 
 ---
 
-### 20.2 Emergency Helpline Summary
+## Accessibility & Browser Guidance
 
-* **PawGuard 24/7 Rescue Dispatch:** `+91 1800-PAW-GUARD` (`+91 1800-729-4827`)
-* **Emergency SOS Web Reporting:** `/emergency`
-* **Grievance Support Email:** `support@pawguard.org` / `grievance@pawguard.org`
+- **Browser Compatibility:** PawGuard Public Web is tested and optimized for current versions of Chrome, Safari, Firefox, Edge, and mobile browsers.
+- **Responsive Layout:** Automatically adapts to phone, tablet, and desktop screens.
+- **Keyboard Navigation:** Forms, modals, and navigation buttons support standard keyboard `Tab` and `Enter` interaction.
+- **Screen Reader Support:** Semantic HTML headings, ARIA labels, and image alt text support assistive technology devices.
 
 ---
-
-### 20.3 End of User Manual
-
-Thank you for relying on PawGuard to keep animals safe, healthy, and protected in your community!
