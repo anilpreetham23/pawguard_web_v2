@@ -90,7 +90,7 @@ export function sanitizeScanToken(input: string): string {
       const parsedUrl = new URL(
         clean.startsWith("http")
           ? clean
-          : `https://pawguard-public-web.vercel.app${clean.startsWith("/") ? "" : "/"}${clean}`
+          : `https://pawguard-web-v2.vercel.app${clean.startsWith("/") ? "" : "/"}${clean}`
       );
       const tokenParam =
         parsedUrl.searchParams.get("token") ||

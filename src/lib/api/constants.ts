@@ -42,7 +42,7 @@ export const PUBLIC_SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
   process.env.NEXT_PUBLIC_PUBLIC_WEB_URL ||
   process.env.VITE_PUBLIC_FRONTEND_URL ||
-  "https://pawguard-public-web.vercel.app";
+  "https://pawguard-web-v2.vercel.app";
 
 /* -------------------------------------------------------------------------- */
 /* Headers                                                                    */

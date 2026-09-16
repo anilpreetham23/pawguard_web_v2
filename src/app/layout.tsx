@@ -35,7 +35,7 @@ const jetbrainsMono = JetBrains_Mono({
 /* ── Global metadata ─────────────────────────────────────────────── */
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://pawguard-public-web.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://pawguard-web-v2.vercel.app"),
   title: {
     default: "PawGuard — You see a dog in need. We dispatch help within minutes.",
     template: "%s — PawGuard",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     title: "PawGuard — Emergency Dog Rescue & Companion Care Network",
     description:
       "You see a dog in danger. Priority dispatch for critical cases. Report emergencies, adopt a companion, or support rescue operations.",
-    url: "https://pawguard-public-web.vercel.app",
+    url: "https://pawguard-web-v2.vercel.app",
     siteName: "PawGuard",
     locale: "en_IN",
     type: "website",
@@ -117,7 +117,7 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "PawGuard",
-    "url": "https://pawguard-public-web.vercel.app",
+    "url": "https://pawguard-web-v2.vercel.app",
     "description": "Coordinating emergency rescue, adoption, and veterinary care for dogs across the region.",
     "contactPoint": {
       "@type": "ContactPoint",

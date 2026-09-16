@@ -539,7 +539,7 @@ export default function EmergencyPage() {
               name: "PawGuard 24/7 Emergency Dog Rescue",
               description:
                 "Rapid response dog rescue dispatch for dogs in crisis, medical emergency, or severe distress.",
-              url: "https://pawguard-public-web.vercel.app/emergency",
+              url: "https://pawguard-web-v2.vercel.app/emergency",
               telephone: "+91-9876543210",
               areaServed: "IN",
               availableLanguage: ["en", "hi"],
