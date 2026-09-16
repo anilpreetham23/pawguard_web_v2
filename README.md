@@ -27,12 +27,12 @@ PawGuard Public Web connects public citizens and pet owners to essential compani
 * **Framework:** Next.js 15.5+ (App Router, React Server Components & Client Components)
 * **Library:** React 18.3+ / React DOM 18.3+
 * **Language:** TypeScript 5.9+
-* **Styling:** Tailwind CSS 4.1+, PostCSS, `@formkit/auto-animate`, `tw-animate-css`
+* **Styling:** Tailwind CSS 4.1+, PostCSS, `tw-animate-css`
 
 ### UI Components & Motion
 * **Component Primitives:** Radix UI (`@radix-ui/react-*`), MUI Material 7.3+, Emotion (`@emotion/react`, `@emotion/styled`)
 * **Icons:** Lucide React 0.487+
-* **Animations & Transitions:** Framer Motion (`motion` 12.23+), GSAP 3.15+, `@react-spring/web`, `lottie-react`, `lenis` smooth scrolling
+* **Animations & Transitions:** Framer Motion (`motion` 12.23+), GSAP 3.15+, `lottie-react`, `lenis` smooth scrolling
 * **Toast Notifications:** Sonner 2.0+
 * **Modals & Drawers:** Vaul 1.1+
 

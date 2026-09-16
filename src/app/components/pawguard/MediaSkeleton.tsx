@@ -71,7 +71,7 @@ export function ProgressiveImage({
         style={aspectRatio ? { aspectRatio } : undefined}
       >
         <div className="absolute inset-0 flex items-center justify-center">
-          <Image size={24} className="text-muted-foreground/40" strokeWidth={1} />
+          <Image size={24} className="text-muted-foreground/40" strokeWidth={1} aria-hidden="true" />
         </div>
       </div>
     );
