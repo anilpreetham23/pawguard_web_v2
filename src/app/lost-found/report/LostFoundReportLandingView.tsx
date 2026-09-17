@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { PawPrint, Search, ArrowRight } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
-import SectionHeading from "@/app/components/SectionHeading";
-import { PageShell, Section, Card, Reveal, Button } from "@/app/components/pawguard";
+import PageHeader from "@/components/shared/PageHeader";
+import SectionHeading from "@/layouts/SectionHeading";
+import { PageShell, Section, Card, Reveal, Button } from "@/components/ui/pawguard";
 
 const CHOICES = [
   {

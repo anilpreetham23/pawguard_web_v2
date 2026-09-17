@@ -3,7 +3,7 @@
 import { lazy, Suspense } from "react";
 import Link from "next/link";
 import { Home, Siren, Heart } from "lucide-react";
-import { PageShell, Button } from "@/app/components/pawguard";
+import { PageShell, Button } from "@/components/ui/pawguard";
 
 const LottieHappyDog = lazy(() =>
   import("@/motion/components/lottie-happy-dog").then((m) => ({

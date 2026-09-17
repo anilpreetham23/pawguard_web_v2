@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/api/auth";
 import { getErrorMessage, auth } from "@/lib/api";
-import { PageShell, Section, Alert, Button } from "@/app/components/pawguard";
+import { PageShell, Section, Alert, Button } from "@/components/ui/pawguard";
 import { useAuth } from "@/app/providers/auth-provider";
 
 export default function AuthCallbackPage() {

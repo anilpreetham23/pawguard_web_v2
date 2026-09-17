@@ -3,15 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, PawPrint, CheckCircle2, Heart } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
-import { PageShell, Card, Reveal, Skeleton, EmptyState, Alert, Button } from "@/app/components/pawguard";
-import { AddCompanionPetButton } from "@/app/components/AddCompanionPetButton";
+import PageHeader from "@/components/shared/PageHeader";
+import { PageShell, Card, Reveal, Skeleton, EmptyState, Alert, Button } from "@/components/ui/pawguard";
+import { AddCompanionPetButton } from "@/features/adoption/AddCompanionPetButton";
 import {
   useMyApplications,
   ADOPTION_STATUS_ORDER,
   ADOPTION_STATUS_LABEL,
   adoptionStatusStep,
-} from "@/app/hooks/useMyApplications";
+} from "@/hooks/useMyApplications";
 import { useAuth } from "@/app/providers/auth-provider";
 import { getErrorMessage } from "@/lib/api";
 import type { AdoptionApplicationResponse } from "@/lib/api";

@@ -4,16 +4,16 @@ import { useState } from "react";
 import * as Accordion from "@radix-ui/react-accordion";
 import { ChevronDown, Phone, CheckCircle2, AlertCircle, Clock, FileText } from "lucide-react";
 import Link from "next/link";
-import SectionHeading from "@/app/components/SectionHeading";
-import { useFocusOnError } from "@/app/hooks/useFocusOnError";
-import PageHeader from "@/app/components/PageHeader";
-import { PageShell, Section, Button, Input, Textarea, Reveal, DispatchReveal, StaggerGrid, StaggerItem } from "@/app/components/pawguard";
+import SectionHeading from "@/layouts/SectionHeading";
+import { useFocusOnError } from "@/hooks/useFocusOnError";
+import PageHeader from "@/components/shared/PageHeader";
+import { PageShell, Section, Button, Input, Textarea, Reveal, DispatchReveal, StaggerGrid, StaggerItem } from "@/components/ui/pawguard";
 import { contactService } from "@/services/api/contact";
 import { getErrorMessage } from "@/lib/api";
 import type { ContactInquiryResponse, GrievanceResponse } from "@/lib/api";
 
-import { useFaqEntries } from "@/app/hooks/useFaqEntries";
-import { useContactLocations } from "@/app/hooks/useContactLocations";
+import { useFaqEntries } from "@/hooks/useFaqEntries";
+import { useContactLocations } from "@/hooks/useContactLocations";
 
 const FAQS = [
   { q: "How quickly does PawGuard respond to emergency reports?", a: "Our average response time is under 15 minutes for critical emergencies within our coverage area. Non-critical situations are typically attended within 4 hours." },

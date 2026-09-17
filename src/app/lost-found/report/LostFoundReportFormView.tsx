@@ -4,21 +4,21 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, LocateFixed, X, Phone, PawPrint, CheckCircle2, AlertTriangle } from "lucide-react";
-import { PageShell, Card, Reveal, Alert, Button, Input, Textarea, SuccessState, Badge, MediaUpload, type MediaItem } from "@/app/components/pawguard";
-import SectionHeading from "@/app/components/SectionHeading";
+import { PageShell, Card, Reveal, Alert, Button, Input, Textarea, SuccessState, Badge, MediaUpload, type MediaItem } from "@/components/ui/pawguard";
+import SectionHeading from "@/layouts/SectionHeading";
 import { QUERY_KEYS, toApiDateTime, getErrorMessage, isApiError } from "@/lib/api";
 import { useApiMutation, useApiErrorMessage } from "@/lib/api/hooks";
 import { queryClient } from "@/lib/react-query";
 import { lostFoundService } from "@/services/api/lost-found";
-import { useGeolocation } from "@/app/hooks/useGeolocation";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useMyPets } from "@/app/hooks/useMyPets";
+import { useMyPets } from "@/hooks/useMyPets";
 import dynamic from "next/dynamic";
 import type { Species, LostReportCreate, FoundReportCreate } from "@/lib/api";
 import type { LostFoundKind } from "@/types";
 
 const LocationMapPicker = dynamic(
-  () => import("@/app/components/LocationMapPicker").then((m) => m.LocationMapPicker),
+  () => import("@/features/lost-found/LocationMapPicker").then((m) => m.LocationMapPicker),
   { ssr: false }
 );
 

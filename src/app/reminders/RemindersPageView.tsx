@@ -27,20 +27,20 @@ import {
   Skeleton,
   EmptyState,
   Badge,
-} from "@/app/components/pawguard";
-import PageHeader from "@/app/components/PageHeader";
+} from "@/components/ui/pawguard";
+import PageHeader from "@/components/shared/PageHeader";
 import { QUERY_KEYS, isApiError, getErrorMessage } from "@/lib/api";
 import { useApiMutation, useApiErrorMessage } from "@/lib/api/hooks";
 import { queryClient } from "@/lib/react-query";
 import { remindersService } from "@/services/api/reminders";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useMyPets } from "@/app/hooks/useMyPets";
-import { useAdoptionApplicationsAll } from "@/app/hooks/useAdoptionApplicationsAll";
-import { useDogMedicalReminders } from "@/app/hooks/useDogMedicalReminders";
+import { useMyPets } from "@/hooks/useMyPets";
+import { useAdoptionApplicationsAll } from "@/hooks/useAdoptionApplicationsAll";
+import { useDogMedicalReminders } from "@/hooks/useDogMedicalReminders";
 import {
   useMyReminders,
   type PetReminderWithPet,
-} from "@/app/hooks/useMyReminders";
+} from "@/hooks/useMyReminders";
 import type {
   DogMedicalReminderItem,
   MedicalReminderStatus,

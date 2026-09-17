@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CheckCircle2, Clock, ExternalLink, ArrowRight, Lock } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
+import PageHeader from "@/components/shared/PageHeader";
 import { useAuth } from "@/app/providers/auth-provider";
 import {
   PageShell,
@@ -12,13 +12,13 @@ import {
   Badge,
   Reveal,
   DonationTransparencyLedger,
-} from "@/app/components/pawguard";
-import { DonationActionPanel } from "@/app/components/pawguard/DonationActionPanel";
+} from "@/components/ui/pawguard";
+import { DonationActionPanel } from "@/features/donations/DonationActionPanel";
 import {
   useDonationState,
   PRESET_AMOUNTS,
   DONATION_TIERS,
-} from "@/app/hooks/useDonationState";
+} from "@/hooks/useDonationState";
 
 export default function DonatePage() {
   const { isAuthenticated, openAuthDialog, user } = useAuth();

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, CheckCircle2, Heart, Lock, Sparkles, UploadCloud } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
+import PageHeader from "@/components/shared/PageHeader";
 import {
   PageShell,
   Section,
@@ -15,11 +15,11 @@ import {
   Alert,
   Reveal,
   Skeleton,
-} from "@/app/components/pawguard";
-import { PhotoUploadInput } from "@/app/components/PhotoUploadInput";
+} from "@/components/ui/pawguard";
+import { PhotoUploadInput } from "@/components/forms/PhotoUploadInput";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useMyApplications } from "@/app/hooks/useMyApplications";
-import { useSubmitStory } from "@/app/hooks/useSubmitStory";
+import { useMyApplications } from "@/hooks/useMyApplications";
+import { useSubmitStory } from "@/hooks/useSubmitStory";
 import { lostFoundService } from "@/services/api/lost-found";
 import { getErrorMessage } from "@/lib/api";
 

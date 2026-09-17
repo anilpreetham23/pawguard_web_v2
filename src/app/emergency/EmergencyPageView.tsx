@@ -17,8 +17,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useFocusOnError } from "@/app/hooks/useFocusOnError";
-import { useGeolocation } from "@/app/hooks/useGeolocation";
+import { useFocusOnError } from "@/hooks/useFocusOnError";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import {
   Button,
   Input,
@@ -33,7 +33,7 @@ import {
   PhoneInput,
   MediaUpload,
   type MediaItem,
-} from "@/app/components/pawguard";
+} from "@/components/ui/pawguard";
 import { rescueService } from "@/services/api/rescue";
 import { getErrorMessage, isApiError } from "@/lib/api";
 import type {

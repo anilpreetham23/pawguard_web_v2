@@ -2,7 +2,7 @@
 
 import { useMemo, type CSSProperties } from "react";
 import { useMotionStore } from "../motion-store";
-import { cn } from "@/app/components/ui/utils";
+import { cn } from "@/components/ui/utils";
 import "./atmosphere.css";
 
 /**

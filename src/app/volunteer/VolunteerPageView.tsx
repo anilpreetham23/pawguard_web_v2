@@ -10,11 +10,11 @@ import {
   Clock,
   CalendarDays,
 } from "lucide-react";
-import SectionHeading from "@/app/components/SectionHeading";
-import PageHeader from "@/app/components/PageHeader";
-import { useFocusOnError } from "@/app/hooks/useFocusOnError";
-import { useDashboardSummary } from "@/app/hooks/useDashboardSummary";
-import { useVolunteerStatus } from "@/app/hooks/useVolunteerStatus";
+import SectionHeading from "@/layouts/SectionHeading";
+import PageHeader from "@/components/shared/PageHeader";
+import { useFocusOnError } from "@/hooks/useFocusOnError";
+import { useDashboardSummary } from "@/hooks/useDashboardSummary";
+import { useVolunteerStatus } from "@/hooks/useVolunteerStatus";
 import {
   PageShell,
   Section,
@@ -25,7 +25,7 @@ import {
   StaggerGrid,
   StaggerItem,
   VolunteerImpactPanel,
-} from "@/app/components/pawguard";
+} from "@/components/ui/pawguard";
 import { scrollTo } from "@/motion/scroll";
 import { useAuth } from "@/app/providers/auth-provider";
 import { communityService } from "@/services/api/community";

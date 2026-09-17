@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Calendar, Heart } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
-import { PageShell, Section, Card, Button } from "@/app/components/pawguard";
+import PageHeader from "@/components/shared/PageHeader";
+import { PageShell, Section, Card, Button } from "@/components/ui/pawguard";
 import { fetchServerCachedSuccessStoryById } from "@/lib/api/server-public-data";
 
 export default async function SuccessStoryDetailPage({ id }: { id: string }) {

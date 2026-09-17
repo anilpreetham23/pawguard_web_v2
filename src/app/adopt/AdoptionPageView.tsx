@@ -3,11 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Shield, RefreshCw, ChevronLeft, ChevronRight, Search, X, ChevronDown, Filter } from "lucide-react";
-import SectionHeading from "@/app/components/SectionHeading";
-import PageHeader from "@/app/components/PageHeader";
-import AdoptionCard from "@/app/components/AdoptionCard";
-import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, EmptyState, Skeleton, Alert, Input, PawGuardInfoCard, type InfoCardVisualType } from "@/app/components/pawguard";
-import { useAdoptionPets } from "@/app/hooks/useAdoptionPets";
+import SectionHeading from "@/layouts/SectionHeading";
+import PageHeader from "@/components/shared/PageHeader";
+import AdoptionCard from "@/features/adoption/AdoptionCard";
+import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, EmptyState, Skeleton, Alert, Input, PawGuardInfoCard, type InfoCardVisualType } from "@/components/ui/pawguard";
+import { useAdoptionPets } from "@/hooks/useAdoptionPets";
 import { getErrorMessage } from "@/lib/api";
 
 const AGE_OPTIONS = ["Puppy", "Adult", "Senior"];

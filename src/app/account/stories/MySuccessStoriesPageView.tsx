@@ -14,7 +14,7 @@ import {
   Calendar,
   Lock,
 } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
+import PageHeader from "@/components/shared/PageHeader";
 import {
   PageShell,
   Section,
@@ -27,9 +27,9 @@ import {
   Reveal,
   StaggerGrid,
   StaggerItem,
-} from "@/app/components/pawguard";
+} from "@/components/ui/pawguard";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useMyStories } from "@/app/hooks/useMyStories";
+import { useMyStories } from "@/hooks/useMyStories";
 import type { SuccessStoryResponse, SuccessStoryStatus } from "@/lib/api";
 import { getErrorMessage } from "@/lib/api";
 

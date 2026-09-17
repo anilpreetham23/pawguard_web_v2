@@ -14,8 +14,8 @@ import {
   X,
   MapPin,
 } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
-import SectionHeading from "@/app/components/SectionHeading";
+import PageHeader from "@/components/shared/PageHeader";
+import SectionHeading from "@/layouts/SectionHeading";
 import {
   PageShell,
   Section,
@@ -31,12 +31,12 @@ import {
   Badge,
   PawGuardInfoCard,
   type InfoCardVisualType,
-} from "@/app/components/pawguard";
-import { useVeterinaryPartners } from "@/app/hooks/useVeterinaryPartners";
-import { useVetClinics } from "@/app/hooks/useVetClinics";
+} from "@/components/ui/pawguard";
+import { useVeterinaryPartners } from "@/hooks/useVeterinaryPartners";
+import { useVetClinics } from "@/hooks/useVetClinics";
 import { findMatchingClinic } from "@/lib/utils/clinic-matcher";
 import { getErrorMessage } from "@/lib/api";
-import { cn } from "@/app/components/ui/utils";
+import { cn } from "@/components/ui/utils";
 import type { VeterinaryPartner } from "@/types";
 import type { VetClinicResponse } from "@/lib/api";
 import {
@@ -45,7 +45,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/app/components/ui/dialog";
+} from "@/components/ui/dialog";
 
 const PAGE_SIZE = 9;
 

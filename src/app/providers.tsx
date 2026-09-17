@@ -5,15 +5,15 @@ import { ThemeProvider } from "next-themes";
 import { QueryProvider } from "./providers/query-provider";
 import { AuthProvider } from "./providers/auth-provider";
 import { MotionProvider } from "@/motion";
-import Navbar from "@/app/components/Navbar";
-import Footer from "@/app/components/Footer";
+import Navbar from "@/components/shared/Navbar";
+import Footer from "@/components/shared/Footer";
 import { GlobalLoader } from "@/motion";
-import PuppyProgress from "@/app/components/PuppyProgress";
-import { OfflineBanner } from "@/app/components/OfflineBanner";
-import { ErrorBoundary } from "@/app/components/ErrorBoundary";
-import { Toaster } from "@/app/components/ui/sonner";
+import PuppyProgress from "@/components/shared/PuppyProgress";
+import { OfflineBanner } from "@/components/shared/OfflineBanner";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import { Toaster } from "@/components/ui/sonner";
 
-const AuthDialog = dynamic(() => import("@/app/components/auth/AuthDialog"), {
+const AuthDialog = dynamic(() => import("@/features/auth/AuthDialog"), {
   ssr: false,
 });
 

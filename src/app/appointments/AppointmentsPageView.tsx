@@ -3,17 +3,17 @@
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Bell, CalendarPlus, Clock, Stethoscope, XCircle } from "lucide-react";
-import { PageShell, Card, Reveal, Alert, Button, Input, Skeleton, EmptyState, Badge } from "@/app/components/pawguard";
-import PageHeader from "@/app/components/PageHeader";
-import SectionHeading from "@/app/components/SectionHeading";
+import { PageShell, Card, Reveal, Alert, Button, Input, Skeleton, EmptyState, Badge } from "@/components/ui/pawguard";
+import PageHeader from "@/components/shared/PageHeader";
+import SectionHeading from "@/layouts/SectionHeading";
 import { QUERY_KEYS } from "@/lib/api";
 import { useApiMutation, useApiErrorMessage } from "@/lib/api/hooks";
 import { queryClient } from "@/lib/react-query";
 import { appointmentsService } from "@/services/api/appointments";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useMyAppointments } from "@/app/hooks/useMyAppointments";
-import { useMyPets } from "@/app/hooks/useMyPets";
-import { useVetClinics } from "@/app/hooks/useVetClinics";
+import { useMyAppointments } from "@/hooks/useMyAppointments";
+import { useMyPets } from "@/hooks/useMyPets";
+import { useVetClinics } from "@/hooks/useVetClinics";
 import { getErrorMessage } from "@/lib/api";
 import type { AppointmentStatus, PetAppointmentResponse } from "@/lib/api";
 

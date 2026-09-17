@@ -33,9 +33,9 @@ import {
   Badge,
   Skeleton,
   PhoneInput,
-} from "@/app/components/pawguard";
-import SectionHeading from "@/app/components/SectionHeading";
-import QrScanner from "@/app/components/scan/QrScanner";
+} from "@/components/ui/pawguard";
+import SectionHeading from "@/layouts/SectionHeading";
+import QrScanner from "@/features/scan/scan/QrScanner";
 import { isRetryableError, isApiError } from "@/lib/api";
 import { safetyTagService } from "@/services/api/safety-tag";
 import { lostFoundService } from "@/services/api/lost-found";

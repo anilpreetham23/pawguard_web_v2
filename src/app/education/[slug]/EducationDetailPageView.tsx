@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Clock, BookOpen } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
-import { PageShell, Section, Card, Button } from "@/app/components/pawguard";
+import PageHeader from "@/components/shared/PageHeader";
+import { PageShell, Section, Card, Button } from "@/components/ui/pawguard";
 import { GUIDES } from "../EducationPageView";
 import { fetchServerCachedBlogPostBySlug } from "@/lib/api/server-public-data";
 

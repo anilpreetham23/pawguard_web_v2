@@ -1,9 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import StoryCard from "@/app/components/StoryCard";
+import StoryCard from "@/features/success-stories/StoryCard";
 import { ArrowRight } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
-import { PageShell, Section, Button, Reveal, StaggerGrid, StaggerItem } from "@/app/components/pawguard";
+import PageHeader from "@/components/shared/PageHeader";
+import { PageShell, Section, Button, Reveal, StaggerGrid, StaggerItem } from "@/components/ui/pawguard";
 import { Quote } from "lucide-react";
 import { fetchServerCachedSuccessStories } from "@/lib/api/server-public-data";
 

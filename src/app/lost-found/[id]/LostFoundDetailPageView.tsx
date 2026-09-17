@@ -15,17 +15,17 @@ import {
   User,
   Mic,
 } from "lucide-react";
-import { PageShell, Card, Reveal, StaggerGrid, StaggerItem, EmptyState, Skeleton, Alert, Button } from "@/app/components/pawguard";
-import SectionHeading from "@/app/components/SectionHeading";
-import LostFoundCard from "@/app/components/LostFoundCard";
-import { MatchesPanel } from "@/app/components/MatchesPanel";
-import { useLostFoundReport, useRelatedLostFoundCases } from "@/app/hooks/useLostFound";
+import { PageShell, Card, Reveal, StaggerGrid, StaggerItem, EmptyState, Skeleton, Alert, Button } from "@/components/ui/pawguard";
+import SectionHeading from "@/layouts/SectionHeading";
+import LostFoundCard from "@/features/lost-found/LostFoundCard";
+import { MatchesPanel } from "@/features/lost-found/MatchesPanel";
+import { useLostFoundReport, useRelatedLostFoundCases } from "@/hooks/useLostFound";
 import { getErrorMessage, isApiError } from "@/lib/api";
 import { useApiMutation, useApiErrorMessage } from "@/lib/api/hooks";
 import { lostFoundService } from "@/services/api/lost-found";
 import { directionsUrl } from "@/services/api/contact/mapper";
 import { InteractiveImage } from "@/motion/components/InteractiveImage";
-import { cn } from "@/app/components/ui/utils";
+import { cn } from "@/components/ui/utils";
 import { useAuth } from "@/app/providers/auth-provider";
 import type { LostFoundCase } from "@/types";
 

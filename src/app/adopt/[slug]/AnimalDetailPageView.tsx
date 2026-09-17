@@ -18,19 +18,19 @@ import {
   Check,
   ShieldCheck,
 } from "lucide-react";
-import { PageShell, Section, Card, Reveal, Button, Input, Textarea, Badge, EmptyState, SuccessState, Skeleton, Alert } from "@/app/components/pawguard";
-import SectionHeading from "@/app/components/SectionHeading";
-import AdoptionCard from "@/app/components/AdoptionCard";
-import { StaggerGrid, StaggerItem } from "@/app/components/pawguard";
+import { PageShell, Section, Card, Reveal, Button, Input, Textarea, Badge, EmptyState, SuccessState, Skeleton, Alert } from "@/components/ui/pawguard";
+import SectionHeading from "@/layouts/SectionHeading";
+import AdoptionCard from "@/features/adoption/AdoptionCard";
+import { StaggerGrid, StaggerItem } from "@/components/ui/pawguard";
 import { InteractiveImage } from "@/motion/components/InteractiveImage";
-import { cn } from "@/app/components/ui/utils";
+import { cn } from "@/components/ui/utils";
 import { getAnimalBySlug, ANIMALS } from "@/app/data/animals";
 import { getErrorMessage, QUERY_KEYS } from "@/lib/api";
 import { useApiQuery } from "@/lib/api/hooks";
 import { adoptionService } from "@/services/api/adoption";
 import { dogProfileToPet, type Pet } from "@/services/api/adoption/mapper";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useAdoptionApplicationsAll } from "@/app/hooks/useAdoptionApplicationsAll";
+import { useAdoptionApplicationsAll } from "@/hooks/useAdoptionApplicationsAll";
 import { useQueryClient } from "@tanstack/react-query";
 import { ensureScrollUnlocked, refreshScroll } from "@/motion/scroll";
 import {
@@ -39,10 +39,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/app/components/ui/dialog";
+} from "@/components/ui/dialog";
 import AdoptionIdentityVerification, {
   type AdoptionIdentityData,
-} from "@/app/components/adoption/AdoptionIdentityVerification";
+} from "@/features/adoption/AdoptionIdentityVerification";
 
 const energyLabels: Record<string, string> = {
   Low: "Easy-going",

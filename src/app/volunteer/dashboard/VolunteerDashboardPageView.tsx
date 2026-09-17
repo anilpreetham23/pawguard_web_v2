@@ -31,10 +31,10 @@ import {
   Alert,
   EmptyState,
   Skeleton,
-} from "@/app/components/pawguard";
+} from "@/components/ui/pawguard";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useDashboardSummary } from "@/app/hooks/useDashboardSummary";
-import { useVolunteerStatus } from "@/app/hooks/useVolunteerStatus";
+import { useDashboardSummary } from "@/hooks/useDashboardSummary";
+import { useVolunteerStatus } from "@/hooks/useVolunteerStatus";
 import { getErrorMessage, QUERY_KEYS, normalizeVolunteerLifecycleStatus } from "@/lib/api";
 import { useApiQuery } from "@/lib/api/hooks";
 import { communityService } from "@/services/api/community";

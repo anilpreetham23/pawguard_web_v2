@@ -17,8 +17,8 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
-import SectionHeading from "@/app/components/SectionHeading";
-import PageHeader from "@/app/components/PageHeader";
+import SectionHeading from "@/layouts/SectionHeading";
+import PageHeader from "@/components/shared/PageHeader";
 import {
   PageShell,
   Section,
@@ -28,10 +28,10 @@ import {
   StaggerGrid,
   StaggerItem,
   Badge,
-} from "@/app/components/pawguard";
+} from "@/components/ui/pawguard";
 import { scrollTo } from "@/motion/scroll";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useFosterStatus } from "@/app/hooks/useFosterStatus";
+import { useFosterStatus } from "@/hooks/useFosterStatus";
 import { fosterService } from "@/services/api/foster";
 import { QUERY_KEYS, getErrorMessage, isApiError } from "@/lib/api";
 import { queryClient } from "@/lib/react-query";

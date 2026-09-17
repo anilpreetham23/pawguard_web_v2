@@ -18,7 +18,7 @@ import {
   Loader2,
   CreditCard,
 } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
+import PageHeader from "@/components/shared/PageHeader";
 import {
   PageShell,
   Section,
@@ -29,9 +29,9 @@ import {
   Alert,
   Skeleton,
   Reveal,
-} from "@/app/components/pawguard";
+} from "@/components/ui/pawguard";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useMyDonations } from "@/app/hooks/useMyDonations";
+import { useMyDonations } from "@/hooks/useMyDonations";
 import { donationService, openAndViewReceipt } from "@/services/api/donation";
 import { getErrorMessage } from "@/lib/api";
 import type { DonationResponse } from "@/lib/api";

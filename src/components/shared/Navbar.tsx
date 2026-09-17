@@ -1,0 +1,472 @@
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { Menu, X, ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useMotionStore } from "@/motion";
+import { getLenis } from "@/motion/lenis-instance";
+import { cn } from "@/components/ui/utils";
+import { duration, ease } from "@/motion/motion.config";
+import { useEmergencyShortcut } from "@/hooks/useEmergencyShortcut";
+import TopEmergencyBar from "@/features/rescue/TopEmergencyBar";
+import { AuthNavControls, AuthMobileControls } from "@/features/auth/AuthNavControls";
+
+
+const SERVICE_ITEMS = [
+  { label: "Volunteer", to: "/volunteer", desc: "Join shelter team & shift duties" },
+  { label: "Foster Program", to: "/foster", desc: "Open your home to a dog in need" },
+  { label: "Emergency Rescue", to: "/emergency", desc: "Report & track urgent rescues" },
+  { label: "Donate", to: "/donate", desc: "Support medical care & shelter ops" },
+];
+
+const NAV_LINKS = [
+  { label: "Home",      to: "/" },
+  { label: "Adopt",     to: "/adopt" },
+  { label: "Services",  to: "/services", isDropdown: true },
+  { label: "Veterinary", to: "/veterinary" },
+  { label: "Lost & Found", to: "/lost-found" },
+  { label: "About",     to: "/about" },
+  { label: "Stories",   to: "/stories" },
+  { label: "Contact",   to: "/contact" },
+];
+
+// Adaptive glass constants
+const GLASS_BASE   = "rgba(255,255,255,0.85)";
+const GLASS_SCROLL = "rgba(255,255,255,0.95)";
+const TRANSITION   = "background 350ms cubic-bezier(.22,1,.36,1), box-shadow 350ms cubic-bezier(.22,1,.36,1), border-color 350ms cubic-bezier(.22,1,.36,1)";
+const TRANSITION_REDUCED = undefined;
+
+export default function Navbar() {
+  const [menuOpen,        setMenuOpen]        = useState(false);
+  const [servicesOpen,    setServicesOpen]    = useState(false);
+  const [scrolled,        setScrolled]        = useState(false);
+  const [hidden,          setHidden]          = useState(false);
+
+  const pathname      = usePathname();
+  const menuRef       = useRef<HTMLDivElement>(null);
+  const servicesRef   = useRef<HTMLDivElement>(null);
+  const toggleRef     = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (servicesRef.current && !servicesRef.current.contains(e.target as Node)) {
+        setServicesOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  const lastScrollRef = useRef(0);
+  const scrolledRef   = useRef(false);
+  const hiddenRef     = useRef(false);
+
+  const ready          = useMotionStore((s) => s.ready);
+  const reduced        = useMotionStore((s) => s.motionTier) !== "full";
+  useEmergencyShortcut();
+
+  // ── Keyboard trap ──────────────────────────────────────────────────────────
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (!menuOpen || !menuRef.current) return;
+    const focusable = menuRef.current.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last  = focusable[focusable.length - 1];
+    if (e.key === "Tab") {
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    if (e.key === "Escape") { setMenuOpen(false); toggleRef.current?.focus(); }
+  }, [menuOpen]);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
+  // ── Body scroll lock ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!menuOpen) return;
+    const docEl = document.documentElement;
+    document.body.style.overflow = "hidden";
+    docEl.style.overflow = "hidden";
+    docEl.style.overscrollBehavior = "none";
+    const lenis = getLenis(); lenis?.stop();
+    const t = setTimeout(() => menuRef.current?.querySelector<HTMLElement>("a")?.focus(), 80);
+    return () => {
+      document.body.style.overflow = "";
+      docEl.style.overflow = "";
+      docEl.style.overscrollBehavior = "";
+      const l = getLenis();
+      if (l) {
+        l.start();
+        l.scrollTo(window.scrollY, { immediate: true, force: true });
+        l.resize();
+      }
+      clearTimeout(t);
+    };
+  }, [menuOpen]);
+
+  // ── Scroll state (imperative subscribe — avoid per-frame re-renders) ──────
+  useEffect(() => {
+    const applyScroll = (scrollY: number, scrollVelocity: number) => {
+      const nextScrolled = scrollY > 40;
+      if (nextScrolled !== scrolledRef.current) {
+        scrolledRef.current = nextScrolled;
+        setScrolled(nextScrolled);
+      }
+
+      let nextHidden = hiddenRef.current;
+      if (scrollY < lastScrollRef.current) {
+        nextHidden = false;
+      } else if (scrollY > 80 && scrollVelocity > 0.5 && !menuOpen) {
+        nextHidden = true;
+      }
+      if (nextHidden !== hiddenRef.current) {
+        hiddenRef.current = nextHidden;
+        setHidden(nextHidden);
+      }
+      lastScrollRef.current = scrollY;
+    };
+
+    const { scrollY, scrollVelocity } = useMotionStore.getState();
+    applyScroll(scrollY, scrollVelocity);
+
+    const unsubscribe = useMotionStore.subscribe((state) => {
+      applyScroll(state.scrollY, state.scrollVelocity);
+    });
+
+    return () => unsubscribe();
+  }, [menuOpen]);
+
+  // ── Derived state ──────────────────────────────────────────────────────────
+  const trans        = reduced ? TRANSITION_REDUCED : TRANSITION;
+
+  // Glass background: 72% at top, 95% after scroll
+  const glassBg      = scrolled ? GLASS_SCROLL : GLASS_BASE;
+  // Border + shadow only after scroll
+  const glassBorder  = scrolled
+    ? "1px solid rgba(255,255,255,0.22)"
+    : "1px solid transparent";
+  const glassShadow  = scrolled
+    ? "0 4px 20px rgba(0,0,0,0.04)"
+    : "none";
+
+  return (
+    <>
+      {/* Skip link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[var(--z-skip)] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-btn focus:text-sm font-semibold"
+      >
+        Skip to main content
+      </a>
+
+      <motion.div
+        className="fixed top-0 left-0 right-0 z-[var(--z-header)]"
+        initial={reduced ? false : { y: -24, opacity: 0 }}
+        animate={reduced ? undefined : ready ? { y: 0, opacity: 1 } : { y: -24, opacity: 0 }}
+        transition={{ duration: 0.6, ease: ease.gentle, delay: 0.12 }}
+      >
+        {/* ── Emergency top bar — pinned at top, shrinks on scroll, never hides ── */}
+        <TopEmergencyBar scrolled={scrolled} />
+
+        <motion.header
+          className="relative"
+          animate={{ y: hidden && !menuOpen ? -120 : 0 }}
+          transition={{ duration: duration.scroll / 1000, ease: ease.standard }}
+        >
+          {/* ── Adaptive gradient overlay (Layer 1) ─────────────────────── */}
+          {/* Prevents bright video frames from washing out text */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: "linear-gradient(to bottom, rgba(248,250,252,0.22) 0%, rgba(248,250,252,0.72) 100%)",
+            }}
+          />
+
+          {/* ── Glass panel (Layer 2) ────────────────────────────────────── */}
+          <div
+            className="relative"
+            style={{
+              background:           glassBg,
+              backdropFilter:       "blur(16px) saturate(170%)",
+              WebkitBackdropFilter: "blur(16px) saturate(170%)",
+              borderBottom:         glassBorder,
+              boxShadow:            glassShadow,
+              transition:           trans,
+            }}
+          >
+            {/* ── Layer 3: Navigation content ─────────────────────────── */}
+            <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 h-[var(--navbar-height)] flex md:grid md:grid-cols-[1fr_auto_1fr] items-center justify-between gap-4">
+
+              {/* Logo — left column */}
+              <Link
+                href="/"
+                className="group flex items-center gap-2.5 shrink-0 origin-left transition-transform duration-fast ease-gentle relative z-10"
+                aria-label="PawGuard home"
+              >
+                <Image
+                  src="/images/rescue-process/assets/Logo.png"
+                  alt="PawGuard Logo"
+                  width={40}
+                  height={40}
+                  className="h-10 w-auto object-contain transition-transform duration-fast group-hover:scale-105"
+                />
+                <span className="font-bold text-primary text-xl tracking-tight">PawGuard</span>
+              </Link>
+
+              {/* Desktop nav links — center column, mathematically centered */}
+              <nav aria-label="Main navigation" className="hidden lg:flex items-center gap-0.5 xl:gap-1">
+                {NAV_LINKS.map((link) => {
+                  if (link.isDropdown) {
+                    const isServiceActive = SERVICE_ITEMS.some((item) => pathname === item.to);
+                    return (
+                      <div key={link.label} ref={servicesRef} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setServicesOpen((prev) => !prev)}
+                          aria-expanded={servicesOpen}
+                          aria-haspopup="true"
+                          className={cn(
+                            "group relative px-2.5 lg:px-3 xl:px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-[200ms] ease-gentle whitespace-nowrap flex items-center gap-1",
+                            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring/60",
+                          )}
+                          style={{
+                            color: isServiceActive ? "var(--primary)" : "var(--foreground)",
+                            letterSpacing: "0.02em",
+                            background: isServiceActive ? "rgba(30,58,138,0.08)" : "transparent",
+                          }}
+                        >
+                          {link.label}
+                          <ChevronDown
+                            size={14}
+                            className={cn("transition-transform duration-200", servicesOpen ? "rotate-180 text-primary" : "text-muted-foreground")}
+                          />
+                        </button>
+
+                        <AnimatePresence>
+                          {servicesOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                              transition={{ duration: 0.18, ease: "easeOut" }}
+                              className="absolute top-full left-0 mt-2 w-64 rounded-card border border-border bg-background/95 backdrop-blur-xl shadow-xl p-2 z-50 flex flex-col gap-1"
+                            >
+                              {SERVICE_ITEMS.map((item) => {
+                                const active = pathname === item.to;
+                                return (
+                                  <Link
+                                    key={item.to}
+                                    href={item.to}
+                                    onClick={() => setServicesOpen(false)}
+                                    className={cn(
+                                      "flex flex-col gap-0.5 p-2.5 rounded-card text-xs transition-colors duration-fast",
+                                      active ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted text-foreground"
+                                    )}
+                                  >
+                                    <span className="font-semibold text-sm text-foreground">{item.label}</span>
+                                    <span className="text-2xs text-muted-foreground">{item.desc}</span>
+                                  </Link>
+                                );
+                              })}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  }
+
+                  const active = pathname === link.to;
+                  return (
+                    <Link
+                      key={link.to}
+                      href={link.to}
+                      data-analytics-nav={link.label.toLowerCase()}
+                      className={cn(
+                        "group relative px-2.5 lg:px-3 xl:px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-[200ms] ease-gentle whitespace-nowrap",
+                        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring/60",
+                      )}
+                      style={{
+                        color:                  active ? "var(--primary)" : "var(--foreground)",
+                        letterSpacing:          "0.02em",
+                        WebkitFontSmoothing:    "subpixel-antialiased",
+                        background:             active ? "rgba(30,58,138,0.08)" : "transparent",
+                      }}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget as HTMLElement;
+                        if (!active) {
+                          el.style.background = "rgba(37,99,235,0.05)";
+                          el.style.color      = "var(--primary)";
+                        }
+                        const underline = el.querySelector(".nav-hover-underline") as HTMLElement;
+                        if (underline) underline.style.transform = "scaleX(1)";
+                      }}
+                      onMouseLeave={(e) => {
+                        const el = e.currentTarget as HTMLElement;
+                        if (!active) {
+                          el.style.background = "transparent";
+                          el.style.color      = "var(--foreground)";
+                        }
+                        const underline = el.querySelector(".nav-hover-underline") as HTMLElement;
+                        if (underline) underline.style.transform = "scaleX(0)";
+                      }}
+                    >
+                      {link.label}
+                      {/* Hover underline — grows from center on hover */}
+                      <span
+                        aria-hidden="true"
+                        className="nav-hover-underline absolute -bottom-px left-3 right-3 h-[1.5px] rounded-full bg-primary/40 origin-center"
+                        style={{ transform: "scaleX(0)", transition: "transform 200ms ease" }}
+                      />
+                      {/* Active underline — always visible */}
+                      {active && (
+                        <motion.span
+                          layoutId="nav-active-underline"
+                          className="absolute -bottom-px left-3 right-3 h-[2px] rounded-full bg-primary"
+                          transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                        />
+                      )}
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* Right column — empty, balances logo for true center */}
+              <div className="hidden lg:flex items-center justify-end h-full">
+                <AuthNavControls />
+              </div>
+
+              {/* Mobile hamburger — visible on mobile & tablet */}
+              <button
+                ref={toggleRef}
+                className="lg:hidden ml-auto lg:ml-0 p-2 rounded-btn hover:bg-secondary transition-all duration-fast ease-gentle min-h-[44px] min-w-[44px] flex items-center justify-center relative z-10"
+                style={{ color: "var(--foreground)" }}
+                onClick={() => setMenuOpen(!menuOpen)}
+                aria-label={menuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={menuOpen}
+                aria-controls="mobile-menu-panel"
+              >
+                {menuOpen ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
+              </button>
+            </div>
+          </div>
+        </motion.header>
+
+        {/* ── Mobile navigation panel ──────────────────────────────────────── */}
+        <AnimatePresence>
+          {menuOpen && (
+            <>
+              <motion.div
+                className="fixed inset-0 z-[var(--z-drawer)] bg-black/30 backdrop-blur-sm lg:hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: duration.fast / 1000 }}
+                onClick={() => setMenuOpen(false)}
+                aria-hidden="true"
+              />
+              <motion.div
+                id="mobile-menu-panel"
+                ref={menuRef}
+                className="fixed left-0 right-0 top-[calc(var(--navbar-height)+var(--top-strip-compact-height))] bottom-0 z-[var(--z-drawer)] lg:hidden bg-background/90 backdrop-blur-xl border-t border-border flex flex-col overflow-hidden"
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: duration.scroll / 1000, ease: ease.gentle }}
+              >
+                <nav aria-label="Mobile navigation" className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-6 flex flex-col gap-1">
+                  {NAV_LINKS.map((link, i) => {
+                    if (link.isDropdown) {
+                      return (
+                        <motion.div
+                          key={link.label}
+                          initial={reduced ? false : { opacity: 0, x: 18 }}
+                          animate={reduced ? undefined : { opacity: 1, x: 0 }}
+                          transition={{ delay: reduced ? 0 : 0.05 + i * 0.05, duration: duration.fast / 1000, ease: ease.gentle }}
+                          className="flex flex-col gap-1 my-1 pl-2 border-l-2 border-primary/20"
+                        >
+                          <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground px-3 py-1">
+                            Services
+                          </span>
+                          {SERVICE_ITEMS.map((item) => {
+                            const active = pathname === item.to;
+                            return (
+                              <Link
+                                key={item.to}
+                                href={item.to}
+                                onClick={() => setMenuOpen(false)}
+                                className={cn(
+                                  "flex items-center justify-between min-h-[44px] px-3.5 rounded-card text-sm font-semibold transition-colors duration-fast",
+                                  active ? "text-primary bg-primary/8" : "text-foreground hover:bg-secondary/60"
+                                )}
+                              >
+                                {item.label}
+                                {active && (
+                                  <span className="h-[2px] w-4 rounded-full bg-primary" />
+                                )}
+                              </Link>
+                            );
+                          })}
+                        </motion.div>
+                      );
+                    }
+
+                    const active = pathname === link.to;
+                    return (
+                      <motion.div
+                        key={link.to}
+                        initial={reduced ? false : { opacity: 0, x: 18 }}
+                        animate={reduced ? undefined : { opacity: 1, x: 0 }}
+                        transition={{ delay: reduced ? 0 : 0.05 + i * 0.05, duration: duration.fast / 1000, ease: ease.gentle }}
+                      >
+                        <Link
+                          href={link.to}
+                          onClick={() => setMenuOpen(false)}
+                          className={cn(
+                            "flex items-center justify-between min-h-[52px] px-4 rounded-card text-base font-semibold tracking-normal transition-colors duration-fast",
+                            active ? "text-primary bg-primary/8" : "text-foreground hover:bg-secondary/60",
+                          )}
+                        >
+                          {link.label}
+                          {active && (
+                            <motion.span
+                              layoutId="mobile-active"
+                              className="h-[2px] w-6 rounded-full bg-primary"
+                              style={{ boxShadow: "0 0 8px rgba(30,58,138,0.45)" }}
+                              transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                            />
+                          )}
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+                </nav>
+
+                <motion.div
+                  className="px-6 py-4 border-t border-border bg-background/60 flex flex-col gap-2 shrink-0"
+                  initial={reduced ? false : { opacity: 0, y: 12 }}
+                  animate={reduced ? undefined : { opacity: 1, y: 0 }}
+                  transition={{ delay: reduced ? 0 : 0.35, duration: duration.fast / 1000, ease: ease.gentle }}
+                >
+                  <AuthMobileControls onNavigate={() => setMenuOpen(false)} />
+                  <div className="flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
+                    <span className="tracking-wide">
+                      Emergency and Donate actions are in the top bar ↑
+                    </span>
+                  </div>
+                </motion.div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </>
+  );
+}

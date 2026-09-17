@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authService } from "@/services/api/auth";
 import { getErrorMessage } from "@/lib/api";
-import { PageShell, Section, Alert, Button, Input } from "@/app/components/pawguard";
+import { PageShell, Section, Alert, Button, Input } from "@/components/ui/pawguard";
 import { useAuth } from "@/app/providers/auth-provider";
 import { Lock, Key, CheckCircle2 } from "lucide-react";
 

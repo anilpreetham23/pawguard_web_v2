@@ -21,7 +21,7 @@ import {
   Loader2,
   X,
 } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
+import PageHeader from "@/components/shared/PageHeader";
 import {
   PageShell,
   Card,
@@ -33,20 +33,20 @@ import {
   Button,
   Input,
   Textarea,
-} from "@/app/components/pawguard";
+} from "@/components/ui/pawguard";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/app/components/ui/dialog";
-import { SafetyTagModal, extractRawToken } from "@/app/components/pawguard/SafetyTagModal";
-import { AddCompanionPetButton } from "@/app/components/AddCompanionPetButton";
+} from "@/components/ui/dialog";
+import { SafetyTagModal, extractRawToken } from "@/features/scan/SafetyTagModal";
+import { AddCompanionPetButton } from "@/features/adoption/AddCompanionPetButton";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useMyPets } from "@/app/hooks/useMyPets";
-import { useAdoptionApplicationsAll } from "@/app/hooks/useAdoptionApplicationsAll";
-import { useSafetyTag } from "@/app/hooks/useSafetyTag";
+import { useMyPets } from "@/hooks/useMyPets";
+import { useAdoptionApplicationsAll } from "@/hooks/useAdoptionApplicationsAll";
+import { useSafetyTag } from "@/hooks/useSafetyTag";
 import { getErrorMessage, isApiError, QUERY_KEYS } from "@/lib/api";
 import { useApiMutation } from "@/lib/api/hooks";
 import { queryClient } from "@/lib/react-query";

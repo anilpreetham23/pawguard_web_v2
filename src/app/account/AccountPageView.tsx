@@ -37,7 +37,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import PageHeader from "@/app/components/PageHeader";
+import PageHeader from "@/components/shared/PageHeader";
 import {
   PageShell,
   Card,
@@ -48,22 +48,22 @@ import {
   Button,
   Input,
   PhoneInput,
-} from "@/app/components/pawguard";
+} from "@/components/ui/pawguard";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/app/components/ui/dialog";
-import { PhotoUploadInput } from "@/app/components/PhotoUploadInput";
+} from "@/components/ui/dialog";
+import { PhotoUploadInput } from "@/components/forms/PhotoUploadInput";
 import { validatePhone, getCountryByCode, normalizePhonePayload } from "@/lib/utils/validation";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useDashboardSummary } from "@/app/hooks/useDashboardSummary";
-import { useMyPets } from "@/app/hooks/useMyPets";
-import { useMyAppointments } from "@/app/hooks/useMyAppointments";
-import { useMyReminders } from "@/app/hooks/useMyReminders";
-import { useMyStories } from "@/app/hooks/useMyStories";
+import { useDashboardSummary } from "@/hooks/useDashboardSummary";
+import { useMyPets } from "@/hooks/useMyPets";
+import { useMyAppointments } from "@/hooks/useMyAppointments";
+import { useMyReminders } from "@/hooks/useMyReminders";
+import { useMyStories } from "@/hooks/useMyStories";
 import { getErrorMessage, getAvatarUrl, resolveAvatarUrl, QUERY_KEYS } from "@/lib/api";
 import type { UserContactInquiryResponse, UserGrievanceResponse, GrievanceCommentResponse } from "@/lib/api";
 import { queryClient } from "@/lib/react-query";
@@ -71,7 +71,7 @@ import { authService } from "@/services/api/auth";
 import { notificationsService } from "@/services/api/notifications";
 import { lostFoundService } from "@/services/api/lost-found";
 import { contactService } from "@/services/api/contact";
-import { cn } from "@/app/components/ui/utils";
+import { cn } from "@/components/ui/utils";
 
 function initials(name: string): string {
   return name

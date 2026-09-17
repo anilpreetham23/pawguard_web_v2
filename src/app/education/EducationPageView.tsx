@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BookOpen, ShieldCheck, Heart, Stethoscope, AlertTriangle, ArrowRight } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
-import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem } from "@/app/components/pawguard";
+import PageHeader from "@/components/shared/PageHeader";
+import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem } from "@/components/ui/pawguard";
 import { fetchServerCachedBlogPosts } from "@/lib/api/server-public-data";
 
 export const GUIDES = [

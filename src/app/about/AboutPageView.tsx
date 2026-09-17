@@ -1,8 +1,8 @@
-import SectionHeading from "@/app/components/SectionHeading";
+import SectionHeading from "@/layouts/SectionHeading";
 import Image from "next/image";
 import { Check, ArrowRight } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
-import { PageShell, Section, Button, Card, Reveal, DispatchReveal, StaggerGrid, StaggerItem } from "@/app/components/pawguard";
+import PageHeader from "@/components/shared/PageHeader";
+import { PageShell, Section, Button, Card, Reveal, DispatchReveal, StaggerGrid, StaggerItem } from "@/components/ui/pawguard";
 import { fetchServerCachedPublicStats } from "@/lib/api/server-public-data";
 
 const TEAM = [

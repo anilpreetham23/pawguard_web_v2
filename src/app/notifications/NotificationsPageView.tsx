@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CheckCheck, ChevronLeft, ChevronRight, Trash2, Bell, Inbox } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
-import { PageShell, Section, Card, Reveal, Skeleton, EmptyState, Alert } from "@/app/components/pawguard";
-import { useNotifications } from "@/app/hooks/useNotifications";
+import PageHeader from "@/components/shared/PageHeader";
+import { PageShell, Section, Card, Reveal, Skeleton, EmptyState, Alert } from "@/components/ui/pawguard";
+import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/app/providers/auth-provider";
 import { getErrorMessage } from "@/lib/api";
 import { getNotificationDestination } from "@/lib/notification-destination";

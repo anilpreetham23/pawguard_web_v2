@@ -32,8 +32,8 @@ import {
   X,
   Trash2,
 } from "lucide-react";
-import PageHeader from "@/app/components/PageHeader";
-import SectionHeading from "@/app/components/SectionHeading";
+import PageHeader from "@/components/shared/PageHeader";
+import SectionHeading from "@/layouts/SectionHeading";
 import {
   PageShell,
   Section,
@@ -42,10 +42,10 @@ import {
   Button,
   Badge,
   EmptyState,
-} from "@/app/components/pawguard";
+} from "@/components/ui/pawguard";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useFosterStatus, type FosterLifecycleStatus } from "@/app/hooks/useFosterStatus";
-import { useFosterPlacements } from "@/app/hooks/useFosterPlacements";
+import { useFosterStatus, type FosterLifecycleStatus } from "@/hooks/useFosterStatus";
+import { useFosterPlacements } from "@/hooks/useFosterPlacements";
 import { fosterService } from "@/services/api/foster";
 import { lostFoundService } from "@/services/api/lost-found";
 import { QUERY_KEYS, getErrorMessage, isApiError, type SupplyItemType, type FosterPlacementResponse } from "@/lib/api";
