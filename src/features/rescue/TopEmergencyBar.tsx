@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Phone, Dog, Heart } from "lucide-react";
 import { motion } from "motion/react";
-import { gsap } from "gsap";
 import { useMotionStore } from "@/motion";
+import { getGsap } from "@/motion/gsap-register";
 import { duration, ease, stagger, delay } from "@/motion/motion.config";
 import { cn } from "@/components/ui/utils";
 import { EMERGENCY, SITE_STATS } from "@/app/config/site";
@@ -48,17 +48,23 @@ function useCountUpOnMount(value: string) {
       return;
     }
 
-    const obj = { value: 0 };
-    const tween = gsap.to(obj, {
-      value: target,
-      duration: duration.deliberate / 1000,
-      delay: delay.medium / 1000,
-      ease: "power2.out",
-      onUpdate: () => setDisplay(fmt(Math.round(obj.value))),
-      onComplete: () => setDisplay(value),
+    let tween: any = null;
+    getGsap().then(({ gsap }) => {
+      const obj = { value: 0 };
+      tween = gsap.to(obj, {
+        value: target,
+        duration: duration.deliberate / 1000,
+        delay: delay.medium / 1000,
+        ease: "power2.out",
+        onUpdate: () => setDisplay(fmt(Math.round(obj.value))),
+        onComplete: () => setDisplay(value),
+      });
+    }).catch(() => {
+      setDisplay(value);
     });
+
     return () => {
-      tween.kill();
+      if (tween?.kill) tween.kill();
     };
   }, [value, motionTier]);
 

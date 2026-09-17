@@ -13,9 +13,9 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { gsap } from "gsap";
 import { DEFAULT_CENTER, type ServiceData } from "./services-data";
 import { useMotionStore } from "@/motion/motion-store";
+import { getGsap } from "@/motion/gsap-register";
 
 interface CenterHubProps {
   accent: { text: string; border: string; glow: string } | null;
@@ -39,14 +39,22 @@ function AnimatedCounter({ value, color }: { value: string; color: string }) {
       setDisplay(value);
       return;
     }
-    const obj = { v: 0 };
-    const tween = gsap.to(obj, {
-      v: num,
-      duration: 0.65,
-      ease: "back.out(1.4)",
-      onUpdate: () => setDisplay(prefix + Math.round(obj.v).toLocaleString() + rawSuffix),
+    let tween: any = null;
+    getGsap().then(({ gsap }) => {
+      const obj = { v: 0 };
+      tween = gsap.to(obj, {
+        v: num,
+        duration: 0.65,
+        ease: "back.out(1.4)",
+        onUpdate: () => setDisplay(prefix + Math.round(obj.v).toLocaleString() + rawSuffix),
+      });
+    }).catch(() => {
+      setDisplay(value);
     });
-    return () => { tween.kill(); };
+
+    return () => {
+      if (tween?.kill) tween.kill();
+    };
   }, [value, num, prefix, rawSuffix, motionTier]);
 
   return (

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { communityService } from "@/services/api/community";
+import { fetchServerCachedBlogPostBySlug } from "@/lib/api/server-public-data";
 import EducationDetailPageView from "./EducationDetailPageView";
 
 interface PageProps {
@@ -9,10 +9,10 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   try {
-    const post = await communityService.getBlogPostBySlug(slug);
+    const post = await fetchServerCachedBlogPostBySlug(slug);
     if (!post) return { title: "Community & Education — PawGuard" };
     const title = `${post.title} — PawGuard Education`;
-    const description = post.shortDescription || "Learn about dog welfare, rescue protocols, and pet care on PawGuard.";
+    const description = post.excerpt || "Learn about dog welfare, rescue protocols, and pet care on PawGuard.";
     const image = "/images/hero/hero-dog.jpg";
     return {
       title,
@@ -36,5 +36,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function Page({ params }: PageProps) {
   const { slug } = await params;
-  return <EducationDetailPageView slug={slug} />;
+  const initialPost = await fetchServerCachedBlogPostBySlug(slug);
+  return <EducationDetailPageView slug={slug} initialPost={initialPost} />;
 }

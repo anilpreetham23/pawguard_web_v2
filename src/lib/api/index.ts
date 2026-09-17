@@ -124,6 +124,7 @@ export type {
   LostFoundPhotoUploadRequest,
   LostFoundPhotoUploadResponse,
   LostFoundQueryParams,
+  LostFoundReportResponse,
   LostFoundReportStatus,
   LostReportCreate,
   LostReportResponse,

@@ -12,7 +12,7 @@ export type InfoCardVisualType =
   | "emergency-care";
 
 export interface PawGuardInfoCardProps {
-  icon: LucideIcon;
+  icon: LucideIcon | React.ReactNode;
   title: string;
   desc: string;
   visualType: InfoCardVisualType;
@@ -315,7 +315,12 @@ export function PawGuardInfoCard({
           <div
             className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center border shadow-xs shrink-0 transition-transform duration-300 group-hover:scale-105 ${styles.iconBg}`}
           >
-            <Icon size={22} className="shrink-0" />
+            {React.isValidElement(Icon) ? (
+              Icon
+            ) : typeof Icon === "function" || (typeof Icon === "object" && Icon !== null) ? (
+              // @ts-expect-error Icon can be a component function or object
+              <Icon size={22} className="shrink-0" />
+            ) : null}
           </div>
 
           {badgeText && (

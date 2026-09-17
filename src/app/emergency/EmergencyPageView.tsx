@@ -66,8 +66,12 @@ const PHYSICAL_CONDITIONS: { value: RescuePhysicalCondition; label: string }[] =
 const RESCUE_STATUS_DISPLAY: Record<PublicTrackingStatus, string> = {
   REPORTED: "Reported",
   VERIFIED: "Verified",
-  DISPATCHED: "Dispatched",
-  LOCATED: "Located",
+  EN_ROUTE: "En Route",
+  ON_SCENE: "On Scene",
+  STABILIZED: "Stabilized",
+  IN_TRANSIT: "In Transit",
+  ARRIVED_AT_VET: "Arrived at Vet",
+  TREATED: "Treated",
   RESOLVED: "Resolved",
   CANCELLED: "Cancelled",
 };
@@ -187,7 +191,7 @@ function ReportTracker({ initialTicket, initialPhone }: ReportTrackerProps) {
               minute: "2-digit",
             })}
           </p>
-          {(normResultStatus === "DISPATCHED" || normResultStatus === "LOCATED") &&
+          {(normResultStatus === "EN_ROUTE" || normResultStatus === "ON_SCENE") &&
             (result.eta_display || result.estimated_arrival_minutes) && (
               <p className="text-xs text-primary font-bold mt-2 flex items-center gap-1">
                 <Clock size={12} />
@@ -514,7 +518,7 @@ export default function EmergencyPage() {
   const normStatus = normalizePublicStatus(activeStatus?.status);
 
   const showEtaInCard =
-    (normStatus === "DISPATCHED" || normStatus === "LOCATED") &&
+    (normStatus === "EN_ROUTE" || normStatus === "ON_SCENE") &&
     Boolean(
       activeStatus?.eta_display ||
         (typeof activeStatus?.estimated_arrival_minutes === "number" &&
@@ -1243,10 +1247,8 @@ export default function EmergencyPage() {
 
                 <aside className="lg:col-span-4 flex flex-col gap-5">
                   <RescueTimelineGSAP
-                    status={activeStatus?.status}
-                    severity={severity}
-                    etaDisplay={activeStatus?.eta_display}
-                    estimatedArrivalMinutes={activeStatus?.estimated_arrival_minutes}
+                    currentStatus={activeStatus?.status || "REPORTED"}
+                    createdAtIso={activeStatus?.created_at}
                   />
                   <ReportTracker
                     initialTicket={ticketNumber}

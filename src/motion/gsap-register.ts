@@ -1,13 +1,25 @@
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+/**
+ * Dynamic GSAP Loader & Plugin Registry
+ * Prevents GSAP from being statically included in the shared root initial JS bundle.
+ */
 
-let registered = false;
+export async function getGsap() {
+  const [{ gsap }, { ScrollTrigger }] = await Promise.all([
+    import("gsap"),
+    import("gsap/ScrollTrigger"),
+  ]);
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.ticker.lagSmoothing(0);
+  if (typeof window !== "undefined") {
+    (window as any).gsap = gsap;
+    (window as any).ScrollTrigger = ScrollTrigger;
+  }
+  return { gsap, ScrollTrigger };
+}
 
 export function registerGsapPlugins(): void {
-  if (registered) return;
-  gsap.registerPlugin(ScrollTrigger);
-  // Prevent GSAP's ticker from accumulating lag after heavy frames, which
-  // otherwise makes scrubbed ScrollTrigger tweens feel jumpy during scroll.
-  gsap.ticker.lagSmoothing(0);
-  registered = true;
+  // Fire-and-forget background async loader if triggered explicitly
+  if (typeof window !== "undefined") {
+    getGsap().catch(() => {});
+  }
 }

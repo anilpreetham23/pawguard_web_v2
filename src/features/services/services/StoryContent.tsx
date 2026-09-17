@@ -13,11 +13,11 @@
 
 import { memo, useEffect, useState } from "react";
 import Link from "next/link";
-import { gsap } from "gsap";
 import { motion } from "motion/react";
 import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/pawguard/Button";
 import { useMotionStore } from "@/motion/motion-store";
+import { getGsap } from "@/motion/gsap-register";
 import { fadeUp, panelVariants, timelineDot, timelineFill } from "./motion-variants";
 import type { ServiceData } from "./services-data";
 
@@ -59,15 +59,23 @@ export function CountStat({
       setDisplay(value);
       return;
     }
-    const obj = { v: 0 };
-    const tween = gsap.to(obj, {
-      v: num,
-      duration: 0.75,
-      delay,
-      ease: "back.out(1.6)",
-      onUpdate: () => setDisplay(formatValue(obj.v, prefix, suffix)),
+    let tween: any = null;
+    getGsap().then(({ gsap }) => {
+      const obj = { v: 0 };
+      tween = gsap.to(obj, {
+        v: num,
+        duration: 0.75,
+        delay,
+        ease: "back.out(1.6)",
+        onUpdate: () => setDisplay(formatValue(obj.v, prefix, suffix)),
+      });
+    }).catch(() => {
+      setDisplay(value);
     });
-    return () => { tween.kill(); };
+
+    return () => {
+      if (tween?.kill) tween.kill();
+    };
   }, [num, prefix, suffix, delay, motionTier, value]);
 
   return (

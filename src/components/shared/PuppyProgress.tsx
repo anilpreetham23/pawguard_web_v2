@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import type { LottieRef } from "lottie-react";
 import { useMotionStore } from "@/motion/motion-store";
-import { LottieDog } from "@/motion/components/lottie-dog";
 import "./puppy-progress.css";
+
+const LottieDog = dynamic(
+  () => import("@/motion/components/lottie-dog").then((mod) => mod.LottieDog),
+  { ssr: false }
+);
 
 const PUPPY_SIZE = 72;
 

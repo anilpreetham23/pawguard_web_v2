@@ -10,6 +10,7 @@
 
 import type {
   FoundReportResponse,
+  LostFoundReportResponse,
   LostFoundReportStatus,
   LostReportResponse,
   Species,
@@ -42,98 +43,84 @@ function hashString(value: string): number {
   return Math.abs(hash);
 }
 
-function deriveTone(value: string): string {
-  return TONES[hashString(value) % TONES.length];
+function deriveTone(id: string): string {
+  const idx = hashString(id) % TONES.length;
+  return TONES[idx]!;
 }
 
 function deriveEmoji(species: Species): string {
-  return SPECIES_EMOJIS[species];
+  return SPECIES_EMOJIS[species] || "🐾";
 }
 
-/** Uppercased first six hex chars of the uuid, used for a stable case number. */
 function shortId(id: string): string {
-  return id.replace(/-/g, "").slice(0, 6).toUpperCase();
+  if (!id) return "000";
+  return id.replace(/-/g, "").slice(0, 4).toUpperCase();
 }
 
-function deriveDaysAgo(value: string): number {
-  const parsed = Date.parse(value);
-  if (Number.isNaN(parsed)) return 0;
-  return Math.max(0, Math.floor((Date.now() - parsed) / 86_400_000));
-}
-
-/** Split an ISO datetime into readable display date and time. */
-function splitDateTime(value: string): { date: string; time: string } {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return { date: "Not specified", time: "" };
+function splitDateTime(isoStr: string | undefined): { date: string; time: string } {
+  if (!isoStr) return { date: "Recent", time: "" };
+  try {
+    const d = new Date(isoStr);
+    const date = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+    return { date, time };
+  } catch {
+    return { date: "Recent", time: "" };
   }
-  const date = parsed.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-  const time = parsed.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  return { date, time };
 }
 
-/** Fields the backend does not collect — deterministic, graceful fallbacks. */
-function deriveFallbacks(): {
-  age: string;
-  gender: PetGender | "unknown";
-  size: PetSize;
-  condition: PetCondition;
-  reward: string;
-  distinctiveMarks: string;
-} {
-  return {
-    age: "Unknown",
-    gender: "unknown",
-    size: "medium",
-    condition: "unknown",
-    reward: "",
-    distinctiveMarks: "",
-  };
+function deriveDaysAgoNumber(isoStr: string | undefined): number {
+  if (!isoStr) return 0;
+  try {
+    const d = new Date(isoStr);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    return Math.max(0, days);
+  } catch {
+    return 0;
+  }
 }
 
 function buildTimeline(
   kind: LostFoundKind,
   createdAt: string,
-  eventAt: string,
+  eventAt: string | undefined,
   status: LostFoundReportStatus
 ): LostFoundTimelineEvent[] {
+  const { date: createDate, time: createTime } = splitDateTime(createdAt);
+  const { date: eventDate, time: eventTime } = splitDateTime(eventAt);
+
+  const initialTitle = kind === "lost" ? "Reported Missing" : "Sighting Reported";
+  const initialDesc =
+    kind === "lost"
+      ? "Owner filed a missing pet report on PawGuard."
+      : "Finder reported a stray/wandering pet on PawGuard.";
+
   const events: LostFoundTimelineEvent[] = [
     {
-      title: "Report received",
-      description:
-        kind === "lost"
-          ? "The missing pet was reported to PawGuard."
-          : "The roaming animal was reported to PawGuard.",
-      date: createdAt,
+      title: initialTitle,
+      date: `${eventDate} ${eventTime}`.trim(),
+      description: initialDesc,
     },
     {
-      title: kind === "lost" ? "Pet reported missing" : "Animal found",
-      description:
-        kind === "lost"
-          ? "The pet was last seen at the reported location."
-          : "The animal was found at the reported location.",
-      date: eventAt,
+      title: "Case Verified",
+      date: `${createDate} ${createTime}`.trim(),
+      description: "PawGuard team validated report location and details.",
     },
   ];
 
   if (status === "resolved") {
     events.push({
-      title: "Marked resolved",
-      description: "This report was resolved and the case is now closed.",
-      date: createdAt,
+      title: "Reunited",
+      date: "Resolved",
+      description: "Pet has been successfully reunited with their owner.",
     });
-  } else if (status === "expired") {
+  } else {
     events.push({
-      title: "Marked expired",
-      description: "This report has expired after its active window.",
-      date: createdAt,
+      title: "Active Search / Matching",
+      date: "Ongoing",
+      description: "AI matching and community notifications active in the area.",
     });
   }
 
@@ -147,53 +134,56 @@ function buildDescription(
   color: string,
   location: string
 ): string {
-  const colorClause = color ? ` It has ${color} markings.` : "";
-  return kind === "lost"
-    ? `${petName || "A pet"}, a ${breed || "pet"}, was reported missing near ${location}.${colorClause}`
-    : `A ${breed || "pet"} was found near ${location}.${colorClause}`;
+  if (kind === "lost") {
+    return `${petName || "Pet"} is a ${color} ${breed} missing from ${location}. Friendly and responds to their name. Please report any sightings immediately.`;
+  }
+  return `Found a ${color} ${breed} roaming near ${location}. Safe and resting under community supervision while we look for the owner.`;
+}
+
+function deriveFallbacks(): {
+  gender: PetGender | "unknown";
+  size: PetSize;
+  age: string;
+  condition: PetCondition;
+  distinctiveMarks: string;
+  reward: string;
+} {
+  return {
+    gender: "unknown",
+    size: "medium",
+    age: "Unknown",
+    condition: "healthy",
+    distinctiveMarks: "No distinctive physical marks listed.",
+    reward: "",
+  };
 }
 
 import type { ReportMediaResponse } from "@/lib/api";
 
-function extractMediaInfo(report: {
-  photo_url?: string | null;
-  media?: ReportMediaResponse[];
-}): {
-  primaryPhotoUrl: string | null;
-  videoUrl: string | null;
+function extractMediaInfo(report: LostReportResponse | FoundReportResponse): {
+  primaryPhotoUrl: string | undefined;
   galleryPhotoUrls: string[];
   mediaItems: ReportMediaResponse[];
+  videoUrl: string | undefined;
 } {
-  const mediaItems = report.media ? [...report.media].sort((a, b) => a.display_order - b.display_order) : [];
-
-  const videoItem = mediaItems.find((m) => m.media_type === "video");
-  const videoUrl = videoItem?.url || null;
-
-  const photoItems = mediaItems.filter((m) => m.media_type === "photo");
-  const primaryItem = photoItems.find((m) => m.is_primary) || photoItems[0];
-
-  const primaryPhotoUrl =
-    primaryItem?.url ||
-    report.photo_url ||
-    (report as Record<string, any>).image_url ||
-    (report as Record<string, any>).photo ||
-    (report as Record<string, any>).image ||
-    null;
-
-  const galleryPhotoUrls: string[] = [];
-  photoItems.forEach((m) => {
-    if (m.url) galleryPhotoUrls.push(m.url);
-  });
-
-  if (galleryPhotoUrls.length === 0 && primaryPhotoUrl) {
-    galleryPhotoUrls.push(primaryPhotoUrl);
+  if (report.media && report.media.length > 0) {
+    const photos = report.media.filter((m) => m.media_type === "photo");
+    const videos = report.media.filter((m) => m.media_type === "video");
+    const primary = photos.find((m) => m.is_primary)?.url || photos[0]?.url || report.photo_url || undefined;
+    const gallery = photos.map((m) => m.url).filter((u): u is string => Boolean(u));
+    return {
+      primaryPhotoUrl: primary || report.photo_url || undefined,
+      galleryPhotoUrls: gallery.length > 0 ? gallery : report.photo_url ? [report.photo_url] : [],
+      mediaItems: report.media,
+      videoUrl: videos[0]?.url || undefined,
+    };
   }
-
+  const primary = report.photo_url || undefined;
   return {
-    primaryPhotoUrl,
-    videoUrl,
-    galleryPhotoUrls,
-    mediaItems,
+    primaryPhotoUrl: primary,
+    galleryPhotoUrls: primary ? [primary] : [],
+    mediaItems: primary ? [{ id: "m-1", media_type: "photo", object_key: primary, url: primary, is_primary: true, display_order: 1 }] : [],
+    videoUrl: undefined,
   };
 }
 
@@ -232,7 +222,7 @@ export function lostReportToCase(report: LostReportResponse): LostFoundCase {
     contactNumber: "",
     email: report.user?.email || "",
     reportedAt: report.created_at,
-    reportedDaysAgo: deriveDaysAgo(report.created_at),
+    reportedDaysAgo: deriveDaysAgoNumber(report.created_at),
     timeline: buildTimeline("lost", report.created_at, report.lost_at, report.status),
     tone: deriveTone(report.id),
     emoji: deriveEmoji(report.species),
@@ -283,7 +273,7 @@ export function foundReportToCase(report: FoundReportResponse): LostFoundCase {
     contactNumber: "",
     email: report.user?.email || "",
     reportedAt: report.created_at,
-    reportedDaysAgo: deriveDaysAgo(report.created_at),
+    reportedDaysAgo: deriveDaysAgoNumber(report.created_at),
     timeline: buildTimeline(
       "found",
       report.created_at,
@@ -301,6 +291,12 @@ export function foundReportToCase(report: FoundReportResponse): LostFoundCase {
     longitude: report.longitude,
     userId: report.user_id || report.user?.id,
   };
+}
+
+export function reportToCase(report: LostFoundReportResponse): LostFoundCase {
+  return report.kind === "lost"
+    ? lostReportToCase(report as LostReportResponse)
+    : foundReportToCase(report as FoundReportResponse);
 }
 
 export type {

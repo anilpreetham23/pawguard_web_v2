@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { gsap } from "gsap";
 import { duration as durConfig } from "../motion.config";
 import { useMotionStore } from "../motion-store";
+import { getGsap } from "../gsap-register";
 
 interface UseCountUpOptions {
   from?: number;
@@ -49,6 +49,8 @@ export function useCountUp(formattedValue: string, options: UseCountUpOptions = 
     const el = triggerRef.current;
     if (!el) return;
 
+    let tween: any = null;
+
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
@@ -60,23 +62,31 @@ export function useCountUp(formattedValue: string, options: UseCountUpOptions = 
           return;
         }
 
-        const obj = { value: options.from ?? 0 };
-        gsap.to(obj, {
-          value: num,
-          duration: dur,
-          delay,
-          ease: "power2.out",
-          onUpdate: () => {
-            const rounded = Math.round(obj.value);
-            setDisplay(formatDisplay(rounded, prefix, suffix));
-          },
-          onComplete: () => setAnimated(true),
+        getGsap().then(({ gsap }) => {
+          const obj = { value: options.from ?? 0 };
+          tween = gsap.to(obj, {
+            value: num,
+            duration: dur,
+            delay,
+            ease: "power2.out",
+            onUpdate: () => {
+              const rounded = Math.round(obj.value);
+              setDisplay(formatDisplay(rounded, prefix, suffix));
+            },
+            onComplete: () => setAnimated(true),
+          });
+        }).catch(() => {
+          setDisplay(formattedValue);
+          setAnimated(true);
         });
       },
       { threshold: 0.3 }
     );
     obs.observe(el);
-    return () => obs.disconnect();
+    return () => {
+      obs.disconnect();
+      if (tween?.kill) tween.kill();
+    };
   }, [num, prefix, suffix, formattedValue, options.from, options.duration, options.delay, motionTier, animated]);
 
   return { display, triggerRef };

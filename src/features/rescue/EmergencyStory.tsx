@@ -2,183 +2,175 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useSafeScrollTrigger } from "@/hooks/useSafeScrollTrigger";
 import { Section } from "@/layouts/Section";
 import { EditorialHeading } from "@/layouts/EditorialHeading";
 import { Atmosphere } from "@/motion/components/Atmosphere";
 import { useMotionStore } from "@/motion/motion-store";
+import { getGsap } from "@/motion/gsap-register";
 import { cn } from "@/components/ui/utils";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const STAGE_WEIGHTS = [0.16, 0.14, 0.16, 0.18, 0.18, 0.18];
 
 const STAGES = [
   {
     id: "report",
-    number: 1,
-    title: "Report Received",
-    description:
-      "Your report is logged instantly with GPS coordinates, condition photos, and contact info.",
-    duration: "Immediate",
-    team: "Dispatch Center",
-    image: "/images/rescue-process/step-1.webp",
-    emotion: "Frightened",
+    num: "01",
+    label: "Emergency Reported",
+    title: "Caller pinpoints a high-urgency rescue",
+    badge: "< 60 seconds",
+    color: "var(--emotion-urgency)",
+    desc: "A passerby submits a report with photo, condition assessment, and live GPS pin. System categorises it as Tier-1 critical.",
+    metrics: [
+      { k: "Triage", v: "Tier 1" },
+      { k: "Auto-notify", v: "3 units" },
+    ],
   },
   {
     id: "dispatch",
-    number: 2,
-    title: "Dispatcher Assigned",
-    description:
-      "A dispatcher reviews the report, checks urgency, and coordinates the nearest team within a minute.",
-    duration: "~45 seconds",
-    team: "Dispatch Center",
-    image: "/images/rescue-process/step-2.webp",
-    emotion: "Hopeful",
+    num: "02",
+    label: "Unit Dispatched",
+    title: "Mobile team accepts and routes",
+    badge: "2.4 mins avg",
+    color: "var(--color-primary-600)",
+    desc: "Nearest available ambulance accepts the request. Live telemetry streams real-time ETA back to the dispatch dashboard.",
+    metrics: [
+      { k: "Unit ID", v: "MED-04" },
+      { k: "ETA", v: "11 mins" },
+    ],
   },
   {
-    id: "enroute",
-    number: 3,
-    title: "Rescue Vehicle En Route",
-    description:
-      "The nearest team heads out with live GPS tracking, and you get a real-time ETA.",
-    duration: "Priority dispatch",
-    team: "Rescue Operations",
-    image: "/images/rescue-process/step-3.webp",
-    emotion: "Alert",
+    id: "on-scene",
+    num: "03",
+    label: "On-Scene Stabilization",
+    title: "Immediate field care & containment",
+    badge: "Under 15 mins",
+    color: "var(--color-primary-700)",
+    desc: "Veterinary technicians arrive, secure the area, administer pain management, and stabilize the dog for transport.",
+    metrics: [
+      { k: "Vital check", v: "Stable" },
+      { k: "Sedation", v: "As needed" },
+    ],
   },
   {
-    id: "veterinary",
-    number: 4,
-    title: "Veterinary Care",
-    description:
-      "On-site triage begins immediately, followed by emergency treatment and transport to a vet clinic.",
-    duration: "Varies by condition",
-    team: "Medical Team",
-    image: "/images/rescue-process/step-4.webp",
-    emotion: "Safe",
+    id: "surgery",
+    num: "04",
+    label: "Veterinary Surgery",
+    title: "Clinical treatment at care centre",
+    badge: "Same-day care",
+    color: "var(--color-primary-800)",
+    desc: "Transferred to PawGuard Central Hospital. Surgeons perform necessary procedures, microchip, and initiate recovery.",
+    metrics: [
+      { k: "Surgeon", v: "Dr. Chen" },
+      { k: "ICU Stay", v: "48 hours" },
+    ],
   },
   {
-    id: "recovery",
-    number: 5,
-    title: "Recovery",
-    description:
-      "The dog is monitored, placed in foster care, and you get regular status updates.",
-    duration: "Days to weeks",
-    team: "Foster Network",
-    image: "/images/rescue-process/step-5.webp",
-    emotion: "Recovering",
+    id: "rehab",
+    num: "05",
+    label: "Foster & Rehabilitation",
+    title: "Physical & emotional recovery",
+    badge: "2-4 weeks",
+    color: "var(--color-primary-600)",
+    desc: "Placed with an experienced foster family. Behavioural team conducts daily assessments until the dog is ready for adoption.",
+    metrics: [
+      { k: "Foster", v: "Verified" },
+      { k: "Assessment", v: "Passed" },
+    ],
   },
   {
     id: "adoption",
-    number: 6,
-    title: "Adoption or Release",
-    description:
-      "Once healthy, the dog is reunited with family or matched with a forever home.",
-    duration: "Until placement",
-    team: "Adoption Services",
-    image: "/images/rescue-process/step-6.webp",
-    emotion: "Happy",
+    num: "06",
+    label: "Forever Home",
+    title: "Matching & final adoption",
+    badge: "Lifetime bond",
+    color: "var(--color-primary-900)",
+    desc: "Approved adopter completes meet & greet, signs responsible ownership agreement, and receives ongoing PawGuard support.",
+    metrics: [
+      { k: "Match ID", v: "PG-882" },
+      { k: "Guarantee", v: "30-Day" },
+    ],
   },
-];
-
-interface TimelineLayout {
-  viewBox: { width: number; height: number };
-  path: string;
-}
+] as const;
 
 export default function EmergencyStory() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const timelineRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<SVGPathElement>(null);
-  const fillRef = useRef<SVGPathElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-
   const motionTier = useMotionStore((s) => s.motionTier);
-  const animate = motionTier === "full";
+  const animate = motionTier !== "none" && motionTier !== "reduced";
 
-  const [layout, setLayout] = useState<TimelineLayout | null>(null);
-
+  const sectionRef = useRef<HTMLElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const fillRef = useRef<SVGPathElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
 
-  useSafeScrollTrigger(350);
+  const nodeRefs = useRef<HTMLDivElement[]>([]);
+  const cardRefs = useRef<HTMLDivElement[]>([]);
 
-  /* ── Measurement ─────────────────────────────────────────────────────── */
+  const [layout, setLayout] = useState<{
+    pathD: string;
+    nodePositions: { x: number; y: number }[];
+    totalLength: number;
+    svgHeight: number;
+  } | null>(null);
 
-  const measureTimeline = useCallback(() => {
-    const wrapper = timelineRef.current;
-    if (!wrapper) return;
+  useSafeScrollTrigger(400);
 
-    const wrapperRect = wrapper.getBoundingClientRect();
-    const cw = wrapperRect.width;
-    const ch = wrapperRect.height;
+  const measureLayout = useCallback(() => {
+    const section = sectionRef.current;
+    const svg = svgRef.current;
+    if (!section || !svg) return;
 
-    // Measure NODE centers — the snake path must pass through the nodes
-    const nodes = nodeRefs.current.filter(Boolean) as HTMLDivElement[];
-    if (nodes.length === 0) return;
+    const nodes = nodeRefs.current.filter(Boolean);
+    if (nodes.length !== STAGES.length) return;
 
-    const centers = nodes.map((node) => {
-      const r = node.getBoundingClientRect();
-      return {
-        x: r.left + r.width / 2 - wrapperRect.left,
-        y: r.top + r.height / 2 - wrapperRect.top,
-      };
+    const isDesktop = window.innerWidth >= 1024;
+    const svgRect = svg.getBoundingClientRect();
+
+    const positions = nodes.map((n) => {
+      const r = n.getBoundingClientRect();
+      const cx = r.left + r.width / 2 - svgRect.left;
+      const cy = r.top + r.height / 2 - svgRect.top;
+      return { x: cx, y: cy };
     });
 
-    // Equalize row heights (tallest card wins) so all six nodes land on an even
-    // vertical pitch. Alternating grid rows otherwise auto-place the node into a
-    // second implicit track, and varied card text makes row heights differ →
-    // uneven node spacing and nodes drifting off their card center.
-    const rows = wrapper.querySelectorAll<HTMLElement>(".rescue-row");
-    let maxRowH = 0;
-    rows.forEach((row) => {
-      const h = row.offsetHeight;
-      if (h > maxRowH) maxRowH = h;
-    });
-    if (maxRowH > 0) {
-      wrapper.style.setProperty("--timeline-row-h", `${Math.ceil(maxRowH)}px`);
+    if (positions.length < 2) return;
+
+    let d = "";
+    if (isDesktop) {
+      d = `M ${positions[0].x} ${positions[0].y}`;
+      for (let i = 0; i < positions.length - 1; i++) {
+        const p1 = positions[i];
+        const p2 = positions[i + 1];
+        const midY = (p1.y + p2.y) / 2;
+        d += ` C ${p1.x} ${midY}, ${p2.x} ${midY}, ${p2.x} ${p2.y}`;
+      }
+    } else {
+      const fixedX = positions[0].x;
+      d = `M ${fixedX} ${positions[0].y}`;
+      for (let i = 1; i < positions.length; i++) {
+        d += ` L ${fixedX} ${positions[i].y}`;
+      }
     }
 
-    // Build tight cubic-bezier snake path through measured node centers
-    const cx = centers[0].x;
-    const swing = Math.min(Math.max(cw * 0.04, 20), 30);
-    const startY = centers[0].y - 16;
-    const endY = centers[centers.length - 1].y + 16;
+    const tmpPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    tmpPath.setAttribute("d", d);
+    const totalLength = tmpPath.getTotalLength();
+    const svgHeight = svgRect.height;
 
-    let d = `M ${cx} ${startY}`;
-    centers.forEach((c, i) => {
-      const prev = i === 0 ? { x: cx, y: startY } : centers[i - 1];
-      const dy = c.y - prev.y;
-      const swingDir = i % 2 === 0 ? -1 : 1;
-      const sx = cx + swingDir * swing;
-      d += ` C ${sx} ${prev.y + dy * 0.33}, ${sx} ${c.y - dy * 0.33}, ${cx} ${c.y}`;
-    });
-    d += ` L ${cx} ${endY}`;
-
-    setLayout({
-      viewBox: { width: cw, height: ch },
-      path: d,
-    });
+    setLayout({ pathD: d, nodePositions: positions, totalLength, svgHeight });
   }, []);
 
-  /* ── ResizeObserver + fonts ──────────────────────────────────────────── */
-
   useLayoutEffect(() => {
-    document.fonts.ready.then(() => measureTimeline());
+    measureLayout();
+    const handleResize = () => measureLayout();
+    window.addEventListener("resize", handleResize);
+    const ro = new ResizeObserver(() => measureLayout());
+    if (sectionRef.current) ro.observe(sectionRef.current);
 
-    const wrapper = timelineRef.current;
-    if (!wrapper) return;
-
-    const ro = new ResizeObserver(() => measureTimeline());
-    ro.observe(wrapper);
-    return () => ro.disconnect();
-  }, [measureTimeline]);
-
-  /* ── GSAP scroll animation ────────────────────────────────────────── */
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      ro.disconnect();
+    };
+  }, [measureLayout]);
 
   useEffect(() => {
     if (!animate || !layout) return;
@@ -188,264 +180,157 @@ export default function EmergencyStory() {
     if (!section || !pathEl) return;
 
     const n = STAGES.length;
-    let acc = 0;
-    const segments = STAGE_WEIGHTS.map((w) => {
-      const start = acc;
-      acc += w;
-      return [start, acc] as const;
-    });
+    let ctx: any = null;
 
-    const ctx = gsap.context(() => {
-      let lastActive = -1;
+    getGsap().then(({ gsap }) => {
+      ctx = gsap.context(() => {
+        let lastActive = -1;
 
-      const tl = gsap.timeline({
-        defaults: { ease: "none" },
-        scrollTrigger: {
-          trigger: section,
-          start: "top 80%",
-          end: "bottom 30%",
-          scrub: 0.75,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          onUpdate: (self) => {
-            const p = self.progress;
-            const activeIdx = Math.min(n - 1, Math.floor(p * n));
-            if (activeIdx === lastActive) return;
-            lastActive = activeIdx;
-            nodeRefs.current.forEach((node, i) => {
-              if (!node) return;
-              node.dataset.state =
-                i < activeIdx ? "complete" : i === activeIdx ? "active" : "upcoming";
-            });
+        const tl = gsap.timeline({
+          defaults: { ease: "none" },
+          scrollTrigger: {
+            trigger: section,
+            start: "top 80%",
+            end: "bottom 30%",
+            scrub: 0.75,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const p = self.progress;
+              const activeIdx = Math.min(n - 1, Math.floor(p * n));
+              if (activeIdx === lastActive) return;
+              lastActive = activeIdx;
+              nodeRefs.current.forEach((node, i) => {
+                if (!node) return;
+                node.dataset.state =
+                  i < activeIdx ? "complete" : i === activeIdx ? "active" : "upcoming";
+              });
+            },
           },
-        },
-      });
+        });
 
-      // Header — lead-in reveal synced to the timeline with a soft rise
-      if (header) {
-        tl.fromTo(
-          header,
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.08, ease: "power2.out" },
-          0,
-        );
-      }
-
-      // Path draw — lengthen over the full scroll with organic pacing
-      tl.fromTo(
-        pathEl,
-        { strokeDashoffset: 1 },
-        { strokeDashoffset: 0, duration: 0.94, ease: "power1.inOut" },
-        0.04,
-      );
-
-      // Nodes + cards — card slides from its own side (converging on the path)
-      STAGES.forEach((_, i) => {
-        const [s, e] = segments[i];
-        const node = nodeRefs.current[i];
-        const card = cardRefs.current[i];
-        const seg = Math.max(0.001, e - s);
-
-        if (node) {
+        if (header) {
           tl.fromTo(
-            node,
-            { scale: 0.35, opacity: 0 },
-            { scale: 1, opacity: 1, duration: seg * 0.5, ease: "back.out(1.7)" },
-            s,
+            header,
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.08, ease: "power2.out" },
+            0
           );
         }
-        if (card) {
-          const even = i % 2 === 0;
+
+        tl.fromTo(
+          pathEl,
+          { strokeDashoffset: layout.totalLength },
+          { strokeDashoffset: 0, duration: 1, ease: "none" },
+          0.04
+        );
+
+        cardRefs.current.forEach((card) => {
+          if (!card) return;
           tl.fromTo(
             card,
-            { x: even ? -28 : 28, opacity: 0 },
-            {
-              x: 0,
-              opacity: 1,
-              duration: seg * 0.6,
-              ease: "power3.out",
-              clearProps: "transform",
-            },
-            s + seg * 0.02,
+            { opacity: 0, y: 28 },
+            { opacity: 1, y: 0, duration: 0.14, ease: "power2.out" }
           );
-        }
-      });
-    }, section);
+        });
+      }, section);
+    }).catch(() => {});
 
-    return () => ctx.revert();
+    return () => {
+      if (ctx?.revert) ctx.revert();
+    };
   }, [animate, layout]);
 
-  /* ── Render ──────────────────────────────────────────────────────────── */
-
   return (
-    <Section
-      bg="default"
-      className="emergency-story overflow-hidden"
-      data-nav-anchor="emergency"
-    >
-      <Atmosphere tint="urgency" intensity={0.4} />
+    <Section ref={sectionRef} bg="card" className="relative overflow-hidden">
+      <Atmosphere variant="both" intensity={0.3} />
 
-      <div ref={sectionRef}>
-        {/* Header — GSAP-animated lead-in (vía headerRef) */}
-        <div
-          ref={headerRef}
-          className="flex flex-col gap-3 mb-8 md:mb-10 lg:mb-12 max-w-[680px]"
-        >
-          <EditorialHeading eyebrow="The Rescue Process" static>
-            When you report a dog in need, here is *exactly* what happens.
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div ref={headerRef} className="mb-12 lg:mb-16">
+          <EditorialHeading
+            eyebrow="Lifecycle of a Rescue"
+            description="Follow the step-by-step protocol that ensures every rescued dog receives immediate medical response and verified adoption placement."
+          >
+            From Emergency Call to Forever Home
           </EditorialHeading>
-          <p className="text-muted-foreground text-sm lg:text-base leading-relaxed mt-1">
-            Every stage of the process is coordinated through a single system — from
-            the moment you submit a report to the moment the dog reaches safety.
-          </p>
         </div>
 
-        {/* Timeline — cards drive vertical rhythm */}
-        <div ref={timelineRef} className="relative">
-          {/* Snake SVG — decorative, rendered from measured node coordinates */}
+        <div className="relative">
           {layout && (
             <svg
               ref={svgRef}
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 hidden lg:block"
-              viewBox={`0 0 ${layout.viewBox.width} ${layout.viewBox.height}`}
-              preserveAspectRatio="none"
+              className="absolute inset-0 w-full h-full pointer-events-none z-0"
+              style={{ height: layout.svgHeight }}
             >
-              <defs>
-                <linearGradient id="rescue-snake-grad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--primary)" />
-                  <stop offset="55%" stopColor="#0d9488" />
-                  <stop offset="100%" stopColor="#10b981" />
-                </linearGradient>
-              </defs>
               <path
-                ref={trackRef}
-                d={layout.path}
+                d={layout.pathD}
                 fill="none"
-                stroke="var(--border)"
-                strokeWidth="2.5"
-                vectorEffect="non-scaling-stroke"
-                strokeLinecap="round"
+                stroke="var(--color-border)"
+                strokeWidth="3"
+                strokeDasharray="6 6"
               />
               <path
                 ref={fillRef}
-                d={layout.path}
+                d={layout.pathD}
                 fill="none"
-                stroke="url(#rescue-snake-grad)"
+                stroke="var(--color-primary-600)"
                 strokeWidth="4"
-                vectorEffect="non-scaling-stroke"
-                strokeLinecap="round"
-                className="rescue-fill"
-                pathLength={1}
-                style={{
-                  strokeDasharray: 1,
-                  strokeDashoffset: animate ? 1 : 0,
-                }}
+                strokeDasharray={layout.totalLength}
+                strokeDashoffset={layout.totalLength}
               />
             </svg>
           )}
 
-          {/* Steps — cards are primary, nodes follow */}
-          <div className="flex flex-col gap-4 lg:gap-5">
-            {STAGES.map((stage, i) => {
-              const even = i % 2 === 0;
-
-              return (
-                <div
-                  key={stage.id}
-                  className="rescue-row relative flex items-start gap-5 lg:grid lg:min-h-[140px] lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-center lg:gap-x-[var(--timeline-gap-x)]"
-                >
-                  {/* Card — primary layout driver, determines row height */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-12 lg:gap-y-20 gap-x-12 relative z-10">
+            {STAGES.map((s, i) => (
+              <div
+                key={s.id}
+                ref={(el) => {
+                  if (el) cardRefs.current[i] = el;
+                }}
+                className={cn(
+                  "flex flex-col gap-4 p-6 sm:p-8 rounded-card border border-border bg-card shadow-sm hover:shadow-md transition-shadow",
+                  i % 2 === 1 && "lg:mt-16"
+                )}
+              >
+                <div className="flex items-center justify-between">
                   <div
                     ref={(el) => {
-                      cardRefs.current[i] = el;
+                      if (el) nodeRefs.current[i] = el;
                     }}
-                    className={cn(
-                      "min-w-0 flex-1",
-                      "lg:flex-none lg:max-w-[460px] lg:row-start-1",
-                      even
-                        ? "lg:col-start-1 lg:justify-self-end"
-                        : "lg:col-start-3 lg:justify-self-start",
-                    )}
+                    data-state="upcoming"
+                    className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-primary/10 text-primary transition-colors"
                   >
-                    <article
-                      className="rescue-card group h-full rounded-2xl border border-border bg-background p-5 transition-all duration-gentle ease-gentle"
-                      aria-labelledby={`stage-title-${stage.id}`}
-                      aria-describedby={`stage-desc-${stage.id}`}
-                    >
-                      <div className="flex gap-4">
-                        {/* Dog image — consistent size via CSS class */}
-                        <div className="relative shrink-0 w-24 h-24">
-                          <Image
-                            src={stage.image}
-                            alt={`${stage.title} — ${stage.emotion} dog`}
-                            fill
-                            sizes="96px"
-                            className="rescue-card-img object-cover rounded-xl"
-                            unoptimized
-                          />
-                          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-border/60 bg-card px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-foreground/70 z-10">
-                            {stage.emotion}
-                          </span>
-                        </div>
-
-                        {/* Text — left-aligned */}
-                        <div className="min-w-0 flex-1">
-                          <h3
-                            id={`stage-title-${stage.id}`}
-                            className="text-base font-bold leading-snug text-foreground"
-                          >
-                            {stage.title}
-                          </h3>
-                          <p
-                            id={`stage-desc-${stage.id}`}
-                            className="mt-2 text-sm leading-relaxed text-muted-foreground"
-                          >
-                            {stage.description}
-                          </p>
-
-                          {/* Chips */}
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            {[
-                              { label: "Time", value: stage.duration },
-                              { label: "Team", value: stage.team },
-                            ].map((m) => (
-                              <span
-                                key={m.label}
-                                className="inline-flex items-center gap-1.5 rounded-md border border-border/40 bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground"
-                              >
-                                <span className="text-muted-foreground/60">
-                                  {m.label}:
-                                </span>
-                                <span className="font-semibold text-foreground/80">
-                                  {m.value}
-                                </span>
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </article>
+                    {s.num}
                   </div>
-
-                  {/* Node — sits on the SVG curve, aligned to card center */}
-                  <div
-                    ref={(el) => {
-                      nodeRefs.current[i] = el;
-                    }}
-                    data-state={animate ? "upcoming" : "complete"}
-                    className="rescue-node relative z-10 flex items-center justify-center rounded-full border-2 font-mono text-sm font-bold lg:col-start-2 lg:row-start-1 lg:justify-self-center"
-                    style={{
-                      width: "var(--timeline-node-size)",
-                      height: "var(--timeline-node-size)",
-                    }}
-                    aria-hidden="true"
-                  >
-                    {stage.number}
-                  </div>
+                  <span className="text-2xs font-semibold px-2.5 py-1 rounded-full bg-secondary text-foreground uppercase tracking-wider font-condensed">
+                    {s.badge}
+                  </span>
                 </div>
-              );
-            })}
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-primary uppercase tracking-widest font-condensed">
+                    {s.label}
+                  </span>
+                  <h3 className="font-serif font-bold text-xl sm:text-2xl text-foreground">
+                    {s.title}
+                  </h3>
+                </div>
+
+                <p className="text-muted-foreground text-sm leading-relaxed">{s.desc}</p>
+
+                <div className="pt-4 border-t border-border/60 grid grid-cols-2 gap-4">
+                  {s.metrics.map((m) => (
+                    <div key={m.k} className="flex flex-col">
+                      <span className="text-[10px] text-muted-foreground uppercase font-condensed font-semibold">
+                        {m.k}
+                      </span>
+                      <span className="text-sm font-bold text-foreground">{m.v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

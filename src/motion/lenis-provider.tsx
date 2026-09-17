@@ -1,15 +1,31 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { useMotionStore } from "./motion-store";
 import { setLenis } from "./lenis-instance";
 import { ensureScrollUnlocked } from "./scroll";
-import { registerGsapPlugins } from "./gsap-register";
 
 interface LenisProviderProps {
   children: ReactNode;
+}
+
+function updateScrollTriggerIfLoaded() {
+  if (typeof window !== "undefined") {
+    const st = (window as any).ScrollTrigger || (window as any).gsap?.ScrollTrigger;
+    if (st?.update) {
+      st.update();
+    }
+  }
+}
+
+function refreshScrollTriggerIfLoaded() {
+  if (typeof window !== "undefined") {
+    const st = (window as any).ScrollTrigger || (window as any).gsap?.ScrollTrigger;
+    if (st?.refresh) {
+      st.refresh();
+    }
+  }
 }
 
 export function LenisProvider({ children }: LenisProviderProps) {
@@ -27,8 +43,6 @@ export function LenisProvider({ children }: LenisProviderProps) {
   const getPolicy = useMotionStore((s) => s.getPolicy);
 
   useEffect(() => {
-    registerGsapPlugins();
-
     const policy = getPolicy();
     const useLenis = !reducedMotion && policy.smoothScroll !== "native";
 
@@ -80,7 +94,7 @@ export function LenisProvider({ children }: LenisProviderProps) {
           scrollDirection: y >= lastY ? "down" : "up",
           scrollVelocity: Math.abs(y - lastY) / dt,
         });
-        ScrollTrigger.update();
+        updateScrollTriggerIfLoaded();
         lastY = y;
         lastTime = now;
       }
@@ -122,17 +136,6 @@ export function LenisProvider({ children }: LenisProviderProps) {
     setLenisReady(true);
     ensureScrollUnlocked();
 
-    // Reconcile Lenis with the REAL scroll position. External native scrolls
-    // (ScrollTrigger.refresh() during font/image layout shifts, history
-    // restoration, programmatic window.scrollTo) are ignored by Lenis while it
-    // is mid-smooth-animation, which leaves its internal state desynced from
-    // the page and can freeze wheel scrolling. Whenever the real position
-    // diverges, force Lenis to follow it so smooth scroll always resumes from
-    // where the page actually is.
-    //
-    // CRITICAL: Guard with `if (lenis.isScrolling) return;` so that Lenis is
-    // NOT interrupted on every frame while actively animating smooth touchpad /
-    // wheel gestures.
     const onRealScroll = () => {
       const real = window.scrollY;
       const diff = Math.abs(real - lenis.scroll);
@@ -148,12 +151,6 @@ export function LenisProvider({ children }: LenisProviderProps) {
     window.addEventListener("scroll", onRealScroll, { passive: true });
     realScrollSyncRef.current = onRealScroll;
 
-    // Lenis measures its scrollable range at creation. If the instance is
-    // created before the lazy route chunk has finished rendering (short
-    // placeholder page), its built-in ResizeObserver on <html> does not fire
-    // when the content later grows, so `limit` stays stale and smooth-scroll
-    // freezes at the old smaller range. Use a ResizeObserver on <html>, <body>,
-    // and <main> to capture dynamic content growth.
     let lastKnownMax = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
     const dimensionObs = new ResizeObserver(() => {
       const realMax = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
@@ -179,13 +176,12 @@ export function LenisProvider({ children }: LenisProviderProps) {
         scrollDirection: e.direction === 1 ? "down" : "up",
         scrollProgress: max > 0 ? Math.min(1, e.scroll / max) : 0,
       });
-      ScrollTrigger.update();
+      updateScrollTriggerIfLoaded();
     }
 
     scrollFnRef.current = onLenisScroll;
     lenis.on("scroll", onLenisScroll);
 
-    // Drive Lenis on its OWN rAF loop instead of piggy-backing on gsap.ticker.
     let rafId = 0;
 
     function loop(now: number) {
@@ -208,20 +204,19 @@ export function LenisProvider({ children }: LenisProviderProps) {
       cancelAnimationFrame(resizeRaf);
       resizeRaf = requestAnimationFrame(() => {
         lenis.resize();
-        ScrollTrigger.refresh();
+        refreshScrollTriggerIfLoaded();
       });
     }
 
     resizeFnRef.current = onResize;
     window.addEventListener("resize", onResize);
 
-    // Debounce ScrollTrigger.refresh() — multiple sources fire it on mount
     let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
     const debouncedRefresh = () => {
       if (refreshTimeout) clearTimeout(refreshTimeout);
       refreshTimeout = setTimeout(() => {
         lenis.resize();
-        ScrollTrigger.refresh();
+        refreshScrollTriggerIfLoaded();
         refreshTimeout = null;
       }, 300);
     };

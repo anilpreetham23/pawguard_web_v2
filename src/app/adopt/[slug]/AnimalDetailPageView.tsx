@@ -468,7 +468,8 @@ function AdoptionApplicationModal({
   );
 }
 
-function LivePetDetailPage({ id }: { id: string }) {
+function LivePetDetailPage({ id, initialDog }: { id: string; initialDog?: import("@/lib/api").DogProfileResponse | null }) {
+  const initialPet = initialDog ? dogProfileToPet(initialDog) : undefined;
   const {
     data: pet,
     isLoading,
@@ -477,6 +478,7 @@ function LivePetDetailPage({ id }: { id: string }) {
   } = useApiQuery({
     queryKey: QUERY_KEYS.adoption.pet(id),
     queryFn: () => adoptionService.getDog(id).then(dogProfileToPet),
+    initialData: initialPet,
   });
 
   const { isAuthenticated, openAuthDialog } = useAuth();
@@ -857,7 +859,7 @@ function RelatedPets({ pet }: { pet: Pet }) {
   );
 }
 
-export default function AnimalDetailPage({ slug }: { slug?: string }) {
+export default function AnimalDetailPage({ slug, initialDog }: { slug?: string; initialDog?: import("@/lib/api").DogProfileResponse | null }) {
   const animal = getAnimalBySlug(slug ?? "");
 
   const { isAuthenticated, openAuthDialog } = useAuth();
@@ -878,7 +880,7 @@ export default function AnimalDetailPage({ slug }: { slug?: string }) {
     // Live adoption profiles address detail pages by UUID (mock slugs are
     // simple names) — defer to the API-backed Pet view.
     if (slug) {
-      return <LivePetDetailPage id={slug} />;
+      return <LivePetDetailPage id={slug} initialDog={initialDog} />;
     }
     return (
       <PageShell>

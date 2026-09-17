@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Check, ArrowRight } from "lucide-react";
 import PageHeader from "@/components/shared/PageHeader";
 import { PageShell, Section, Button, Card, Reveal, DispatchReveal, StaggerGrid, StaggerItem } from "@/components/ui/pawguard";
-import { fetchServerCachedPublicStats } from "@/lib/api/server-public-data";
+import type { PublicHeroStats } from "@/lib/api/types";
 
 const TEAM = [
   { name: "Dr. Sarah Chen", role: "Executive Director", img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&auto=format" },
@@ -19,8 +19,12 @@ const VALUES = [
   { title: "Community", desc: "We are strongest when local communities are active participants, not passive recipients." },
 ];
 
-export default async function AboutPage() {
-  const publicStats = await fetchServerCachedPublicStats();
+interface AboutPageViewProps {
+  initialStats?: PublicHeroStats | null;
+}
+
+export default function AboutPageView({ initialStats }: AboutPageViewProps) {
+  const publicStats = initialStats;
 
   const missionText = "To build coordinated, community-driven systems that ensure every dog in crisis receives rapid rescue, quality care, and a permanent home — without exception.";
   const aboutText = "PawGuard began in 2018 when Dr. Sarah Chen, then a veterinary surgeon, responded to a series of uncoordinated dog rescue calls in her city and realized that good intentions were not enough. Dogs were slipping through gaps between organizations, jurisdictions, and volunteer networks.";

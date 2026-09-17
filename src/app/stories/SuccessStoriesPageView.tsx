@@ -1,11 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import StoryCard from "@/features/success-stories/StoryCard";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Quote } from "lucide-react";
 import PageHeader from "@/components/shared/PageHeader";
 import { PageShell, Section, Button, Reveal, StaggerGrid, StaggerItem } from "@/components/ui/pawguard";
-import { Quote } from "lucide-react";
 import { fetchServerCachedSuccessStories } from "@/lib/api/server-public-data";
+import type { SuccessStoryResponse } from "@/lib/api/types";
 
 const FEATURED = {
   id: "featured-static",
@@ -18,35 +18,46 @@ const FEATURED = {
   img: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=500&fit=crop&auto=format",
   adopter: "Helena & Stefan Lindqvist",
   timeline: [
-    { date: "March 12", event: "Found near Millbrook interchange. Emergency team dispatched." },
-    { date: "March 12", event: "Rescued and transported to emergency veterinary clinic." },
-    { date: "March 14", event: "Surgery performed for road accident injuries." },
-    { date: "March 28", event: "Transferred to foster care for rehabilitation." },
-    { date: "April 22", event: "Formally adopted by the Lindqvist family." },
+    { label: "Reported", value: "Mar 2, 2024" },
+    { label: "Rescued", value: "18 mins" },
+    { label: "Surgeries", value: "2 completed" },
+    { label: "Adopted", value: "Apr 14, 2024" },
   ],
 };
 
 const STORIES = [
-  { id: "mochi-static", animal: "Mochi", type: "Dog · Rescued June 2023", headline: "Tiny Survivor, Giant Spirit", excerpt: "Mochi was trapped in a collapsed building following storm damage. Three days later, she was reunited with her new family.", img: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&h=280&fit=crop&auto=format", adopter: "The Nakamura Family" },
-  { id: "rex-static", animal: "Rex", type: "Dog · Rescued January 2024", headline: "Second Chances Work", excerpt: "Rex had been returned to three shelters before PawGuard's behavioural team discovered he needed a quiet, single-adult household.", img: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=280&fit=crop&auto=format", adopter: "Philip Adeyemi" },
-  { id: "willow-static", animal: "Willow", type: "Dog · Rescued September 2023", headline: "A Foster Stay That Became Forever", excerpt: "Willow came in as a foster placement for two weeks. Six months later, her foster family couldn't imagine life without her.", img: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=280&fit=crop&auto=format", adopter: "The Okafor Family" },
-  { id: "cleo-static", animal: "Cleo", type: "Dog · Rescued August 2023", headline: "From Fearful to Family", excerpt: "Cleo arrived cowering and terrified. Eight weeks of careful socialisation later, she was curled up beside her new family at the adoption event.", img: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=400&h=280&fit=crop&auto=format", adopter: "Emma Torres" },
-  { id: "scout-static", animal: "Scout", type: "Dog · Rescued October 2023", headline: "Built for the Outdoors", excerpt: "Scout was rescued from a hoarding situation. His boundless energy found its match in a hiking-obsessed couple from Ashford.", img: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=400&h=280&fit=crop&auto=format", adopter: "Marie & Leo Dubois" },
-  { id: "nala-static", animal: "Nala", type: "Dog · Rescued April 2024", headline: "The Office Dog Who Wasn't", excerpt: "Nala was surrendered when her owner relocated. Two weeks at PawGuard, and she walked straight into the arms of her new family.", img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=280&fit=crop&auto=format", adopter: "James & Priya Mehta" },
+  {
+    id: "1",
+    animal: "Luna — Border Collie",
+    type: "Luna — Border Collie · Feb 2024",
+    headline: "Overcoming Fear: Luna's Journey to Trust",
+    excerpt: "Found abandoned in an industrial lot, Luna would tremble at any sudden movement. Three months of patient fostering transformed her into a confident, loving companion.",
+    img: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=280&fit=crop&auto=format",
+    adopter: "David & Maya Chen",
+  },
+  {
+    id: "2",
+    animal: "Milo — Beagle Mix",
+    type: "Milo — Beagle Mix · Jan 2024",
+    headline: "Senior Dog Milo Finds His Peaceful Retirement",
+    excerpt: "At 10 years old, Milo lost his owner and ended up in municipal care. PawGuard placed him in a specialized senior-foster home where he captured his new family's heart.",
+    img: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=400&h=280&fit=crop&auto=format",
+    adopter: "Arthur & Evelyn Ross",
+  },
 ];
 
-export default async function SuccessStoriesPage() {
-  const remoteStories = await fetchServerCachedSuccessStories();
+export default async function SuccessStoriesPage({ initialStories }: { initialStories?: SuccessStoryResponse[] }) {
+  const remoteStories = initialStories ?? (await fetchServerCachedSuccessStories());
 
-  const featured = remoteStories && remoteStories.length > 0
+  const featuredStory = remoteStories && remoteStories.length > 0
     ? {
         id: remoteStories[0].id,
         title: remoteStories[0].title,
         animal: remoteStories[0].title,
-        type: `Rescue Story · ${remoteStories[0].published_at ? remoteStories[0].published_at.slice(0, 10) : "Recent"}`,
+        type: `Featured Story · ${remoteStories[0].published_at ? remoteStories[0].published_at.slice(0, 10) : "Recent"}`,
         date: remoteStories[0].published_at ? remoteStories[0].published_at.slice(0, 10) : "Recent",
-        excerpt: remoteStories[0].summary || (remoteStories[0].body ? remoteStories[0].body.slice(0, 150) : ""),
-        quote: remoteStories[0].summary || "A heart-warming rescue transformation story.",
+        excerpt: remoteStories[0].summary || (remoteStories[0].body ? remoteStories[0].body.slice(0, 180) : FEATURED.excerpt),
+        quote: "A story of rescue, restoration, and second chances.",
         img: remoteStories[0].hero_image_url || remoteStories[0].cover_image_url || FEATURED.img,
         adopter: "PawGuard Rescue Family",
         timeline: FEATURED.timeline,
@@ -79,71 +90,53 @@ export default async function SuccessStoriesPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-[var(--space-12)] lg:gap-[var(--space-16)]">
               <div className="lg:col-span-7 relative aspect-[4/3] lg:aspect-[7/5] bg-secondary rounded-img overflow-hidden shadow-lg group">
                 <Image
-                  src={featured.img}
-                  alt={featured.title}
-                  width={700}
-                  height={500}
-                  className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-gentle ease-out will-change-transform"
+                  src={featuredStory.img}
+                  alt={featuredStory.title}
+                  fill
+                  className="object-cover transition-transform duration-slow group-hover:scale-[1.02]"
+                  priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-                <div className="absolute bottom-6 left-6 right-6">
-                  <p className="text-white/80 text-xs font-semibold tracking-widest uppercase font-condensed mb-1">Featured Story</p>
-                  <p className="text-white/70 text-sm">{featured.type}</p>
-                </div>
               </div>
-              <div className="lg:col-span-5 flex flex-col justify-center gap-8">
-                <div className="flex flex-col gap-4">
-                  <h2 className="text-foreground font-serif font-bold text-2xl lg:text-3xl leading-tight tracking-tight">
-                    <Link href={`/stories/${featured.id}`} className="hover:text-primary transition-colors">
-                      {featured.title}
-                    </Link>
-                  </h2>
-                  <p className="text-muted-foreground text-base leading-relaxed">
-                    {featured.excerpt}
-                  </p>
+
+              <div className="lg:col-span-5 flex flex-col justify-center gap-6">
+                <span className="text-2xs font-semibold tracking-wider text-muted-foreground uppercase font-condensed">
+                  {featuredStory.type}
+                </span>
+
+                <h2 className="text-foreground font-serif font-bold text-3xl lg:text-4xl leading-tight tracking-tight">
+                  {featuredStory.title}
+                </h2>
+
+                <p className="text-muted-foreground text-base leading-relaxed">
+                  {featuredStory.excerpt}
+                </p>
+
+                <div className="border-l-2 border-primary pl-4 py-1 italic text-foreground text-sm">
+                  &ldquo;{featuredStory.quote}&rdquo;
+                  <span className="block not-italic text-xs text-muted-foreground mt-1 font-semibold">— {featuredStory.adopter}</span>
                 </div>
-                <div className="bg-background border border-border rounded-card p-6 relative">
-                  <Quote size={18} className="text-primary/20 absolute top-4 right-4" />
-                  <p className="text-foreground font-serif italic text-lg leading-relaxed">
-                    &ldquo;{featured.quote}&rdquo;
-                  </p>
-                  <p className="text-muted-foreground text-sm font-semibold mt-3">
-                    — {featured.adopter}
-                  </p>
+
+                <div className="pt-2">
+                  <Button variant="primary" size="md" asLink={{ href: `/stories/${featuredStory.id}` }}>
+                    Read Full Story <ArrowRight size={14} />
+                  </Button>
                 </div>
-                {featured.timeline && featured.timeline.length > 0 && (
-                  <div className="flex flex-col gap-3">
-                    <p className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">Rescue Timeline</p>
-                    <div className="flex flex-col gap-2.5">
-                      {featured.timeline.map((t, i) => (
-                        <div key={i} className="flex items-start gap-3">
-                          <div className="flex flex-col items-center gap-0.5">
-                            <div className={`w-2.5 h-2.5 rounded-full ${i === 0 ? "bg-emergency" : i === featured.timeline.length - 1 ? "bg-primary" : "bg-border"}`} />
-                            {i < featured.timeline.length - 1 && <div className="w-px h-5 bg-border" />}
-                          </div>
-                          <div className="flex flex-col gap-0.5 pb-2">
-                            <span className="text-muted-foreground text-xs font-mono">{t.date}</span>
-                            <span className="text-foreground text-sm">{t.event}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </Section></Reveal>
 
         <Reveal><Section bg="default">
-          <div className="flex flex-col gap-12">
-            <h2 className="text-foreground font-serif font-bold text-2xl lg:text-3xl leading-tight tracking-tight">More Happy Tails</h2>
-            <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-grid-md lg:gap-6">
-              {storiesList.map((s) => (
-                <StaggerItem key={s.id || s.animal}>
-                  <Link href={`/stories/${s.id}`}>
-                    <StoryCard {...s} />
-                  </Link>
+          <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto flex flex-col gap-10">
+            <div className="flex flex-col gap-2">
+              <span className="text-2xs font-semibold tracking-wider text-muted-foreground uppercase font-condensed">More Stories</span>
+              <h2 className="text-foreground font-serif font-bold text-2xl lg:text-3xl">Recent Rehoming Journeys</h2>
+            </div>
+
+            <StaggerGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[var(--space-6)] lg:gap-[var(--space-8)]">
+              {storiesList.map((story) => (
+                <StaggerItem key={story.id}>
+                  <StoryCard {...story} />
                 </StaggerItem>
               ))}
             </StaggerGrid>

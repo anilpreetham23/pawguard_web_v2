@@ -428,8 +428,18 @@ function CaseSkeleton() {
   );
 }
 
-export default function LostFoundDetailPage({ id }: { id: string }) {
-  const { case: caseItem, isLoading, isError, error, refetch } = useLostFoundReport(id);
+export default function LostFoundDetailPage({
+  id,
+  initialReport,
+}: {
+  id: string;
+  initialReport?: import("@/lib/api").LostFoundReportResponse | null;
+}) {
+  const { case: caseItem, isLoading, isError, error, refetch } = useLostFoundReport(
+    id,
+    undefined,
+    initialReport
+  );
   const { cases: related, isLoading: relatedLoading } = useRelatedLostFoundCases(
     id,
     caseItem?.kind ?? "lost",

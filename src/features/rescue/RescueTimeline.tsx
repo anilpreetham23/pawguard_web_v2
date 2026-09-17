@@ -1,13 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useMotionStore } from "@/motion/motion-store";
 import { useSafeScrollTrigger } from "@/hooks/useSafeScrollTrigger";
+import { getGsap } from "@/motion/gsap-register";
 import { cn } from "@/components/ui/utils";
-
-gsap.registerPlugin(ScrollTrigger);
 
 type StepIcon = "phone" | "check" | "team" | "shield" | "heart" | "home";
 
@@ -98,52 +95,52 @@ export default function RescueTimeline({ steps }: RescueTimelineProps) {
     if (!section || !connector) return;
 
     const isBasic = motionTier === "reduced" || motionTier === "none";
+    let ctx: any = null;
 
-    const ctx = gsap.context(() => {
-      if (isBasic) {
-        gsap.set([connector, connectorGlow, ...nodeRefs.current, ...cardRefs.current], { clearProps: "all" });
-        gsap.set(connector, { scaleY: 1 });
-        if (connectorGlow) gsap.set(connectorGlow, { scaleY: 1, opacity: 0.4 });
-        return;
-      }
+    getGsap().then(({ gsap }) => {
+      ctx = gsap.context(() => {
+        if (isBasic) {
+          gsap.set([connector, connectorGlow, ...nodeRefs.current, ...cardRefs.current], { clearProps: "all" });
+          gsap.set(connector, { scaleY: 1 });
+          if (connectorGlow) gsap.set(connectorGlow, { scaleY: 1, opacity: 0.4 });
+          return;
+        }
 
-      // Draw connector line
-      gsap.fromTo(connector, { scaleY: 0 }, {
-        scaleY: 1, ease: "none",
-        scrollTrigger: { trigger: section, start: "top 75%", end: "bottom 25%", scrub: 0.5, invalidateOnRefresh: true },
-      });
-
-      // Glow effect
-      if (connectorGlow) {
-        gsap.fromTo(connectorGlow, { scaleY: 0, opacity: 0 }, {
-          scaleY: 1, opacity: 0.4, ease: "none",
-          scrollTrigger: { trigger: section, start: "top 75%", end: "bottom 40%", scrub: 0.4, invalidateOnRefresh: true },
+        gsap.fromTo(connector, { scaleY: 0 }, {
+          scaleY: 1, ease: "none",
+          scrollTrigger: { trigger: section, start: "top 75%", end: "bottom 25%", scrub: 0.5, invalidateOnRefresh: true },
         });
-      }
 
-      // Staggered node reveal
-      const allNodes = nodeRefs.current.filter(Boolean);
-      if (allNodes.length) {
-        gsap.fromTo(allNodes, { scale: 0, opacity: 0, rotate: -30 }, {
-          scale: 1, opacity: 1, rotate: 0, ease: "back.out(1.7)", stagger: 0.12,
-          scrollTrigger: { trigger: section, start: "top 70%", end: "bottom 60%", scrub: 0.5, invalidateOnRefresh: true },
-        });
-      }
+        if (connectorGlow) {
+          gsap.fromTo(connectorGlow, { scaleY: 0, opacity: 0 }, {
+            scaleY: 1, opacity: 0.4, ease: "none",
+            scrollTrigger: { trigger: section, start: "top 75%", end: "bottom 40%", scrub: 0.4, invalidateOnRefresh: true },
+          });
+        }
 
-      // Staggered card reveal
-      const allCards = cardRefs.current.filter(Boolean);
-      if (allCards.length) {
-        gsap.fromTo(allCards, { opacity: 0, x: -24 }, {
-          opacity: 1, x: 0, ease: "none", stagger: 0.12,
-          scrollTrigger: { trigger: section, start: "top 70%", end: "bottom 60%", scrub: 0.5, invalidateOnRefresh: true },
-        });
-      }
-    }, section);
+        const allNodes = nodeRefs.current.filter(Boolean);
+        if (allNodes.length) {
+          gsap.fromTo(allNodes, { scale: 0, opacity: 0, rotate: -30 }, {
+            scale: 1, opacity: 1, rotate: 0, ease: "back.out(1.7)", stagger: 0.12,
+            scrollTrigger: { trigger: section, start: "top 70%", end: "bottom 60%", scrub: 0.5, invalidateOnRefresh: true },
+          });
+        }
 
-    return () => ctx.revert();
+        const allCards = cardRefs.current.filter(Boolean);
+        if (allCards.length) {
+          gsap.fromTo(allCards, { opacity: 0, x: -24 }, {
+            opacity: 1, x: 0, ease: "none", stagger: 0.12,
+            scrollTrigger: { trigger: section, start: "top 70%", end: "bottom 60%", scrub: 0.5, invalidateOnRefresh: true },
+          });
+        }
+      }, section);
+    }).catch(() => {});
+
+    return () => {
+      if (ctx?.revert) ctx.revert();
+    };
   }, [motionTier]);
 
-  // Build gradient from step colors
   const gradientColors = steps.map((s) => s.color).join(", ");
 
   return (
@@ -153,7 +150,6 @@ export default function RescueTimeline({ steps }: RescueTimelineProps) {
       role="list"
       aria-label="Rescue process timeline"
     >
-      {/* Connector line */}
       <div className="absolute left-[19px] top-[24px] bottom-[24px] w-[3px] bg-border/30 rounded-full overflow-hidden origin-top">
         <div
           ref={connectorRef}
@@ -167,7 +163,6 @@ export default function RescueTimeline({ steps }: RescueTimelineProps) {
         />
       </div>
 
-      {/* Glow overlay */}
       <div className="absolute left-[19px] top-[24px] bottom-[24px] w-[3px] rounded-full overflow-hidden origin-top pointer-events-none">
         <div
           ref={connectorGlowRef}
@@ -181,7 +176,6 @@ export default function RescueTimeline({ steps }: RescueTimelineProps) {
         />
       </div>
 
-      {/* Steps */}
       <div className="flex flex-col gap-6 relative z-10">
         {steps.map((step, i) => (
           <div
@@ -195,7 +189,6 @@ export default function RescueTimeline({ steps }: RescueTimelineProps) {
             )}
             role="listitem"
           >
-            {/* Node */}
             <div
               ref={(el) => { nodeRefs.current[i] = el; }}
               className={cn(
@@ -211,7 +204,6 @@ export default function RescueTimeline({ steps }: RescueTimelineProps) {
               }}
             >
               <StepIconSVG icon={step.icon} color={step.color} />
-              {/* Pulse ring on hover */}
               <span
                 className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-300"
                 style={{ backgroundColor: `${step.color}20` }}
@@ -219,7 +211,6 @@ export default function RescueTimeline({ steps }: RescueTimelineProps) {
               />
             </div>
 
-            {/* Content */}
             <div className="flex-1 min-w-0 pt-0.5">
               <div className="flex items-center justify-between gap-2 mb-1">
                 <h3

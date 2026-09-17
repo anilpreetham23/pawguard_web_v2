@@ -28,6 +28,8 @@ export interface UseApiQueryOptions<TData, TSelected = TData> {
   select?: (data: TData) => TSelected;
   /** Optional auto-refetch interval (ms). `false` disables polling. */
   refetchInterval?: number | false;
+  /** Initial data for SSR / pre-populated queries. */
+  initialData?: TData | (() => TData);
 }
 
 /**
@@ -61,6 +63,7 @@ export function useApiQuery<TData, TSelected = TData>(
     retry = retryPolicy,
     select,
     refetchInterval,
+    initialData,
   } = options;
 
   return useQuery<TData, ApiError, TSelected>({
@@ -71,6 +74,7 @@ export function useApiQuery<TData, TSelected = TData>(
     retryDelay,
     select,
     refetchInterval,
+    initialData,
     queryFn: async () => {
       try {
         return await queryFn();

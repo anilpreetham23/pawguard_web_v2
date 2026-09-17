@@ -34,9 +34,13 @@ import {
   Skeleton,
   PhoneInput,
 } from "@/components/ui/pawguard";
+import dynamic from "next/dynamic";
 import SectionHeading from "@/layouts/SectionHeading";
-import QrScanner from "@/features/scan/scan/QrScanner";
 import { isRetryableError, isApiError } from "@/lib/api";
+
+const QrScanner = dynamic(() => import("@/features/scan/scan/QrScanner"), {
+  ssr: false,
+});
 import { safetyTagService } from "@/services/api/safety-tag";
 import { lostFoundService } from "@/services/api/lost-found";
 import type {

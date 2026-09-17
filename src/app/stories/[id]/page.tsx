@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { rescueService } from "@/services/api/rescue";
+import { fetchServerCachedSuccessStoryById } from "@/lib/api/server-public-data";
 import SuccessStoryDetailPageView from "./SuccessStoryDetailPageView";
 
 interface PageProps {
@@ -9,7 +9,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   try {
-    const story = await rescueService.getSuccessStory(id);
+    const story = await fetchServerCachedSuccessStoryById(id);
     if (!story) return { title: "Rescue Success Story — PawGuard" };
     const title = `${story.title} — Rescue Success Story | PawGuard`;
     const description = story.summary || story.body?.slice(0, 160) || "Read about how PawGuard rescued and rehomed this pet.";
@@ -36,5 +36,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function Page({ params }: PageProps) {
   const { id } = await params;
-  return <SuccessStoryDetailPageView id={id} />;
+  const initialStory = await fetchServerCachedSuccessStoryById(id);
+  return <SuccessStoryDetailPageView id={id} initialStory={initialStory} />;
 }

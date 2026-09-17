@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { registerGsapPlugins } from "./gsap-register";
 import { LenisProvider } from "./lenis-provider";
 import { useMotionStore } from "./motion-store";
 import { onReducedMotionChange } from "./motion.utils";
@@ -15,8 +14,6 @@ function MotionInit({ children }: { children: ReactNode }) {
   const setReady = useMotionStore((s) => s.setReady);
 
   useEffect(() => {
-    registerGsapPlugins();
-
     const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mql.matches);
 

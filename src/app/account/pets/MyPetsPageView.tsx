@@ -41,7 +41,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SafetyTagModal, extractRawToken } from "@/features/scan/SafetyTagModal";
+import dynamic from "next/dynamic";
+import { extractRawToken } from "@/features/scan/SafetyTagModal";
+
+const SafetyTagModal = dynamic(
+  () => import("@/features/scan/SafetyTagModal").then((mod) => mod.SafetyTagModal),
+  { ssr: false }
+);
 import { AddCompanionPetButton } from "@/features/adoption/AddCompanionPetButton";
 import { useAuth } from "@/app/providers/auth-provider";
 import { useMyPets } from "@/hooks/useMyPets";

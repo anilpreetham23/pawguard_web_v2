@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Link2, MapPin, CalendarDays, Gauge, CheckCircle2, XCircle, Clock, Send } from "lucide-react";
-import { useReportMatches } from "@/hooks/useLostFound";
+import { useReportMatches, useSubmitOwnershipClaim } from "@/hooks/useLostFound";
 import { useAuth } from "@/app/providers/auth-provider";
 import type { LostFoundKind } from "@/types";
 import { cn } from "@/components/ui/utils";
@@ -53,8 +53,11 @@ function formatDate(iso: string | null): string {
 
 export function MatchesPanel({ reportId, kind, petName }: { reportId: string; kind: LostFoundKind; petName: string }) {
   const { isAuthenticated, openAuthDialog } = useAuth();
-  const { matches, total, isLoading, isError, error, refetch, claim, claimPending } =
+  const { matches, isLoading, isError, error, refetch } =
     useReportMatches(reportId, kind, true);
+  const claimMutation = useSubmitOwnershipClaim(reportId);
+  const total = matches.length;
+  const claimPending = claimMutation.isPending;
 
   // claim form state per open match
   const [claimFor, setClaimFor] = useState<string | null>(null);
@@ -79,11 +82,14 @@ export function MatchesPanel({ reportId, kind, petName }: { reportId: string; ki
     setClaimSuccess(null);
     claimCountRef.current += 1;
     try {
-      await claim(claimFor, {
-        verification_notes: notes.trim() || undefined,
-        microchip_doc_url: microchipUrl.trim() || undefined,
-        vet_bill_url: vetBillUrl.trim() || undefined,
-        photo_proof_url: photoUrl.trim() || undefined,
+      await claimMutation.mutateAsync({
+        matchId: claimFor,
+        data: {
+          verification_notes: notes.trim() || undefined,
+          microchip_doc_url: microchipUrl.trim() || undefined,
+          vet_bill_url: vetBillUrl.trim() || undefined,
+          photo_proof_url: photoUrl.trim() || undefined,
+        },
       });
       setClaimSuccess("Ownership claim submitted for review. PawGuard staff will verify your documents.");
       setClaimFor(null);

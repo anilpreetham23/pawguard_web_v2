@@ -2,18 +2,26 @@
 
 import { useRef, useCallback, useMemo } from "react";
 import { useMotionValue, useTransform } from "motion/react";
+import dynamic from "next/dynamic";
 import { HeroContent } from "./HeroContent";
 import { HeroScene } from "./HeroScene";
 import { HeroScrollIndicator } from "./HeroScrollIndicator";
-import { HeroDecorations } from "./HeroDecorations";
 import { Atmosphere } from "@/motion/components/Atmosphere";
-import { HeroCursorLight } from "./HeroCursorLight";
 import { useHeroTimeline } from "./hooks/useHeroTimeline";
 import { useAmbientPause } from "@/hooks/useAmbientPause";
 import { useHeroScrollPause } from "@/hooks/useHeroScrollPause";
 import { useMotionStore } from "@/motion/motion-store";
 import { TILT } from "./data/heroData";
 import { HeroParallaxProvider } from "./HeroParallaxContext";
+
+const HeroDecorations = dynamic(
+  () => import("./HeroDecorations").then((mod) => mod.HeroDecorations),
+  { ssr: false }
+);
+const HeroCursorLight = dynamic(
+  () => import("./HeroCursorLight").then((mod) => mod.HeroCursorLight),
+  { ssr: false }
+);
 
 /**
  * Cinematic Hero — Phase 1.3 Cinematic Environment System.

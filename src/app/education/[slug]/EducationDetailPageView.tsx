@@ -4,9 +4,10 @@ import PageHeader from "@/components/shared/PageHeader";
 import { PageShell, Section, Card, Button } from "@/components/ui/pawguard";
 import { GUIDES } from "../EducationPageView";
 import { fetchServerCachedBlogPostBySlug } from "@/lib/api/server-public-data";
+import type { BlogPostResponse } from "@/lib/api/types";
 
-export default async function EducationDetailPage({ slug }: { slug: string }) {
-  const remotePost = await fetchServerCachedBlogPostBySlug(slug);
+export default async function EducationDetailPage({ slug, initialPost }: { slug: string; initialPost?: BlogPostResponse | null }) {
+  const remotePost = initialPost ?? (await fetchServerCachedBlogPostBySlug(slug));
   const staticGuide = GUIDES.find((g) => g.slug === slug);
 
   const guide = remotePost

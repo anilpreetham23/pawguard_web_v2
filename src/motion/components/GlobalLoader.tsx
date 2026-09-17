@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "motion/react";
 import { useMotionStore } from "../motion-store";
-import { LottieDog } from "./lottie-dog";
 import "./global-loader.css";
+
+const LottieDog = dynamic(
+  () => import("./lottie-dog").then((mod) => mod.LottieDog),
+  { ssr: false }
+);
 
 /** Minimum time the loader is visible per cycle (feels deliberate, not flickery). */
 const MIN_MS = 1500;

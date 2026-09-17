@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { BookOpen, ShieldCheck, Heart, Stethoscope, AlertTriangle, ArrowRight } from "lucide-react";
 import PageHeader from "@/components/shared/PageHeader";
-import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem } from "@/components/ui/pawguard";
+import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, Button } from "@/components/ui/pawguard";
 import { fetchServerCachedBlogPosts } from "@/lib/api/server-public-data";
+import type { BlogPostResponse } from "@/lib/api/types";
 
 export const GUIDES = [
   {
@@ -33,155 +34,112 @@ export const GUIDES = [
     title: "Core Dog Vaccination Schedule",
     category: "Health & Vet",
     icon: Stethoscope,
-    readTime: "6 min read",
-    summary: "Understand Rabies, DHPP, Parvovirus, and annual booster requirements to keep your dog immune and healthy.",
-    description: "Vaccinations protect your rescue dog and the broader community against fatal diseases. Here is the standard veterinary immunization timeline.",
-    sections: [
-      {
-        heading: "Core Vaccines",
-        content: "Rabies and DHPP (Distemper, Hepatitis, Parainfluenza, Parvovirus) are mandatory for all rescue and companion dogs."
-      },
-      {
-        heading: "Puppy Schedule",
-        content: "Puppies receive initial doses starting at 6–8 weeks, followed by booster shots every 3–4 weeks until 16 weeks of age."
-      },
-      {
-        heading: "Annual Boosters",
-        content: "Adult dogs require annual or triennial booster shots based on local veterinary regulations and risk exposure."
-      }
-    ]
-  },
-  {
-    slug: "stray-rescue-safety",
-    title: "Emergency Stray Rescue & Safety Protocols",
-    category: "Rescue Awareness",
-    icon: AlertTriangle,
     readTime: "4 min read",
-    summary: "How to safely approach, secure, and report an injured or panicked stray dog in immediate distress.",
-    description: "Rescuing a stray dog requires caution for both your safety and the animal's wellbeing. Follow these emergency steps when spotting a dog in distress.",
+    summary: "Understanding Rabies, DHPP, Leptospirosis, and Kennel Cough boosters to protect your dog.",
+    description: "Vaccinations protect your pet against fatal viral and bacterial infections. Follow this essential core booster schedule.",
     sections: [
       {
-        heading: "1. Assess Body Language",
-        content: "Look for signs of fear or aggression: growling, bared teeth, tucked tail, or raised hackles. Avoid direct eye contact or sudden movements."
+        heading: "1. Core vs Non-Core Vaccines",
+        content: "Core vaccines (Rabies, Parvovirus, Distemper, Adenovirus) are mandatory. Non-core vaccines (Lepto, Bordetella) depend on your location and lifestyle."
       },
       {
-        heading: "2. Secure the Area",
-        content: "If the animal is near traffic, alert drivers or block off the lane safely. Never put yourself in physical danger on highways."
-      },
-      {
-        heading: "3. Submit an Emergency Incident Report",
-        content: "Use the PawGuard Emergency Dispatch tool to submit real-time GPS coordinates, photos, and physical conditions so specialized rescue teams can deploy."
+        heading: "2. Puppy Booster Timeline",
+        content: "Puppies require initial vaccinations starting at 6-8 weeks, with booster shots administered every 3-4 weeks until 16 weeks of age."
       }
     ]
   },
   {
-    slug: "pet-first-aid",
-    title: "Pet First Aid & Emergency Response",
-    category: "First Aid",
-    icon: ShieldCheck,
-    readTime: "7 min read",
-    summary: "First aid procedures for heatstroke, bleeding, poisoning, and transporting an injured dog to a emergency clinic.",
-    description: "Knowing immediate first aid can save a dog's life before professional veterinary help arrives.",
+    slug: "stray-animal-protocol",
+    title: "What to Do If You Find an Injured Stray",
+    category: "Emergency Protocol",
+    icon: AlertTriangle,
+    readTime: "6 min read",
+    summary: "Step-by-step emergency instructions for approaching, securing, and notifying PawGuard's priority dispatch.",
+    description: "Encountering an injured or distressed animal requires calm, immediate action. Follow PawGuard's emergency protocol.",
     sections: [
       {
-        heading: "Heatstroke Response",
-        content: "Move the dog to shade immediately, apply cool (not ice-cold) water to footpads and abdomen, and offer small sips of water."
+        heading: "1. Approach with Caution",
+        content: "An injured animal may bite out of pain or fear. Speak softly, avoid direct eye contact, and assess whether the animal can be approached safely."
       },
       {
-        heading: "Wound & Bleeding Care",
-        content: "Apply firm, direct pressure with a clean cloth or gauze. Keep the dog calm and transport immediately to a veterinary partner facility."
-      }
-    ]
-  },
-  {
-    slug: "adoption-preparation",
-    title: "Preparing Your Home for a Rescue Dog",
-    category: "Adoption",
-    icon: BookOpen,
-    readTime: "5 min read",
-    summary: "The 3-3-3 rule, puppy-proofing, essential supplies, and helping a rescue dog acclimate peacefully.",
-    description: "The 3-3-3 rule outlines what to expect during the first 3 days, 3 weeks, and 3 months after bringing your adopted rescue pet home.",
-    sections: [
-      {
-        heading: "First 3 Days: Decompression",
-        content: "The dog may feel overwhelmed or quiet. Provide a safe, quiet space with a bed, crate, and low-stress routine."
-      },
-      {
-        heading: "First 3 Weeks: Building Routine",
-        content: "The dog begins feeling comfortable and showing personality traits. Establish consistent feeding, potty, and walking schedules."
-      },
-      {
-        heading: "First 3 Months: Complete Trust",
-        content: "Your rescue dog builds true trust, bonding deeply with family members and feeling fully secure in their forever home."
+        heading: "2. File an Immediate PawGuard Emergency Report",
+        content: "Use PawGuard's emergency portal or hotline to share your exact GPS location, animal condition, and photos for priority vet dispatch."
       }
     ]
   }
 ];
 
-export default async function EducationPage() {
-  const apiPosts = await fetchServerCachedBlogPosts();
+export default async function EducationPage({ initialPosts }: { initialPosts?: BlogPostResponse[] }) {
+  const remotePosts = initialPosts ?? (await fetchServerCachedBlogPosts());
 
-  const guidesToDisplay =
-    apiPosts && apiPosts.length > 0
-      ? apiPosts.map((post) => ({
-          slug: post.slug,
-          title: post.title,
-          category: post.category ? post.category.replace("-", " ").toUpperCase() : "GUIDE",
-          icon: BookOpen,
-          readTime: "5 min read",
-          summary: post.excerpt || (post.body ? post.body.slice(0, 150) : ""),
-        }))
-      : GUIDES.map((g) => ({
-          slug: g.slug,
-          title: g.title,
-          category: g.category,
-          icon: g.icon,
-          readTime: g.readTime,
-          summary: g.summary,
-        }));
+  const remoteGuides = remotePosts.map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    category: post.category ? post.category.replace("-", " ").toUpperCase() : "GUIDE",
+    icon: BookOpen,
+    readTime: "5 min read",
+    summary: post.excerpt || (post.body ? post.body.slice(0, 140) : "Read our comprehensive guide."),
+    description: post.excerpt || post.body || "",
+    sections: [
+      {
+        heading: post.title,
+        content: post.body || "",
+      },
+    ],
+  }));
+
+  const allGuides = remoteGuides.length > 0 ? remoteGuides : GUIDES;
 
   return (
     <PageShell>
       <main id="main-content" className="flex-1">
         <PageHeader
-          eyebrow="Knowledge & Awareness"
-          title="Pet Care & Animal Rescue Guides"
-          subtitle="Resource guides on responsible ownership, veterinary health, stray rescue safety, and emergency pet care."
+          eyebrow="Community & Knowledge"
+          title="Pet Care & Emergency Guides"
+          subtitle="Resource guides written by veterinarians and rescue coordinators to help you protect, care for, and respond to animal emergencies."
         />
 
         <Section bg="default">
-          <div className="max-w-[1280px] mx-auto flex flex-col gap-10">
-            <StaggerGrid className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {guidesToDisplay.map((guide) => {
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-10">
+            <div className="flex flex-col gap-2">
+              <span className="text-2xs font-semibold tracking-wider text-muted-foreground uppercase font-condensed">
+                Resource Library
+              </span>
+              <h2 className="text-foreground font-serif font-bold text-2xl lg:text-3xl">
+                Featured Guides &amp; Protocols
+              </h2>
+            </div>
+
+            <StaggerGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-grid-md">
+              {allGuides.map((guide) => {
                 const Icon = guide.icon;
                 return (
                   <StaggerItem key={guide.slug}>
-                    <Card variant="default" className="h-full flex flex-col p-6 hover:border-primary/40 transition-all duration-fast group">
-                      <div className="flex items-center justify-between gap-3 mb-4">
-                        <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                          <Icon size={20} />
-                        </span>
-                        <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground font-condensed">
-                          {guide.readTime}
-                        </span>
+                    <Card variant="elevated" className="h-full flex flex-col justify-between p-6 gap-6">
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-2xs font-bold uppercase tracking-wider bg-primary/10 text-primary">
+                            <Icon size={13} />
+                            {guide.category}
+                          </span>
+                          <span className="text-2xs font-semibold text-muted-foreground">
+                            {guide.readTime}
+                          </span>
+                        </div>
+
+                        <h3 className="font-serif font-bold text-xl text-foreground leading-snug">
+                          {guide.title}
+                        </h3>
+
+                        <p className="text-muted-foreground text-sm leading-relaxed">
+                          {guide.summary}
+                        </p>
                       </div>
 
-                      <span className="text-2xs font-bold uppercase tracking-wider text-primary font-condensed mb-1">
-                        {guide.category}
-                      </span>
-                      <h2 className="font-serif font-bold text-xl text-foreground group-hover:text-primary transition-colors mb-2">
-                        {guide.title}
-                      </h2>
-                      <p className="text-muted-foreground text-sm leading-relaxed mb-6 flex-1">
-                        {guide.summary}
-                      </p>
-
-                      <Link
-                        href={`/education/${guide.slug}`}
-                        className="inline-flex items-center gap-1.5 text-primary font-semibold text-sm hover:underline mt-auto"
-                      >
-                        Read Full Guide
-                        <ArrowRight size={15} />
+                      <Link href={`/education/${guide.slug}`}>
+                        <Button variant="outline" size="sm" className="w-full justify-between">
+                          Read Guide <ArrowRight size={14} />
+                        </Button>
                       </Link>
                     </Card>
                   </StaggerItem>
@@ -190,6 +148,27 @@ export default async function EducationPage() {
             </StaggerGrid>
           </div>
         </Section>
+
+        <Reveal>
+          <Section bg="card" containerWidth="narrow">
+            <div className="text-center flex flex-col gap-6 items-center">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                <ShieldCheck size={24} />
+              </div>
+              <h2 className="text-foreground font-serif font-bold text-3xl lg:text-4xl leading-tight tracking-tight">
+                Verified Medical Guidance
+              </h2>
+              <p className="text-muted-foreground text-base leading-relaxed">
+                All health and medical information on PawGuard is reviewed by licensed veterinary professionals. For active emergencies, contact our 24/7 hotline immediately.
+              </p>
+              <Link href="/emergency">
+                <Button variant="primary" size="md">
+                  Emergency Dispatch Hotline
+                </Button>
+              </Link>
+            </div>
+          </Section>
+        </Reveal>
       </main>
     </PageShell>
   );

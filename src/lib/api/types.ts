@@ -1043,6 +1043,8 @@ export interface FoundReportResponse {
   media?: ReportMediaResponse[];
 }
 
+export type LostFoundReportResponse = (LostReportResponse | FoundReportResponse) & { kind?: "lost" | "found" };
+
 /**
  * Query params accepted by `GET /lost-found/lost` and `GET /lost-found/found`.
  * Only backend-supported filters are exposed (no gender/size/condition).

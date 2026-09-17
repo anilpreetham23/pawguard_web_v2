@@ -7,7 +7,7 @@ import SectionHeading from "@/layouts/SectionHeading";
 import PageHeader from "@/components/shared/PageHeader";
 import AdoptionCard from "@/features/adoption/AdoptionCard";
 import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, EmptyState, Skeleton, Alert, Input, PawGuardInfoCard, type InfoCardVisualType } from "@/components/ui/pawguard";
-import { useAdoptionPets } from "@/hooks/useAdoptionPets";
+import { useAdoptionPets, type Pet } from "@/hooks/useAdoptionPets";
 import { getErrorMessage } from "@/lib/api";
 
 const AGE_OPTIONS = ["Puppy", "Adult", "Senior"];
@@ -48,7 +48,7 @@ function CardSkeleton() {
   );
 }
 
-export default function AdoptionPage() {
+export default function AdoptionPage({ initialDogs }: { initialDogs?: import("@/lib/api").DogProfileResponse[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedAge, setSelectedAge] = useState<string[]>([]);
@@ -96,7 +96,7 @@ export default function AdoptionPage() {
     };
   }, [debouncedSearch, selectedAge, selectedSize, page]);
 
-  const { data: pets = [], isLoading, isError, error, refetch } = useAdoptionPets(apiParams);
+  const { data: pets = [], isLoading, isError, error, refetch } = useAdoptionPets(apiParams, initialDogs);
 
   function toggle(list: string[], value: string, setter: (v: string[]) => void) {
     setter(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
@@ -109,7 +109,7 @@ export default function AdoptionPage() {
     setSortBy("default");
   }
 
-  const filtered = pets.filter((pet) => {
+  const filtered = pets.filter((pet: Pet) => {
     if (pet.adoptionBadge === "adopted") return false;
     if (selectedAge.length && !selectedAge.includes(AGE_LABEL[pet.ageGroup])) return false;
     if (selectedSize.length && !selectedSize.includes(SIZE_LABEL[pet.size])) return false;
@@ -122,7 +122,7 @@ export default function AdoptionPage() {
       if (!matchName && !matchBreed && !matchColor && !matchDesc) return false;
     }
     return true;
-  }).sort((a, b) => {
+  }).sort((a: Pet, b: Pet) => {
     if (sortBy === "name") return a.name.localeCompare(b.name);
     if (sortBy === "age") return AGE_ORDER[a.ageGroup] - AGE_ORDER[b.ageGroup];
     return 0;
@@ -296,7 +296,7 @@ export default function AdoptionPage() {
                 />
               ) : (
                 <StaggerGrid key={`${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-grid-md lg:gap-6">
-                  {pagePets.map((pet) => (
+                  {pagePets.map((pet: Pet) => (
                     <StaggerItem key={pet.id}>
                       <AdoptionCard
                         name={pet.name}
