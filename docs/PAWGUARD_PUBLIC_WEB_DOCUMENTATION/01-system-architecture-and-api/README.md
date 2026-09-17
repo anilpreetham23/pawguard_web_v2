@@ -16,7 +16,7 @@ graph TD
         Pages -->|Query Hooks| QueryHooks[TanStack React Query Hooks]
         QueryHooks -->|Feature Services| APIServices[API Service Layer src/services/api]
         APIServices -->|Axios Instance| HTTPClient[HTTP Client src/lib/api/client.ts]
-        HTTPClient -->|Auth Tokens| AuthStore[Auth State & LocalStorage]
+        HTTPClient -->|Auth Tokens| AuthStore[Auth State & In-Memory Token Storage]
     end
 
     HTTPClient -->|Relative /api/v1| APIProxy[Next.js Rewrites - next.config.ts]

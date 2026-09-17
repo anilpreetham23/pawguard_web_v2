@@ -159,7 +159,7 @@ The frontend communicates with the PawGuard RESTful API v1 backend.
 * **Production Backend Target:** `https://pawguard-backend-mqri.onrender.com/api/v1`
 * **Local Proxy Endpoint:** `/api/v1` (rewritten via Next.js proxy configuration in `next.config.ts`)
 
-Centralized API client configuration is defined in [`src/lib/api/config.ts`](../src/lib/api/config.ts), ensuring seamless switching between development proxying and production environments.
+Centralized API client configuration is defined in [`src/lib/api/config.ts`](src/lib/api/config.ts), ensuring seamless switching between development proxying and production environments.
 
 ---
 
@@ -256,7 +256,7 @@ Compilation ensures TypeScript type safety, optimizes assets, generates SSR page
 PawGuard Public Web is configured for continuous deployment on **Vercel**.
 
 * **Production Site URL:** [https://pawguard-web-v2.vercel.app](https://pawguard-web-v2.vercel.app)
-* **Deployment Documentation:** Detailed Vercel setup, environment variable binding, and deployment guidelines are available in [`DEPLOYMENT.md`](DEPLOYMENT.md).
+* **Deployment Documentation:** Detailed Vercel setup, environment variable binding, and deployment guidelines are available in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ---
 
@@ -264,15 +264,15 @@ PawGuard Public Web is configured for continuous deployment on **Vercel**.
 
 Subsystem documentation and technical specifications located in `docs/`:
 
-* [`DEPLOYMENT.md`](DEPLOYMENT.md) — Production Deployment & Environment Guide
-* [`PAWGUARD_PUBLIC_WEB_DOCUMENTATION/01-system-architecture-and-api/README.md`](PAWGUARD_PUBLIC_WEB_DOCUMENTATION/01-system-architecture-and-api/README.md) — Architecture & API Baseline
-* [`PAWGUARD_PUBLIC_WEB_DOCUMENTATION/02-qr-safety-tag/README.md`](PAWGUARD_PUBLIC_WEB_DOCUMENTATION/02-qr-safety-tag/README.md) — QR Safety Tag Specification
-* [`PAWGUARD_PUBLIC_WEB_DOCUMENTATION/03-lost-and-found/README.md`](PAWGUARD_PUBLIC_WEB_DOCUMENTATION/03-lost-and-found/README.md) — Lost & Found System Documentation
-* [`PAWGUARD_PUBLIC_WEB_DOCUMENTATION/04-vet-directory-and-appointments/README.md`](PAWGUARD_PUBLIC_WEB_DOCUMENTATION/04-vet-directory-and-appointments/README.md) — Vet Directory & Appointment Booking
-* [`PAWGUARD_PUBLIC_WEB_DOCUMENTATION/05-pet-health-and-reminders/README.md`](PAWGUARD_PUBLIC_WEB_DOCUMENTATION/05-pet-health-and-reminders/README.md) — Pet Reminders & Health Schedule
-* [`PAWGUARD_PUBLIC_WEB_DOCUMENTATION/06-adoption-and-rescue/README.md`](PAWGUARD_PUBLIC_WEB_DOCUMENTATION/06-adoption-and-rescue/README.md) — Adoption & Rescue Catalog
-* [`28_API_Backend_Contract.md`](28_API_Backend_Contract.md) — Full REST API Backend Contract
-* [`PAWGUARD_PUBLIC_WEB_REQUIREMENTS.md`](PAWGUARD_PUBLIC_WEB_REQUIREMENTS.md) — Product Requirements & Specification
+* [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — Production Deployment & Environment Guide
+* [`docs/PAWGUARD_PUBLIC_WEB_DOCUMENTATION/01-system-architecture-and-api/README.md`](docs/PAWGUARD_PUBLIC_WEB_DOCUMENTATION/01-system-architecture-and-api/README.md) — Architecture & API Baseline
+* [`docs/PAWGUARD_PUBLIC_WEB_DOCUMENTATION/02-qr-safety-tag/README.md`](docs/PAWGUARD_PUBLIC_WEB_DOCUMENTATION/02-qr-safety-tag/README.md) — QR Safety Tag Specification
+* [`docs/PAWGUARD_PUBLIC_WEB_DOCUMENTATION/03-lost-and-found/README.md`](docs/PAWGUARD_PUBLIC_WEB_DOCUMENTATION/03-lost-and-found/README.md) — Lost & Found System Documentation
+* [`docs/PAWGUARD_PUBLIC_WEB_DOCUMENTATION/04-vet-directory-and-appointments/README.md`](docs/PAWGUARD_PUBLIC_WEB_DOCUMENTATION/04-vet-directory-and-appointments/README.md) — Vet Directory & Appointment Booking
+* [`docs/PAWGUARD_PUBLIC_WEB_DOCUMENTATION/05-pet-health-and-reminders/README.md`](docs/PAWGUARD_PUBLIC_WEB_DOCUMENTATION/05-pet-health-and-reminders/README.md) — Pet Reminders & Health Schedule
+* [`docs/PAWGUARD_PUBLIC_WEB_DOCUMENTATION/06-adoption-and-rescue/README.md`](docs/PAWGUARD_PUBLIC_WEB_DOCUMENTATION/06-adoption-and-rescue/README.md) — Adoption & Rescue Catalog
+* [`docs/28_API_Backend_Contract.md`](docs/28_API_Backend_Contract.md) — Full REST API Backend Contract
+* [`docs/PAWGUARD_PUBLIC_WEB_REQUIREMENTS.md`](docs/PAWGUARD_PUBLIC_WEB_REQUIREMENTS.md) — Product Requirements & Specification
 
 ---
 
