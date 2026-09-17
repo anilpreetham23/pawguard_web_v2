@@ -113,9 +113,9 @@ PawGuard Homepage Design/
 │   │   └── api/                  # Auth, Tag, LostFound, Vet, Emergency, Donation services
 │   ├── styles/                   # Tailwind and custom CSS files
 │   └── types/                    # Shared TypeScript interfaces and DTOs
-├── docs/                         # Architecture, API contract, and subsystem docs
+├── docs/                         # Architecture, API contract, deployment, and subsystem docs
+│   └── DEPLOYMENT.md             # Production deployment & environment guide
 ├── public/                       # Static public assets
-├── DEPLOYMENT.md                 # Deployment documentation
 ├── next.config.ts                # Next.js configuration and API rewrite rules
 ├── package.json                  # Dependencies and build scripts
 ├── tailwind.config.js            # Tailwind CSS styling design system configuration
@@ -256,7 +256,7 @@ Compilation ensures TypeScript type safety, optimizes assets, generates SSR page
 PawGuard Public Web is configured for continuous deployment on **Vercel**.
 
 * **Production Site URL:** [https://pawguard-web-v2.vercel.app](https://pawguard-web-v2.vercel.app)
-* **Deployment Documentation:** Detailed Vercel setup, environment variable binding, and deployment guidelines are available in [`DEPLOYMENT.md`](file:///c:/Users/Dell/Desktop/PawGuard%20Homepage%20Design%20%282%29/PawGuard%20Homepage%20Design/DEPLOYMENT.md).
+* **Deployment Documentation:** Detailed Vercel setup, environment variable binding, and deployment guidelines are available in [`docs/DEPLOYMENT.md`](file:///c:/Users/Dell/Desktop/PawGuard%20Homepage%20Design%20%282%29/PawGuard%20Homepage%20Design/docs/DEPLOYMENT.md).
 
 ---
 
@@ -264,7 +264,7 @@ PawGuard Public Web is configured for continuous deployment on **Vercel**.
 
 Subsystem documentation and technical specifications located in `docs/`:
 
-* [`DEPLOYMENT.md`](file:///c:/Users/Dell/Desktop/PawGuard%20Homepage%20Design%20%282%29/PawGuard%20Homepage%20Design/DEPLOYMENT.md) — Production Deployment & Environment Guide
+* [`docs/DEPLOYMENT.md`](file:///c:/Users/Dell/Desktop/PawGuard%20Homepage%20Design%20%282%29/PawGuard%20Homepage%20Design/docs/DEPLOYMENT.md) — Production Deployment & Environment Guide
 * [`docs/01-system-architecture-and-api/README.md`](file:///c:/Users/Dell/Desktop/PawGuard%20Homepage%20Design%20%282%29/PawGuard%20Homepage%20Design/docs/01-system-architecture-and-api/README.md) — Architecture & API Baseline
 * [`docs/02-qr-safety-tag/README.md`](file:///c:/Users/Dell/Desktop/PawGuard%20Homepage%20Design%20%282%29/PawGuard%20Homepage%20Design/docs/02-qr-safety-tag/README.md) — QR Safety Tag Specification
 * [`docs/03-repository-and-qa/README.md`](file:///c:/Users/Dell/Desktop/PawGuard%20Homepage%20Design%20%282%29/PawGuard%20Homepage%20Design/docs/03-repository-and-qa/README.md) — Repository & QA Test Guidelines
