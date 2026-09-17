@@ -1,7 +1,7 @@
 "use client";
 
-import { useCountUp } from "../../motion/hooks/use-count-up";
-import { duration } from "../../motion/motion.config";
+import { useCountUp } from "@/motion/hooks/use-count-up";
+import { duration } from "@/motion/motion.config";
 
 interface ImpactMetricProps {
   value: string;

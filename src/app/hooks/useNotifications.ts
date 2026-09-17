@@ -1,16 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import {
-  QUERY_KEYS,
-  auth,
-  useApiMutation,
-  useApiQuery,
-} from "@/lib/api";
+import { QUERY_KEYS, auth } from "@/lib/api";
+import { useApiMutation, useApiQuery } from "@/lib/api/hooks";
 import type { NotificationResponse } from "@/lib/api";
 import { notificationsService } from "@/services/api/notifications";
 import { queryClient } from "@/lib/react-query";
-import { useAuth } from "../providers/auth-provider";
+import { useAuth } from "@/app/providers/auth-provider";
 
 function invalidateNotifications() {
   void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.notifications.list });

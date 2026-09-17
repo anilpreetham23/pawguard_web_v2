@@ -4,11 +4,11 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
 import { cn } from "../ui/utils";
-import { useMotionStore } from "../../../motion/motion-store";
-import { duration, ease } from "../../../motion/motion.config";
-import { useAmbientPause } from "../../hooks/useAmbientPause";
+import { useMotionStore } from "@/motion/motion-store";
+import { duration, ease } from "@/motion/motion.config";
+import { useAmbientPause } from "@/app/hooks/useAmbientPause";
 import { EditorialHeading } from "./EditorialHeading";
-import { useSuccessStories } from "../../hooks/useSuccessStories";
+import { useSuccessStories } from "@/app/hooks/useSuccessStories";
 
 export interface StoryData {
   id: string;

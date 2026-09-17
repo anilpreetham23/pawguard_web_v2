@@ -2,7 +2,7 @@
 
 import { Lock } from "lucide-react";
 import { Button } from "./Button";
-import type { DonationFrequency, DonationTier } from "../../hooks/useDonationState";
+import type { DonationFrequency, DonationTier } from "@/app/hooks/useDonationState";
 
 interface DonationActionPanelProps {
   displayAmount: number | null;

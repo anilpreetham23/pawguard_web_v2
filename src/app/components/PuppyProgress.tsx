@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import type { LottieRef } from "lottie-react";
-import { useMotionStore } from "../../motion/motion-store";
-import { LottieDog } from "../../motion/components/lottie-dog";
+import { useMotionStore } from "@/motion/motion-store";
+import { LottieDog } from "@/motion/components/lottie-dog";
 import "./puppy-progress.css";
 
 const PUPPY_SIZE = 72;

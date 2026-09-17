@@ -5,11 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useMotionStore } from "../../motion";
-import { getLenis } from "../../motion/lenis-instance";
+import { useMotionStore } from "@/motion";
+import { getLenis } from "@/motion/lenis-instance";
 import { cn } from "./ui/utils";
-import { duration, ease } from "../../motion/motion.config";
-import { useEmergencyShortcut } from "../hooks/useEmergencyShortcut";
+import { duration, ease } from "@/motion/motion.config";
+import { useEmergencyShortcut } from "@/app/hooks/useEmergencyShortcut";
 import TopEmergencyBar from "./TopEmergencyBar";
 import { AuthNavControls, AuthMobileControls } from "./AuthNavControls";
 

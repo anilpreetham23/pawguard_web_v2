@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { gsap } from "gsap";
 import { DEFAULT_CENTER, type ServiceData } from "./services-data";
-import { useMotionStore } from "../../../motion/motion-store";
+import { useMotionStore } from "@/motion/motion-store";
 
 interface CenterHubProps {
   accent: { text: string; border: string; glow: string } | null;

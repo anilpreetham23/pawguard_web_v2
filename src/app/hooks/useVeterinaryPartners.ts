@@ -1,6 +1,7 @@
 "use client";
 
-import { useApiQuery, QUERY_KEYS } from "@/lib/api";
+import { QUERY_KEYS } from "@/lib/api";
+import { useApiQuery } from "@/lib/api/hooks";
 import { contactService } from "@/services/api/contact";
 import { veterinaryPartnerToDisplay } from "@/services/api/contact/mapper";
 import type { VeterinaryPartner } from "@/types";

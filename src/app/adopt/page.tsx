@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import AdoptionPage from "../pages/AdoptionPage";
+import AdoptionPageView from "./AdoptionPageView";
 
 export const metadata: Metadata = {
-  title: "Adopt",
-  description:
-    "Browse dogs available for adoption. Every dog is vaccinated, assessed, and ready for a permanent home.",
+  title: "Adopt a Pet",
+  description: "Browse verified rescue dogs available for adoption.",
 };
 
 export default function Page() {
-  return <AdoptionPage />;
+  return <AdoptionPageView />;
 }

@@ -19,7 +19,7 @@
 import { forwardRef, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ACTIVITY_META, MOCK_ACTIVITIES, type Activity } from "./services-data";
-import { useMotionStore } from "../../../motion/motion-store";
+import { useMotionStore } from "@/motion/motion-store";
 
 interface LiveActivityFeedProps {
   /** Pass live data here; falls back to mock when omitted */

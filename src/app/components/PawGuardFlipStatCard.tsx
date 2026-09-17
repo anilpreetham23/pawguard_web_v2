@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useCountUp } from "../../motion/hooks/use-count-up";
-import { duration, delay, stagger } from "../../motion/motion.config";
+import { useCountUp } from "@/motion/hooks/use-count-up";
+import { duration, delay, stagger } from "@/motion/motion.config";
 import { cn } from "./ui/utils";
 
 export type StatCardAccent = "green" | "navy" | "amber" | "community";

@@ -1,12 +1,16 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import AppointmentBookPage from "../../pages/AppointmentBookPage";
+import AppointmentBookPageView from "./AppointmentBookPageView";
 
 export const metadata: Metadata = {
-  title: "Book an Appointment",
-  description:
-    "Schedule a veterinary appointment for your companion at one of our partner clinics.",
+  title: "Book Veterinary Appointment",
+  description: "Schedule a veterinary appointment with partner clinics.",
 };
 
 export default function Page() {
-  return <AppointmentBookPage />;
+  return (
+    <Suspense fallback={null}>
+      <AppointmentBookPageView />
+    </Suspense>
+  );
 }

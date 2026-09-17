@@ -5,11 +5,11 @@ import Link from "next/link";
 import { Phone, Dog, Heart } from "lucide-react";
 import { motion } from "motion/react";
 import { gsap } from "gsap";
-import { useMotionStore } from "../../motion";
-import { duration, ease, stagger, delay } from "../../motion/motion.config";
+import { useMotionStore } from "@/motion";
+import { duration, ease, stagger, delay } from "@/motion/motion.config";
 import { cn } from "./ui/utils";
-import { EMERGENCY, SITE_STATS } from "../config/site";
-import { useImpactStats } from "../hooks/useImpactStats";
+import { EMERGENCY, SITE_STATS } from "@/app/config/site";
+import { useImpactStats } from "@/app/hooks/useImpactStats";
 
 interface TopEmergencyBarProps {
   scrolled: boolean;

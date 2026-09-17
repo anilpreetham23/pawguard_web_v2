@@ -2,10 +2,10 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "motion/react";
-import { duration, ease, stagger, delay, sectionReveal } from "../../motion/motion.config";
+import { duration, ease, stagger, delay, sectionReveal } from "@/motion/motion.config";
 import { EditorialHeading } from "./pawguard/EditorialHeading";
-import { useAmbientPause } from "../hooks/useAmbientPause";
-import { useImpactStats } from "../hooks/useImpactStats";
+import { useAmbientPause } from "@/app/hooks/useAmbientPause";
+import { useImpactStats } from "@/app/hooks/useImpactStats";
 import { PawGuardFlipStatCard } from "./PawGuardFlipStatCard";
 
 interface TrustItem {

@@ -27,8 +27,8 @@ import { CenterHub } from "./CenterHub";
 import { CircleBackdrop } from "./CircleBackdrop";
 import { GuidePath } from "./GuidePath";
 import { StoryPanel } from "./StoryPanel";
-import { duration, ease } from "../../../motion";
-import { useAmbientPause } from "../../hooks/useAmbientPause";
+import { duration, ease } from "@/motion";
+import { useAmbientPause } from "@/app/hooks/useAmbientPause";
 
 type Dir = "up" | "down" | "left" | "right";
 

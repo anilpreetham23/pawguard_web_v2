@@ -1,18 +1,16 @@
-import type { Metadata } from "next";
 import { Suspense } from "react";
-import RemindersPage from "../pages/RemindersPage";
+import type { Metadata } from "next";
+import RemindersPageView from "./RemindersPageView";
 
 export const metadata: Metadata = {
-  title: "Smart Reminders",
-  description:
-    "Track vaccination and medication schedules for your pets, including reminders your veterinary clinic sets automatically.",
-  robots: { index: false, follow: false },
+  title: "Medical & Care Reminders",
+  description: "Manage vaccination, deworming, and health checkup reminders for your pets.",
 };
 
 export default function Page() {
   return (
-    <Suspense>
-      <RemindersPage />
+    <Suspense fallback={null}>
+      <RemindersPageView />
     </Suspense>
   );
 }

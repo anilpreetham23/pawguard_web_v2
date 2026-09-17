@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "motion/react";
 import { stagger, duration, ease } from "../motion.config";
-import { cn } from "../../app/components/ui/utils";
+import { cn } from "@/app/components/ui/utils";
 
 interface MotionHeadingProps {
   as?: "h1" | "h2" | "h3" | "h4";

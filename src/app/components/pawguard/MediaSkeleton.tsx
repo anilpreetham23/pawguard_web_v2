@@ -4,7 +4,7 @@ import { useState, useCallback, type ImgHTMLAttributes } from "react";
 import { Image, Video, FileQuestion } from "lucide-react";
 import { cn } from "../ui/utils";
 import { Skeleton } from "./Skeleton";
-import { InteractiveImage, type ImageVariant } from "../../../motion/components/InteractiveImage";
+import { InteractiveImage, type ImageVariant } from "@/motion/components/InteractiveImage";
 
 type MediaType = "image" | "video" | "unknown";
 

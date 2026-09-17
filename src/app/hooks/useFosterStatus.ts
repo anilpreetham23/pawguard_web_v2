@@ -1,8 +1,9 @@
 "use client";
 
-import { QUERY_KEYS, useApiQuery } from "@/lib/api";
+import { QUERY_KEYS } from "@/lib/api";
+import { useApiQuery } from "@/lib/api/hooks";
 import { fosterService } from "@/services/api/foster";
-import { useAuth } from "../providers/auth-provider";
+import { useAuth } from "@/app/providers/auth-provider";
 import { useDashboardSummary } from "./useDashboardSummary";
 import type { FosterProfileResponse } from "@/lib/api";
 

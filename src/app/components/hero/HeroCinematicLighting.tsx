@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { useMotionStore } from "../../../motion/motion-store";
-import { cn } from "../../../app/components/ui/utils";
+import { useMotionStore } from "@/motion/motion-store";
+import { cn } from "@/app/components/ui/utils";
 
 /**
  * HeroCinematicLighting — essential cinematic lighting stack.

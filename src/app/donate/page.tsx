@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import DonatePage from "../pages/DonatePage";
+import DonatePageView from "./DonatePageView";
 
 export const metadata: Metadata = {
   title: "Donate",
-  description:
-    "Support dog rescue with a tax-deductible donation. 78% of every rupee goes directly to dog care.",
+  description: "Support emergency rescue operations, medical care, and shelter supplies.",
 };
 
 export default function Page() {
-  return <DonatePage />;
+  return <DonatePageView />;
 }

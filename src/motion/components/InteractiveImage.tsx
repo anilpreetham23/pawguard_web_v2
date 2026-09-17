@@ -35,7 +35,7 @@ import {
   useTransform,
   AnimatePresence,
 } from "motion/react";
-import { cn } from "../../app/components/ui/utils";
+import { cn } from "@/app/components/ui/utils";
 import { useMotionStore } from "../motion-store";
 
 // ─── Motion constants ─────────────────────────────────────────────────────────

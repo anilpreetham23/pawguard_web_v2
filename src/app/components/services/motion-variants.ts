@@ -1,4 +1,4 @@
-import { ease } from "../../../motion";
+import { ease } from "@/motion";
 
 export const panelVariants = {
   hidden: { opacity: 0, y: 14 },

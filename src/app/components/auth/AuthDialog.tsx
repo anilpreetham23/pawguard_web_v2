@@ -9,9 +9,10 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Input, Button, Alert, PhoneInput } from "../pawguard";
-import { useApiErrorMessage, normalizeError } from "@/lib/api";
+import { normalizeError } from "@/lib/api";
+import { useApiErrorMessage } from "@/lib/api/hooks";
 import { authService } from "@/services/api/auth";
-import { useAuth, MFARequiredError } from "../../providers/auth-provider";
+import { useAuth, MFARequiredError } from "@/app/providers/auth-provider";
 import { cn } from "../ui/utils";
 import {
   validatePhone,

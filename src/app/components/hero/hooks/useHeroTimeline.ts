@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { gsap } from "gsap";
-import { ease as motionEase } from "../../../../motion/motion.config";
+import { ease as motionEase } from "@/motion/motion.config";
 const ease = motionEase as any;
-import { registerGsapPlugins } from "../../../../motion/gsap-register";
-import { useMotionStore } from "../../../../motion/motion-store";
+import { registerGsapPlugins } from "@/motion/gsap-register";
+import { useMotionStore } from "@/motion/motion-store";
 
 registerGsapPlugins();
 

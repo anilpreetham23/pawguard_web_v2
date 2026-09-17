@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useMotionStore } from "../../../motion/motion-store";
+import { useMotionStore } from "@/motion/motion-store";
 import { cn } from "../ui/utils";
 
 // A live rescue feed told as a quiet human story rather than a status log.

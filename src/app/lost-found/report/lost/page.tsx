@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import LostFoundReportForm from "../../../pages/LostFoundReportForm";
+import LostFoundReportFormView from "../LostFoundReportFormView";
 
 export const metadata: Metadata = {
   title: "Report a Lost Dog",
@@ -19,7 +19,7 @@ export default function Page() {
         </div>
       }
     >
-      <LostFoundReportForm kind="lost" />
+      <LostFoundReportFormView kind="lost" />
     </Suspense>
   );
 }

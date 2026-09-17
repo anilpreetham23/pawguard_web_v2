@@ -6,8 +6,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useSafeScrollTrigger } from "./hooks/useSafeScrollTrigger";
 import { Section } from "./pawguard/Section";
 import { EditorialHeading } from "./pawguard/EditorialHeading";
-import { Atmosphere } from "../../motion/components/Atmosphere";
-import { useMotionStore } from "../../motion/motion-store";
+import { Atmosphere } from "@/motion/components/Atmosphere";
+import { useMotionStore } from "@/motion/motion-store";
 import { cn } from "./ui/utils";
 
 gsap.registerPlugin(ScrollTrigger);

@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import FosterPage from "../pages/FosterPage";
+import FosterPageView from "./FosterPageView";
 
 export const metadata: Metadata = {
-  title: "Foster Care Program | PawGuard",
-  description:
-    "Become a PawGuard foster family. Provide temporary care for dogs recovering from rescue. PawGuard covers 100% of medical expenses, food, and supplies.",
+  title: "Foster a Rescue Dog",
+  description: "Provide temporary home care for dogs awaiting permanent adoption.",
 };
 
 export default function Page() {
-  return <FosterPage />;
+  return <FosterPageView />;
 }

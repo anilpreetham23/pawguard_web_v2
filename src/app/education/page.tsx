@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import EducationPage from "../pages/EducationPage";
+import EducationPageView from "./EducationPageView";
 
 export const metadata: Metadata = {
-  title: "Pet Care & Rescue Guides | PawGuard Education",
-  description: "Educational resources on responsible pet ownership, vaccination, stray rescue safety, and emergency first aid.",
+  title: "Pet Care Education",
+  description: "Guides, articles, and expert advice on dog health, training, and emergency care.",
 };
 
 export default function Page() {
-  return <EducationPage />;
+  return <EducationPageView />;
 }

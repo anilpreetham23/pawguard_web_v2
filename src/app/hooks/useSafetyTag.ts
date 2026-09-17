@@ -1,6 +1,7 @@
 "use client";
 
-import { useApiQuery, QUERY_KEYS } from "@/lib/api";
+import { QUERY_KEYS } from "@/lib/api";
+import { useApiQuery } from "@/lib/api/hooks";
 import { safetyTagService } from "@/services/api/safety-tag";
 import type { SafetyTagResponse } from "@/lib/api";
 

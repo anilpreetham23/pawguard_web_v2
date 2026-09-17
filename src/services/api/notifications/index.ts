@@ -11,20 +11,7 @@
  * `401` (signed out) gracefully.
  */
 
-import {
-  API_ROUTES,
-  QUERY_KEYS,
-  apiDelete,
-  apiGet,
-  apiGetPage,
-  apiPut,
-  type NotificationPreferenceResponse,
-  type NotificationPreferenceUpdate,
-  type NotificationResponse,
-  type Page,
-  type QueryParams,
-  type UnreadCountResponse,
-} from "@/lib/api";
+import { API_ROUTES, QUERY_KEYS, apiDelete, apiGet, apiGetPage, apiPut, type NotificationPreferenceResponse, type NotificationPreferenceUpdate, type NotificationResponse, type Page, type QueryParams, type UnreadCountResponse } from "@/lib/api";
 
 /** Query params accepted by `GET /notifications`. */
 export interface NotificationQueryParams extends QueryParams {

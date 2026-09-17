@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import MyApplicationsPage from "../pages/MyApplicationsPage";
+import MyApplicationsPageView from "./MyApplicationsPageView";
 
 export const metadata: Metadata = {
-  title: "My Adoption Applications",
-  description:
-    "Track the status of your adoption applications — screening, interview, home check, and approval.",
-  robots: { index: false, follow: false },
+  title: "My Applications",
+  description: "Track your active adoption, foster, and volunteer applications.",
 };
 
 export default function Page() {
-  return <MyApplicationsPage />;
+  return <MyApplicationsPageView />;
 }

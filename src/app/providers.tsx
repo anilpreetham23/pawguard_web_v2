@@ -4,14 +4,14 @@ import { ThemeProvider } from "next-themes";
 import { QueryProvider } from "./providers/query-provider";
 import { AuthProvider } from "./providers/auth-provider";
 import { MotionProvider } from "@/motion";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
 import { GlobalLoader } from "@/motion";
-import PuppyProgress from "./components/PuppyProgress";
-import { OfflineBanner } from "./components/OfflineBanner";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { Toaster } from "./components/ui/sonner";
-import AuthDialog from "./components/auth/AuthDialog";
+import PuppyProgress from "@/app/components/PuppyProgress";
+import { OfflineBanner } from "@/app/components/OfflineBanner";
+import { ErrorBoundary } from "@/app/components/ErrorBoundary";
+import { Toaster } from "@/app/components/ui/sonner";
+import AuthDialog from "@/app/components/auth/AuthDialog";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (

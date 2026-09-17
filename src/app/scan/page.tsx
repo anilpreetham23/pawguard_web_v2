@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import ScanPage from "../pages/ScanPage";
+import ScanPageView from "./ScanPageView";
 
 export const metadata: Metadata = {
-  title: "Scan Safety Tag",
-  description:
-    "Scan a PawGuard safety-tag QR code or enter a token to see public pet safety information. No sign-in required.",
+  title: "QR Safety Tag Scanner",
+  description: "Scan a PawGuard QR safety tag to view owner emergency contact details.",
 };
 
 export default function Page() {
-  return <ScanPage />;
+  return <ScanPageView />;
 }

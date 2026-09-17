@@ -1,6 +1,7 @@
 "use client";
 
-import { useApiQuery, QUERY_KEYS } from "@/lib/api";
+import { QUERY_KEYS } from "@/lib/api";
+import { useApiQuery } from "@/lib/api/hooks";
 import { rescueService } from "@/services/api/rescue";
 import type { SuccessStoryResponse, SuccessStoryQueryParams, PaginationMeta } from "@/lib/api";
 

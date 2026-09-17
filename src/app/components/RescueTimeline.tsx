@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useMotionStore } from "../../motion/motion-store";
+import { useMotionStore } from "@/motion/motion-store";
 import { useSafeScrollTrigger } from "./hooks/useSafeScrollTrigger";
 import { cn } from "./ui/utils";
 

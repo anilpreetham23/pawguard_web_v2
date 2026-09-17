@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { cn } from "../ui/utils";
 import { QUADRANT_LAYOUT, type ServiceData } from "./services-data";
-import { ease } from "../../../motion";
+import { ease } from "@/motion";
 
 interface QuadrantProps {
   service: ServiceData;

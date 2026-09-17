@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import MySuccessStoriesPage from "../../pages/MySuccessStoriesPage";
+import MySuccessStoriesPageView from "./MySuccessStoriesPageView";
 
 export const metadata: Metadata = {
-  title: "My Success Stories | PawGuard Account",
-  description: "View and track the status of your submitted adoption success stories.",
+  title: "My Shared Stories",
+  description: "Track your submitted rescue and adoption success stories.",
 };
 
 export default function Page() {
-  return <MySuccessStoriesPage />;
+  return <MySuccessStoriesPageView />;
 }

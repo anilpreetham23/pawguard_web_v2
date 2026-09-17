@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import LegalDocumentPage from "../pages/LegalDocumentPage";
+import LegalDocumentPageView from "@/app/components/pawguard/LegalDocumentPageView";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | PawGuard",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <LegalDocumentPage type="privacy" />;
+  return <LegalDocumentPageView type="privacy" />;
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { useApiQuery, QUERY_KEYS } from "@/lib/api";
+import { QUERY_KEYS } from "@/lib/api";
+import { useApiQuery } from "@/lib/api/hooks";
 import { adoptionService } from "@/services/api/adoption";
 import type { AdoptionApplicationResponse } from "@/lib/api";
-import { useAuth } from "../providers/auth-provider";
+import { useAuth } from "@/app/providers/auth-provider";
 
 export interface AdoptionApplicationsAllResult {
   /** The signed-in user's adoption applications, newest first (up to 100). */

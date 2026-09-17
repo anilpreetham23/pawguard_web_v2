@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useMotionStore } from "../../motion/motion-store";
+import { useMotionStore } from "@/motion/motion-store";
 
 /**
  * Pauses the hero's compositor-heavy ambient loops (full-screen video

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { scrollTo } from "../../motion/scroll";
+import { scrollTo } from "@/motion/scroll";
 
 export function useFocusOnError(errors: Record<string, string>) {
   const refs = useRef<Record<string, HTMLElement | null>>({});

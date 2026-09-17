@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "../ui/utils";
-import { useAmbientPause } from "../../hooks/useAmbientPause";
+import { useAmbientPause } from "@/app/hooks/useAmbientPause";
 
 type SectionBg = "default" | "card" | "dark" | "crimson";
 

@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import ContactPage from "../pages/ContactPage";
+import ContactPageView from "./ContactPageView";
 
 export const metadata: Metadata = {
-  title: "Contact",
-  description:
-    "Get in touch with PawGuard. We reply within 24 hours.",
+  title: "Contact & Grievance Support",
+  description: "Get in touch with PawGuard support, report grievances, or find clinic locations.",
 };
 
 export default function Page() {
-  return <ContactPage />;
+  return <ContactPageView />;
 }

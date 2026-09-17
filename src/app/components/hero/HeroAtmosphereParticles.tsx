@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useEffect, useRef } from "react";
-import { useMotionStore } from "../../../motion/motion-store";
-import { cn } from "../../../app/components/ui/utils";
+import { useMotionStore } from "@/motion/motion-store";
+import { cn } from "@/app/components/ui/utils";
 
 /**
  * HeroAtmosphereParticles — living atmospheric particles.

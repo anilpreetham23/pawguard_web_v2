@@ -2,8 +2,8 @@
 
 import { useRef, useState } from "react";
 import { Link2, MapPin, CalendarDays, Gauge, CheckCircle2, XCircle, Clock, Send } from "lucide-react";
-import { useReportMatches } from "../hooks/useLostFound";
-import { useAuth } from "../providers/auth-provider";
+import { useReportMatches } from "@/app/hooks/useLostFound";
+import { useAuth } from "@/app/providers/auth-provider";
 import type { LostFoundKind } from "@/types";
 import { cn } from "./ui/utils";
 import { Alert } from "./pawguard";

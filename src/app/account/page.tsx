@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import AccountPage from "../pages/AccountPage";
+import AccountPageView from "./AccountPageView";
 
 export const metadata: Metadata = {
   title: "My Account",
-  description:
-    "Your PawGuard profile — account details, adoption activity, donations, and dogs you've saved.",
-  robots: { index: false, follow: false },
+  description: "Manage your PawGuard profile, pets, and security settings.",
 };
 
 export default function Page() {
-  return <AccountPage />;
+  return <AccountPageView />;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useMotionStore } from "../../motion/motion-store";
+import { useMotionStore } from "@/motion/motion-store";
 
 /**
  * DogSketchBackground — scattered dog-related sketch illustrations

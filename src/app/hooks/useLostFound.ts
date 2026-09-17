@@ -1,6 +1,7 @@
 "use client";
 
-import { useApiMutation, useApiQuery, QUERY_KEYS, getEmptyPaginationMeta } from "@/lib/api";
+import { QUERY_KEYS, getEmptyPaginationMeta } from "@/lib/api";
+import { useApiMutation, useApiQuery } from "@/lib/api/hooks";
 import { lostFoundService } from "@/services/api/lost-found";
 import type { LostFoundQueryParams, ReportMatchResponse, OwnershipClaimSubmit } from "@/lib/api";
 import type { LostFoundCase, LostFoundKind } from "@/types";

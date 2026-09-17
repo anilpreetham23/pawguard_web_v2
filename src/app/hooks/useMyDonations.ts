@@ -1,6 +1,7 @@
 "use client";
 
-import { useApiQuery, QUERY_KEYS } from "@/lib/api";
+import { QUERY_KEYS } from "@/lib/api";
+import { useApiQuery } from "@/lib/api/hooks";
 import { donationService } from "@/services/api/donation";
 import type { DonationResponse } from "@/lib/api";
 

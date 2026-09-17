@@ -1,9 +1,10 @@
 "use client";
 
-import { QUERY_KEYS, useApiQuery } from "@/lib/api";
+import { QUERY_KEYS } from "@/lib/api";
+import { useApiQuery } from "@/lib/api/hooks";
 import { adoptionService } from "@/services/api/adoption";
 import type { AdoptionApplicationResponse, AdoptionStatus } from "@/lib/api";
-import { useAuth } from "../providers/auth-provider";
+import { useAuth } from "@/app/providers/auth-provider";
 
 export interface MyApplicationsResult {
   applications: AdoptionApplicationResponse[];

@@ -11,8 +11,10 @@
  *    a user-friendly error message.
  */
 
-import { donationService } from "./index";
-import { getErrorMessage } from "@/lib/api";
+"use client";
+
+import { API_ROUTES, apiGet, getErrorMessage } from "@/lib/api";
+import type { DownloadUrlResponse } from "@/lib/api";
 
 export async function openAndViewReceipt(donationId: string): Promise<void> {
   if (!donationId) {
@@ -87,7 +89,9 @@ export async function openAndViewReceipt(donationId: string): Promise<void> {
 
   try {
     // 2. Fetch the official receipt URL
-    const res = await donationService.getReceiptUrl(donationId);
+    const res = await apiGet<DownloadUrlResponse>(
+      API_ROUTES.donation.receipt(donationId)
+    );
     if (!res?.download_url) {
       throw new Error("Receipt download URL was not provided by the server.");
     }

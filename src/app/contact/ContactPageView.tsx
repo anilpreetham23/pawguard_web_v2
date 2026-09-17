@@ -1,0 +1,473 @@
+"use client";
+
+import { useState } from "react";
+import * as Accordion from "@radix-ui/react-accordion";
+import { ChevronDown, Phone, CheckCircle2, AlertCircle, Clock, FileText } from "lucide-react";
+import Link from "next/link";
+import SectionHeading from "@/app/components/SectionHeading";
+import { useFocusOnError } from "@/app/hooks/useFocusOnError";
+import PageHeader from "@/app/components/PageHeader";
+import { PageShell, Section, Button, Input, Textarea, Reveal, DispatchReveal, StaggerGrid, StaggerItem } from "@/app/components/pawguard";
+import { contactService } from "@/services/api/contact";
+import { getErrorMessage } from "@/lib/api";
+import type { ContactInquiryResponse, GrievanceResponse } from "@/lib/api";
+
+import { useFaqEntries } from "@/app/hooks/useFaqEntries";
+import { useContactLocations } from "@/app/hooks/useContactLocations";
+
+const FAQS = [
+  { q: "How quickly does PawGuard respond to emergency reports?", a: "Our average response time is under 15 minutes for critical emergencies within our coverage area. Non-critical situations are typically attended within 4 hours." },
+  { q: "Can I surrender a dog to PawGuard?", a: "Yes. We accept owner surrenders subject to intake availability. Please contact us before arriving to ensure we have space and can assess the dog's needs." },
+  { q: "How do I check the status of my emergency report?", a: "After submitting a report you will receive a reference number. Call our operations line with that number and our team will provide a real-time status update." },
+  { q: "Do you operate outside business hours?", a: "Our emergency response teams operate 24/7, 365 days a year. Administrative services are available Monday to Friday, 8am–6pm." },
+  { q: "How are donations used?", a: "78% of all funds go directly to dog care programs. 12% covers administrative operations and 10% is held in reserve for emergency capacity." },
+  { q: "Can I volunteer for a single event rather than ongoing?", a: "Absolutely. We have event-based volunteer opportunities throughout the year. Sign up through the Volunteer page." },
+  { q: "How long does the adoption process take?", a: "The typical adoption process takes 3–7 business days from application to approval." },
+];
+
+import { isHumanReadableFaqQuestion } from "@/services/api/contact/mapper";
+
+export default function ContactPage() {
+  const { data: apiFaqs } = useFaqEntries();
+  const { data: apiLocations } = useContactLocations();
+
+  const validApiFaqs = (apiFaqs ?? []).filter((f) => isHumanReadableFaqQuestion(f.question));
+  const faqsToDisplay =
+    validApiFaqs.length > 0
+      ? validApiFaqs.map((f) => ({ q: f.question, a: f.answer }))
+      : FAQS;
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    category: "general",
+    subject: "",
+    message: "",
+    has_consent: true,
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [inquiryResult, setInquiryResult] = useState<ContactInquiryResponse | null>(null);
+  const [grievanceResult, setGrievanceResult] = useState<GrievanceResponse | null>(null);
+  const [hasError, setHasError] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { setRef } = useFocusOnError(errors);
+
+  const isGrievance = form.category === "grievance";
+
+  function validateField(field: string, value: string) {
+    const e: Record<string, string> = {};
+    if (!value.trim() && (field === "email" || field === "subject" || field === "message" || (isGrievance && (field === "name" || field === "phone")))) {
+      e[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+    }
+    setErrors((prev) => ({ ...prev, ...e }));
+  }
+
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function validate() {
+    const e: Record<string, string> = {};
+    if (isGrievance && !form.name.trim()) {
+      e.name = "Please enter your name for formal complaint tracking.";
+    }
+    if (!form.email.trim()) {
+      e.email = "Please enter your email address.";
+    } else if (!EMAIL_REGEX.test(form.email.trim())) {
+      e.email = "Please enter a valid email address (e.g. name@example.com).";
+    }
+    if (isGrievance && !form.phone.trim()) {
+      e.phone = "Please enter a contact phone number for grievance follow-up.";
+    }
+    if (!form.subject.trim()) {
+      e.subject = isGrievance ? "Please specify the complaint type/subject." : "Please enter a subject for your inquiry.";
+    } else if (form.subject.trim().length > 255) {
+      e.subject = "Subject must be 255 characters or fewer.";
+    }
+    if (!form.message.trim()) {
+      e.message = isGrievance ? "Please describe the details of your complaint." : "Please enter your message.";
+    } else if (form.message.trim().length < 5) {
+      e.message = "Message details must be at least 5 characters long.";
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!validate()) return;
+    setIsLoading(true);
+    setHasError(false);
+    setInquiryResult(null);
+    setGrievanceResult(null);
+
+    if (isGrievance) {
+      contactService
+        .submitComplaint({
+          reporter_name: form.name.trim(),
+          reporter_phone: form.phone.trim(),
+          reporter_email: form.email.trim() || undefined,
+          complaint_type: form.subject.trim(),
+          details: form.message.trim(),
+        })
+        .then((res) => {
+          setGrievanceResult(res);
+          setSubmitted(true);
+        })
+        .catch((err) => {
+          setHasError(true);
+          setFormError(getErrorMessage(err));
+        })
+        .finally(() => setIsLoading(false));
+    } else {
+      contactService
+        .submitContactMessage({
+          name: form.name.trim() || undefined,
+          email: form.email.trim(),
+          phone: form.phone.trim() || undefined,
+          subject: form.subject.trim(),
+          category: form.category || "general",
+          message: form.message.trim(),
+          has_consent: form.has_consent,
+        })
+        .then((res) => {
+          setInquiryResult(res ?? null);
+          setSubmitted(true);
+        })
+        .catch((err) => {
+          setHasError(true);
+          setFormError(getErrorMessage(err));
+        })
+        .finally(() => setIsLoading(false));
+    }
+  }
+
+  return (
+    <PageShell>
+      <main id="main-content" className="flex-1">
+        <DispatchReveal><PageHeader
+          eyebrow="Get in Touch"
+          title="We reply within 24 hours. Often sooner."
+        /></DispatchReveal>
+
+        <DispatchReveal><div className="bg-destructive px-4 sm:px-6 lg:px-8 py-4">
+          <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Phone size={16} className="text-white shrink-0" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                <span className="text-white font-semibold text-sm">Dog in immediate danger?</span>
+                <span className="text-white/70 text-sm">Do not use this form. Use our emergency report page instead.</span>
+              </div>
+            </div>
+            <Link href="/emergency" className="shrink-0 bg-white text-destructive font-bold text-xs tracking-wider uppercase font-condensed px-6 py-3 rounded-btn hover:bg-white/90 hover:shadow-sm transition-all duration-fast animate-pulse-emergency">
+              Emergency Report
+            </Link>
+          </div>
+        </div></DispatchReveal>
+
+        <Reveal><div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-section-md lg:pt-section-lg pb-8 grid grid-cols-1 lg:grid-cols-12 gap-[var(--space-12)] lg:gap-[var(--space-12)]">
+          <div className="lg:col-span-6 flex flex-col gap-12">
+            <SectionHeading eyebrow="FAQ">
+              Frequently Asked Questions
+            </SectionHeading>
+            <Accordion.Root type="single" collapsible className="flex flex-col">
+              {faqsToDisplay.map((faq, i) => (
+                <Accordion.Item key={i} value={`item-${i}`} className="border-t border-border last:border-b">
+                  <Accordion.Trigger className="w-full flex items-center justify-between py-5 text-left gap-4 group min-h-[44px]">
+                    <span className="text-foreground font-semibold text-base leading-snug group-hover:text-primary transition-colors duration-200">
+                      {faq.q}
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      className="shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180"
+                    />
+                  </Accordion.Trigger>
+                  <Accordion.Content className="overflow-hidden data-[state=open]:animate-[accordion-down_0.2s_ease-out] data-[state=closed]:animate-[accordion-up_0.2s_ease-out]">
+                    <p className="text-muted-foreground text-sm leading-relaxed pb-5">{faq.a}</p>
+                  </Accordion.Content>
+                </Accordion.Item>
+              ))}
+            </Accordion.Root>
+          </div>
+
+          <div className="lg:col-span-6 flex flex-col gap-12">
+            <Reveal><SectionHeading eyebrow="Send a Message">
+              Get in Touch
+            </SectionHeading>
+
+            {hasError ? (
+              <div className="bg-card border border-border rounded-modal p-7 flex flex-col gap-3 shadow-sm" role="alert">
+                <div className="w-12 h-12 bg-destructive/10 rounded-2xl flex items-center justify-center">
+                  <AlertCircle size={22} className="text-destructive" />
+                </div>
+                <h3 className="text-foreground font-bold text-xl">Submission Error</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {formError || "Something went wrong. Please try again or email us directly at hello@pawguard.org."}
+                </p>
+                <Button variant="primary" size="md" onClick={() => { setHasError(false); setFormError(""); }} className="self-start">
+                  Try Again
+                </Button>
+              </div>
+            ) : submitted ? (
+              grievanceResult ? (
+                <div className="bg-card border border-primary/30 rounded-modal p-7 flex flex-col gap-5 shadow-sm animate-celebration-pop" role="status" aria-live="polite">
+                  <div className="flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <CheckCircle2 size={22} />
+                    </span>
+                    <div>
+                      <h3 className="text-foreground font-bold text-xl">Formal Complaint Registered</h3>
+                      <p className="text-muted-foreground text-xs">Tracked under Rescue Centre Administrator SLA</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-muted/60 border border-border rounded-card p-4 flex flex-col gap-2 font-mono text-xs">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground font-sans font-medium">Ticket ID:</span>
+                      <span className="text-foreground font-bold truncate max-w-[220px]">{grievanceResult.id}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground font-sans font-medium">Status:</span>
+                      <span className="capitalize px-2.5 py-0.5 rounded-full text-2xs font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/25">
+                        {grievanceResult.status}
+                      </span>
+                    </div>
+                    {grievanceResult.sla_due_at && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground font-sans font-medium">SLA Response Due:</span>
+                        <span className="text-foreground font-semibold font-sans">
+                          {new Date(grievanceResult.sla_due_at).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Your complaint has been assigned to the Rescue Centre Administrator queue. You can monitor ticket progress, SLA timers, and staff responses from your Account Dashboard.
+                  </p>
+
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    <Link
+                      href="/account"
+                      className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold text-xs tracking-wider uppercase px-5 py-2.5 rounded-btn hover:bg-primary-hover transition-colors"
+                    >
+                      <FileText size={15} />
+                      View Account Dashboard
+                    </Link>
+                    <Button
+                      variant="outline"
+                      size="md"
+                      onClick={() => {
+                        setSubmitted(false);
+                        setGrievanceResult(null);
+                        setInquiryResult(null);
+                        setForm({ name: "", email: "", phone: "", category: "general", subject: "", message: "", has_consent: true });
+                      }}
+                    >
+                      Submit Another Inquiry
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-card border border-border rounded-modal p-7 flex flex-col gap-5 shadow-sm animate-celebration-pop" role="status" aria-live="polite">
+                  <div className="flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-700 flex items-center justify-center shrink-0">
+                      <CheckCircle2 size={22} />
+                    </span>
+                    <div>
+                      <h3 className="text-foreground font-bold text-xl">Inquiry Submitted</h3>
+                      <p className="text-muted-foreground text-xs">We typically respond within 1–2 business days</p>
+                    </div>
+                  </div>
+
+                  {inquiryResult?.id && (
+                    <div className="bg-muted/60 border border-border rounded-card p-4 flex justify-between items-center font-mono text-xs">
+                      <span className="text-muted-foreground font-sans font-medium">Inquiry Reference ID:</span>
+                      <span className="text-foreground font-bold truncate max-w-[220px]">{inquiryResult.id}</span>
+                    </div>
+                  )}
+
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Thank you for reaching out. If you are signed in, your inquiry has been recorded and will be accessible from your Account Dashboard.
+                  </p>
+
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    <Link
+                      href="/account"
+                      className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold text-xs tracking-wider uppercase px-5 py-2.5 rounded-btn hover:bg-primary-hover transition-colors"
+                    >
+                      <FileText size={15} />
+                      View Account Dashboard
+                    </Link>
+                    <Button
+                      variant="outline"
+                      size="md"
+                      onClick={() => {
+                        setSubmitted(false);
+                        setInquiryResult(null);
+                        setGrievanceResult(null);
+                        setForm({ name: "", email: "", phone: "", category: "general", subject: "", message: "", has_consent: true });
+                      }}
+                    >
+                      Send Another Message
+                    </Button>
+                  </div>
+                </div>
+              )
+            ) : (
+              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                <div className="flex flex-col gap-2">
+                  <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
+                    Category / Submission Type
+                  </label>
+                  <select
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    className="w-full h-12 bg-input-background border border-border rounded-input px-4 text-foreground text-base focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+                  >
+                    <option value="general">General Inquiry</option>
+                    <option value="adoption">Adoption &amp; Fostering</option>
+                    <option value="volunteer">Volunteering &amp; Community</option>
+                    <option value="donation">Donations &amp; Sponsorship</option>
+                    <option value="medical">Medical &amp; Shelter Care</option>
+                    <option value="grievance">Formal Complaint / Grievance (Tracked Ticket with SLA)</option>
+                    <option value="other">Other</option>
+                  </select>
+                  {isGrievance && (
+                    <p className="text-xs text-primary font-medium flex items-center gap-1.5 mt-1">
+                      <Clock size={13} />
+                      Formal grievances generate a tracked ticket routed to Rescue Centre Administrators with mandatory 72-hour SLA due dates.
+                    </p>
+                  )}
+                </div>
+
+                <Input
+                  label={isGrievance ? "Name *" : "Name (Optional)"}
+                  placeholder="Your full name"
+                  ref={setRef("name")}
+                  value={form.name}
+                  onChange={(e) => { setForm({ ...form, name: e.target.value }); if (errors.name) setErrors({ ...errors, name: "" }); }}
+                  onBlur={() => { if (isGrievance && !form.name.trim()) validateField("name", form.name); }}
+                  error={errors.name}
+                  autoComplete="name"
+                />
+                <Input
+                  label="Email *"
+                  type="email"
+                  placeholder="your@email.com"
+                  ref={setRef("email")}
+                  value={form.email}
+                  onChange={(e) => { setForm({ ...form, email: e.target.value }); if (errors.email) setErrors({ ...errors, email: "" }); }}
+                  onBlur={() => { if (!form.email.trim()) validateField("email", form.email); }}
+                  error={errors.email}
+                  autoComplete="email"
+                  inputMode="email"
+                  className="w-full text-sm sm:text-base tracking-normal min-w-0"
+                />
+                <Input
+                  label={isGrievance ? "Phone Number *" : "Phone Number (Optional)"}
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  ref={setRef("phone")}
+                  value={form.phone}
+                  onChange={(e) => { setForm({ ...form, phone: e.target.value }); if (errors.phone) setErrors({ ...errors, phone: "" }); }}
+                  onBlur={() => { if (isGrievance && !form.phone.trim()) validateField("phone", form.phone); }}
+                  error={errors.phone}
+                  autoComplete="tel"
+                  inputMode="tel"
+                />
+                <Input
+                  label={isGrievance ? "Complaint Type / Subject *" : "Subject *"}
+                  placeholder={isGrievance ? "e.g. Rescue Delay, Staff Feedback, Shelter Condition" : "What is your inquiry about?"}
+                  ref={setRef("subject")}
+                  value={form.subject}
+                  onChange={(e) => { setForm({ ...form, subject: e.target.value }); if (errors.subject) setErrors({ ...errors, subject: "" }); }}
+                  onBlur={() => { if (!form.subject.trim()) validateField("subject", form.subject); }}
+                  error={errors.subject}
+                  maxLength={255}
+                />
+                <Textarea
+                  label={isGrievance ? "Complaint Details *" : "Message *"}
+                  placeholder={isGrievance ? "Please provide details of your complaint or grievance..." : "Describe your inquiry..."}
+                  ref={setRef("message")}
+                  value={form.message}
+                  onChange={(e) => { setForm({ ...form, message: e.target.value }); if (errors.message) setErrors({ ...errors, message: "" }); }}
+                  onBlur={() => { if (!form.message.trim()) validateField("message", form.message); }}
+                  error={errors.message}
+                  maxLength={10000}
+                  rows={5}
+                />
+                <label className="flex items-start gap-3 cursor-pointer select-none pt-1">
+                  <input
+                    type="checkbox"
+                    checked={form.has_consent}
+                    onChange={(e) => setForm({ ...form, has_consent: e.target.checked })}
+                    className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    I consent to PawGuard processing my contact details to respond to this inquiry in accordance with the{" "}
+                    <Link href="/privacy" className="text-primary hover:underline">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </span>
+                </label>
+                <Button type="submit" variant="secondary" size="lg" isLoading={isLoading} context="contact">
+                  {isGrievance ? "Submit Formal Grievance Ticket" : "Send Message"}
+                </Button>
+              </form>
+            )}
+
+            </Reveal>
+          </div>
+        </div></Reveal>
+
+        <Reveal><div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-8 pb-20 lg:pb-28 border-t border-border flex flex-col gap-10">
+          {apiLocations && apiLocations.length > 0 && (
+            <div className="flex flex-col gap-4">
+              <h3 className="text-foreground font-bold text-base">Shelter & Office Locations</h3>
+              <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-grid-md" staggerDelay={0.05}>
+                {apiLocations.map((loc) => (
+                  <StaggerItem key={loc.id}>
+                    <div className="bg-card border border-border rounded-card p-5 shadow-sm flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-foreground font-bold text-base">{loc.name}</span>
+                        {loc.is_emergency_hotline && (
+                          <span className="text-2xs bg-destructive/10 text-destructive px-2 py-0.5 rounded font-semibold uppercase">Emergency</span>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground text-xs">{loc.address}</p>
+                      {loc.phone && <p className="text-primary text-xs font-semibold">Phone: {loc.phone}</p>}
+                      {loc.email && <p className="text-muted-foreground text-xs">Email: {loc.email}</p>}
+                      {loc.operating_hours && <p className="text-muted-foreground text-2xs italic mt-1">Hours: {loc.operating_hours}</p>}
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerGrid>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-4">
+            <h3 className="text-foreground font-bold text-base">Direct Contacts</h3>
+            <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-grid-md" staggerDelay={0.05}>
+              {[
+                { label: "General Inquiries", value: "hello@pawguard.org" },
+                { label: "Volunteer Coordinator", value: "volunteer@pawguard.org" },
+                { label: "Adoption Team", value: "adopt@pawguard.org" },
+                { label: "Operations Line", value: "+91 98765 43210" },
+              ].map((c) => (
+                <StaggerItem key={c.label}>
+                <div className="bg-card border border-border rounded-card p-4 shadow-sm hover:shadow-md transition-all duration-ui">
+                  <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase font-condensed">{c.label}</span>
+                  <span className="text-primary font-semibold text-sm block mt-0.5">{c.value}</span>
+                </div>
+                </StaggerItem>
+              ))}
+            </StaggerGrid>
+          </div>
+        </div></Reveal>
+      </main>
+    </PageShell>
+  );
+}

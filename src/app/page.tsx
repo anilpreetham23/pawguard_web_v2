@@ -1,12 +1,10 @@
-import type { Metadata } from "next";
-import HomePage from "./pages/HomePage";
+import HomePageView from "./HomePageView";
 
-export const metadata: Metadata = {
-  title: "Home",
-  description:
-    "Report a dog emergency, find your next companion, or support dog rescue across 12 municipalities.",
+export const metadata = {
+  title: "PawGuard — Emergency Pet Rescue, Adoption & Safety Network",
+  description: "PawGuard coordinates emergency rescue, adoption, and veterinary care.",
 };
 
 export default function Page() {
-  return <HomePage />;
+  return <HomePageView />;
 }

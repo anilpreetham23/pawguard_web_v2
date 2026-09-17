@@ -6,7 +6,7 @@ import { XIcon } from "lucide-react";
 import { useEffect } from "react";
 
 import { cn } from "./utils";
-import { getLenis } from "../../../motion/lenis-instance";
+import { getLenis } from "@/motion/lenis-instance";
 
 function Dialog({
   ...props

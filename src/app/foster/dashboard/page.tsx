@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import FosterDashboardPage from "../../pages/FosterDashboardPage";
+import FosterDashboardPageView from "./FosterDashboardPageView";
 
 export const metadata: Metadata = {
-  title: "Foster Dashboard | PawGuard",
-  description:
-    "View your PawGuard foster carer profile status, capacity, care preferences, and active placement overview.",
+  title: "Foster Parent Dashboard",
+  description: "Track foster placements, medical schedules, and supply requests.",
 };
 
 export default function Page() {
-  return <FosterDashboardPage />;
+  return <FosterDashboardPageView />;
 }

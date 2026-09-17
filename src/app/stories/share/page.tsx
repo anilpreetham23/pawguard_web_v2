@@ -1,12 +1,16 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import ShareSuccessStoryPage from "../../pages/ShareSuccessStoryPage";
+import ShareSuccessStoryPageView from "./ShareSuccessStoryPageView";
 
 export const metadata: Metadata = {
-  title: "Share Your Success Story | PawGuard",
-  description:
-    "Share your rescue dog's adoption journey with the PawGuard community. Every adoption inspires another family.",
+  title: "Share Your Rescue Story",
+  description: "Submit your pet adoption or rescue success story to inspire the community.",
 };
 
 export default function Page() {
-  return <ShareSuccessStoryPage />;
+  return (
+    <Suspense fallback={null}>
+      <ShareSuccessStoryPageView />
+    </Suspense>
+  );
 }

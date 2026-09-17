@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import VeterinaryPage from "../pages/VeterinaryPage";
+import VeterinaryPageView from "./VeterinaryPageView";
 
 export const metadata: Metadata = {
-  title: "Veterinary Directory",
-  description:
-    "Find a verified partner veterinary clinic from the PawGuard network — including 24/7 emergency care near you.",
+  title: "Veterinary Clinic Directory",
+  description: "Find verified partner veterinary clinics, emergency hospitals, and services.",
 };
 
 export default function Page() {
-  return <VeterinaryPage />;
+  return <VeterinaryPageView />;
 }

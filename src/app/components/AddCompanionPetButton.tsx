@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import { CheckCircle2, Plus } from "lucide-react";
 import { Button } from "./pawguard/Button";
-import { useApiMutation, QUERY_KEYS, getErrorMessage } from "@/lib/api";
+import { QUERY_KEYS, getErrorMessage } from "@/lib/api";
+import { useApiMutation } from "@/lib/api/hooks";
 import { queryClient } from "@/lib/react-query";
 import { companionPetsService } from "@/services/api/pets";
-import { useMyPets } from "../hooks/useMyPets";
+import { useMyPets } from "@/app/hooks/useMyPets";
 
 interface AddCompanionPetButtonProps {
   /** Optional adoption application UUID for backend linking. */

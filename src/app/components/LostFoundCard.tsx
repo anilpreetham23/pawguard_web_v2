@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CalendarDays, MapPin } from "lucide-react";
-import { InteractiveImage } from "../../motion/components/InteractiveImage";
+import { InteractiveImage } from "@/motion/components/InteractiveImage";
 import { cn } from "./ui/utils";
 import type { LostFoundCase } from "@/types";
 

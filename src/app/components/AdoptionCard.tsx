@@ -4,9 +4,9 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "motion/react";
-import { HoverCard, HoverCardTrigger, HoverCardContent } from "../components/ui/hover-card";
-import { InteractiveImage } from "../../motion/components/InteractiveImage";
-import { useMotionStore } from "../../motion/motion-store";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/app/components/ui/hover-card";
+import { InteractiveImage } from "@/motion/components/InteractiveImage";
+import { useMotionStore } from "@/motion/motion-store";
 import { cn } from "./ui/utils";
 
 // ─── Springs ──────────────────────────────────────────────────────────────────

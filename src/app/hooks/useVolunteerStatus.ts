@@ -1,8 +1,9 @@
 "use client";
 
-import { QUERY_KEYS, useApiQuery } from "@/lib/api";
+import { QUERY_KEYS } from "@/lib/api";
+import { useApiQuery } from "@/lib/api/hooks";
 import { communityService } from "@/services/api/community";
-import { useAuth } from "../providers/auth-provider";
+import { useAuth } from "@/app/providers/auth-provider";
 import type { VolunteerMeStatusResponse } from "@/lib/api";
 
 export interface VolunteerStatusResult {

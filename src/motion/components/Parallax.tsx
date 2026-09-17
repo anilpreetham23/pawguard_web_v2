@@ -3,7 +3,7 @@
 import { useRef, type CSSProperties, type ReactNode } from "react";
 import { motion, useScroll, useSpring, useTransform } from "motion/react";
 import { useMotionStore } from "../motion-store";
-import { cn } from "../../app/components/ui/utils";
+import { cn } from "@/app/components/ui/utils";
 
 /**
  * Parallax — scroll-linked depth for decorative layers.

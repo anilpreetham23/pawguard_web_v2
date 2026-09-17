@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import AppointmentsPage from "../pages/AppointmentsPage";
+import AppointmentsPageView from "./AppointmentsPageView";
 
 export const metadata: Metadata = {
-  title: "My Appointments",
-  description:
-    "Review your veterinary appointments, check their status, and manage cancellations for your pets.",
-  robots: { index: false, follow: false },
+  title: "My Veterinary Appointments",
+  description: "Manage scheduled veterinary consultations and checkups.",
 };
 
 export default function Page() {
-  return <AppointmentsPage />;
+  return <AppointmentsPageView />;
 }

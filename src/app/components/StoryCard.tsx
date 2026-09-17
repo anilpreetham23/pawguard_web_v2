@@ -2,8 +2,8 @@
 
 import { useRef, useState, useCallback } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
-import { InteractiveImage } from "../../motion/components/InteractiveImage";
-import { useMotionStore } from "../../motion/motion-store";
+import { InteractiveImage } from "@/motion/components/InteractiveImage";
+import { useMotionStore } from "@/motion/motion-store";
 
 const TILT_SPRING = { stiffness: 180, damping: 22, mass: 0.6 };
 const GLOW_SPRING = { stiffness: 100, damping: 20, mass: 0.5 };

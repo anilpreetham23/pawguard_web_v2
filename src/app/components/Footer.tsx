@@ -5,8 +5,8 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { Twitter, Instagram, Facebook, Heart, Shield, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
 import { Button, Input } from "./pawguard";
-import { useMotionStore } from "../../motion/motion-store";
-import { duration, ease } from "../../motion/motion.config";
+import { useMotionStore } from "@/motion/motion-store";
+import { duration, ease } from "@/motion/motion.config";
 
 const SOCIALS = [
   { icon: Twitter, label: "X/Twitter", href: "https://twitter.com" },

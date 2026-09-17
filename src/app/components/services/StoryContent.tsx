@@ -17,7 +17,7 @@ import { gsap } from "gsap";
 import { motion } from "motion/react";
 import { Check, ArrowRight } from "lucide-react";
 import { Button } from "../pawguard/Button";
-import { useMotionStore } from "../../../motion/motion-store";
+import { useMotionStore } from "@/motion/motion-store";
 import { fadeUp, panelVariants, timelineDot, timelineFill } from "./motion-variants";
 import type { ServiceData } from "./services-data";
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PawPrint } from "lucide-react";
-import { useMotionStore } from "../../../motion/motion-store";
+import { useMotionStore } from "@/motion/motion-store";
 
 export function HeroScrollIndicator({ className }: { className?: string }) {
   const [scrolled, setScrolled] = useState(false);

@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import EmergencyPage from "../pages/EmergencyPage";
+import EmergencyPageView from "./EmergencyPageView";
 
 export const metadata: Metadata = {
-  title: "Emergency",
-  description:
-    "Report a dog in crisis. PawGuard dispatches emergency rescue teams within minutes.",
+  title: "Emergency SOS Rescue",
+  description: "Dispatch urgent emergency medical rescue for injured or trapped animals.",
 };
 
 export default function Page() {
-  return <EmergencyPage />;
+  return <EmergencyPageView />;
 }

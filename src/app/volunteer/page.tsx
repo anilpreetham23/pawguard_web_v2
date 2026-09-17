@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import VolunteerPage from "../pages/VolunteerPage";
+import VolunteerPageView from "./VolunteerPageView";
 
 export const metadata: Metadata = {
-  title: "Volunteer",
-  description:
-    "Join 800+ PawGuard volunteers. Roles include foster care, transport, events, and shelter support.",
+  title: "Volunteer with PawGuard",
+  description: "Join our rescue team as a volunteer driver, foster parent, or event organizer.",
 };
 
 export default function Page() {
-  return <VolunteerPage />;
+  return <VolunteerPageView />;
 }

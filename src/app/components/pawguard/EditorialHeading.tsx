@@ -2,8 +2,8 @@
 
 import { useRef, type ReactNode } from "react";
 import { motion, useInView } from "motion/react";
-import { useMotionStore } from "../../../motion/motion-store";
-import { duration, ease } from "../../../motion/motion.config";
+import { useMotionStore } from "@/motion/motion-store";
+import { duration, ease } from "@/motion/motion.config";
 import { cn } from "../ui/utils";
 
 /**

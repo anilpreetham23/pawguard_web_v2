@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import LegalDocumentPage from "../pages/LegalDocumentPage";
+import LegalDocumentPageView from "@/app/components/pawguard/LegalDocumentPageView";
 
 export const metadata: Metadata = {
   title: "Terms of Service | PawGuard",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <LegalDocumentPage type="terms" />;
+  return <LegalDocumentPageView type="terms" />;
 }

@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import MyDonationsPage from "../../pages/MyDonationsPage";
+import MyDonationsPageView from "./MyDonationsPageView";
 
 export const metadata: Metadata = {
-  title: "My Donations | PawGuard",
-  description: "View your contribution history, impact, and official tax receipts.",
-  robots: { index: false, follow: false },
+  title: "My Donations",
+  description: "View your contribution history and tax receipts.",
 };
 
 export default function Page() {
-  return <MyDonationsPage />;
+  return <MyDonationsPageView />;
 }

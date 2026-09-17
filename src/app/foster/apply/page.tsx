@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import FosterPage from "../../pages/FosterPage";
+import FosterPageView from "../FosterPageView";
 
 export const metadata: Metadata = {
   title: "Apply to Foster Care | PawGuard",
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <FosterPage initialFocusApply={true} />;
+  return <FosterPageView initialFocusApply={true} />;
 }

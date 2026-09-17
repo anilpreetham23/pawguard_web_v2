@@ -3,8 +3,8 @@
 import { motion } from "motion/react";
 import { useInView } from "motion/react";
 import { useRef } from "react";
-import { duration, ease } from "../../../motion/motion.config";
-import { useMotionStore } from "../../../motion/motion-store";
+import { duration, ease } from "@/motion/motion.config";
+import { useMotionStore } from "@/motion/motion-store";
 
 interface CinematicSectionProps {
   children: React.ReactNode;

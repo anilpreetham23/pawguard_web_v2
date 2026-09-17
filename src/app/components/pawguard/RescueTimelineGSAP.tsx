@@ -4,9 +4,9 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CheckCircle2, Clock } from "lucide-react";
-import { useMotionStore } from "../../../motion/motion-store";
+import { useMotionStore } from "@/motion/motion-store";
 import { cn } from "../ui/utils";
-import { useSafeScrollTrigger } from "../hooks/useSafeScrollTrigger";
+import { useSafeScrollTrigger } from "@/app/components/hooks/useSafeScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 

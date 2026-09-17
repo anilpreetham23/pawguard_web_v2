@@ -8,8 +8,8 @@ import {
   useState,
 } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
-import { useMotionStore } from "../../../motion/motion-store";
-import { cn } from "../../../app/components/ui/utils";
+import { useMotionStore } from "@/motion/motion-store";
+import { cn } from "@/app/components/ui/utils";
 
 /**
  * HeroCursorLight — a cinematic cursor light that illuminates the hero.

@@ -6,7 +6,7 @@
  * ```ts
  * import { apiGet, apiGetPage, ApiError } from "@/lib/api";
  * import { getErrorMessage, QUERY_KEYS } from "@/lib/api";
- * import { useApiQuery } from "@/lib/api";
+ * import { useApiQuery } from "@/lib/api/hooks";
  * ```
  *
  * Feature services live in `@/services/api/<module>` and build on this layer.
@@ -231,4 +231,3 @@ export {
   type ApiRequestConfig,
 } from "./client";
 export * as auth from "./auth";
-export * from "./hooks";

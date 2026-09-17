@@ -6,12 +6,12 @@ import { HeroContent } from "./HeroContent";
 import { HeroScene } from "./HeroScene";
 import { HeroScrollIndicator } from "./HeroScrollIndicator";
 import { HeroDecorations } from "./HeroDecorations";
-import { Atmosphere } from "../../../motion/components/Atmosphere";
+import { Atmosphere } from "@/motion/components/Atmosphere";
 import { HeroCursorLight } from "./HeroCursorLight";
 import { useHeroTimeline } from "./hooks/useHeroTimeline";
-import { useAmbientPause } from "../../hooks/useAmbientPause";
-import { useHeroScrollPause } from "../../hooks/useHeroScrollPause";
-import { useMotionStore } from "../../../motion/motion-store";
+import { useAmbientPause } from "@/app/hooks/useAmbientPause";
+import { useHeroScrollPause } from "@/app/hooks/useHeroScrollPause";
+import { useMotionStore } from "@/motion/motion-store";
 import { TILT } from "./data/heroData";
 import { HeroParallaxProvider } from "./HeroParallaxContext";
 

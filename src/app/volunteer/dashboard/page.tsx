@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import VolunteerDashboardPage from "../../pages/VolunteerDashboardPage";
+import VolunteerDashboardPageView from "./VolunteerDashboardPageView";
 
 export const metadata: Metadata = {
-  title: "Volunteer Dashboard | PawGuard",
-  description: "Track your volunteer applications, upcoming shelter shifts, skills profile, and service record.",
+  title: "Volunteer Dashboard",
+  description: "View active rescue assignments, volunteer hours, and community tasks.",
 };
 
 export default function Page() {
-  return <VolunteerDashboardPage />;
+  return <VolunteerDashboardPageView />;
 }

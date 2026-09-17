@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import LostFoundPage from "../pages/LostFoundPage";
+import LostFoundPageView from "./LostFoundPageView";
 
 export const metadata: Metadata = {
-  title: "Lost & Found",
-  description:
-    "Browse lost-pet and found-animal reports across the PawGuard community and help reunite families with their companions.",
+  title: "Lost & Found Pets Directory",
+  description: "Report lost dogs, submit sighting alerts, and help reunite pets with families.",
 };
 
 export default function Page() {
-  return <LostFoundPage />;
+  return <LostFoundPageView />;
 }

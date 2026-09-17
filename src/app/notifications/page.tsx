@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import NotificationsPage from "../pages/NotificationsPage";
+import NotificationsPageView from "./NotificationsPageView";
 
 export const metadata: Metadata = {
   title: "Notifications",
-  description:
-    "Your PawGuard alerts — adoption application updates, rescue dispatches, appointment reminders, and more.",
-  robots: { index: false, follow: false },
+  description: "View your rescue alerts, application updates, and appointment reminders.",
 };
 
 export default function Page() {
-  return <NotificationsPage />;
+  return <NotificationsPageView />;
 }

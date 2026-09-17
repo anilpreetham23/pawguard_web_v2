@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Bell, ChevronDown, FileText, LogIn, LogOut, PawPrint, User } from "lucide-react";
 import { getAvatarUrl } from "@/lib/api";
-import { useAuth } from "../providers/auth-provider";
-import { useUnreadCount } from "../hooks/useNotifications";
+import { useAuth } from "@/app/providers/auth-provider";
+import { useUnreadCount } from "@/app/hooks/useNotifications";
 import { NotificationBell } from "./NotificationBell";
 import { cn } from "./ui/utils";
 

@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import MyPetsPage from "../../pages/MyPetsPage";
+import MyPetsPageView from "./MyPetsPageView";
 
 export const metadata: Metadata = {
-  title: "My Pets",
-  description:
-    "Your adopted dogs and pet profiles — book veterinary visits, manage reminders, and use the QR safety tag.",
-  robots: { index: false, follow: false },
+  title: "My Companion Pets",
+  description: "Manage your registered pets, medical records, and PawGuard safety tags.",
 };
 
 export default function Page() {
-  return <MyPetsPage />;
+  return <MyPetsPageView />;
 }

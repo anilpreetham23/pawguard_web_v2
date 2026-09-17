@@ -2,8 +2,8 @@
 
 import { motion } from "motion/react";
 import { cn } from "../ui/utils";
-import { stagger, sectionReveal } from "../../../motion";
-import { useMotionStore } from "../../../motion/motion-store";
+import { stagger, sectionReveal } from "@/motion";
+import { useMotionStore } from "@/motion/motion-store";
 
 interface StaggerGridProps {
   children: React.ReactNode;

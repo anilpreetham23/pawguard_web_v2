@@ -11,15 +11,8 @@ import {
   type ReactNode,
 } from "react";
 import { authService, type RegisterRequest } from "@/services/api/auth";
-import {
-  ApiError,
-  auth,
-  isApiError,
-  QUERY_KEYS,
-  useApiQuery,
-  type AuthUser,
-  type LoginResponse,
-} from "@/lib/api";
+import { ApiError, auth, isApiError, QUERY_KEYS, type AuthUser, type LoginResponse } from "@/lib/api";
+import { useApiQuery } from "@/lib/api/hooks";
 import { queryClient } from "@/lib/react-query";
 
 export type AuthDialogMode = "sign-in" | "sign-up";

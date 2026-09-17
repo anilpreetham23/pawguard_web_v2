@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { EditorialHeading } from "../pawguard/EditorialHeading";
-import { Atmosphere } from "../../../motion/components/Atmosphere";
-import { LiveActivityFeed } from "../services/LiveActivityFeed";
+import { Atmosphere } from "@/motion/components/Atmosphere";
+import { LiveActivityFeed } from "@/app/components/services/LiveActivityFeed";
 import { RescueJourneyGallery } from "./RescueJourneyGallery";
-import { useAmbientPause } from "../../hooks/useAmbientPause";
+import { useAmbientPause } from "@/app/hooks/useAmbientPause";
 import "./rescue-journey.css";
 
 export default function RescueJourneySection() {

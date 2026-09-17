@@ -2,8 +2,8 @@
 
 import { motion } from "motion/react";
 import { cn } from "../ui/utils";
-import { sectionReveal } from "../../../motion";
-import { useMotionStore } from "../../../motion/motion-store";
+import { sectionReveal } from "@/motion";
+import { useMotionStore } from "@/motion/motion-store";
 
 type RevealVariantKey = "hero" | "section" | "card" | "timeline" | "panel";
 

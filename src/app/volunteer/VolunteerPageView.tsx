@@ -1,0 +1,803 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import {
+  Quote,
+  ArrowRight,
+  BadgeCheck,
+  Clock,
+  CalendarDays,
+} from "lucide-react";
+import SectionHeading from "@/app/components/SectionHeading";
+import PageHeader from "@/app/components/PageHeader";
+import { useFocusOnError } from "@/app/hooks/useFocusOnError";
+import { useDashboardSummary } from "@/app/hooks/useDashboardSummary";
+import { useVolunteerStatus } from "@/app/hooks/useVolunteerStatus";
+import {
+  PageShell,
+  Section,
+  Button,
+  Input,
+  Textarea,
+  Reveal,
+  StaggerGrid,
+  StaggerItem,
+  VolunteerImpactPanel,
+} from "@/app/components/pawguard";
+import { scrollTo } from "@/motion/scroll";
+import { useAuth } from "@/app/providers/auth-provider";
+import { communityService } from "@/services/api/community";
+import { getErrorMessage, QUERY_KEYS, normalizeVolunteerLifecycleStatus } from "@/lib/api";
+import { queryClient } from "@/lib/react-query";
+import type { VolunteerProfileResponse, VolunteerStatus } from "@/lib/api";
+
+const VOLUNTEER_STATUS_META: Record<
+  VolunteerStatus,
+  { label: string; hint: string; badge: string }
+> = {
+  applied: {
+    label: "Application received",
+    hint: "Our coordinator will review your application within 5 business days.",
+    badge: "bg-amber-500/10 border border-amber-500/25 text-amber-700",
+  },
+  onboarded: {
+    label: "Onboarding",
+    hint: "You've been accepted — complete orientation to get started.",
+    badge: "bg-sky-500/10 border border-sky-500/25 text-sky-700",
+  },
+  active: {
+    label: "Active volunteer",
+    hint: "You're an active volunteer. Thank you for your time!",
+    badge: "bg-emerald-500/10 border border-emerald-500/25 text-emerald-700",
+  },
+  inactive: {
+    label: "Inactive",
+    hint: "Your volunteer profile is inactive. Re-apply to get involved again.",
+    badge: "bg-muted text-muted-foreground border border-border",
+  },
+  rejected: {
+    label: "Declined",
+    hint: "Your volunteer application was not approved at this time.",
+    badge: "bg-destructive/10 border border-destructive/25 text-destructive",
+  },
+};
+
+/**
+ * Maps the authoritative lifecycle enum (NOT_APPLIED | PENDING | ACTIVE | REJECTED | INACTIVE)
+ * returned by `GET /volunteers/me/status` to human-readable labels for the status badge.
+ */
+const LIFECYCLE_LABEL: Record<string, string> = {
+  NOT_APPLIED: "Not Applied",
+  PENDING: "Pending Review",
+  ACTIVE: "Active",
+  REJECTED: "Not Approved",
+  INACTIVE: "Inactive",
+};
+
+const ROLES = [
+  {
+    title: "Foster Care",
+    desc: "Provide temporary housing for dogs recovering from injury, illness, or trauma. Training and supplies provided.",
+    commitment: "2–4 weeks per placement",
+    img: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop&auto=format",
+    quote:
+      "Seeing a scared dog learn to trust again in your own home — there's nothing like it.",
+    quotee: "Maya, Foster Carer",
+    requirements: [
+      "Home with outdoor space (dogs)",
+      "No aggressive resident pets",
+      "Able to administer medication",
+    ],
+  },
+  {
+    title: "Transport",
+    desc: "Drive dogs between rescue sites, veterinary clinics, and foster homes. One of our highest-demand roles.",
+    commitment: "4–8 hours per week",
+    img: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=300&fit=crop&auto=format",
+    quote: "Every trip I make means a dog is one step closer to safety.",
+    quotee: "Carlos, Transport Volunteer",
+    requirements: [
+      "Valid driver's licence",
+      "Reliable vehicle",
+      "Flexible schedule",
+    ],
+  },
+  {
+    title: "Events & Outreach",
+    desc: "Staff adoption events, community awareness campaigns, and fundraisers. No experience required.",
+    commitment: "Events on weekends",
+    img: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=400&h=300&fit=crop&auto=format",
+    quote:
+      "I helped three dogs find homes at my first adoption event. I was hooked.",
+    quotee: "Priya, Events Volunteer",
+    requirements: [
+      "Friendly and approachable",
+      "Comfortable with public speaking",
+      "18+ years old",
+    ],
+  },
+  {
+    title: "Shelter Support",
+    desc: "Assist with dog feeding, enrichment, cleaning, and socialization at partner shelter facilities.",
+    commitment: "4+ hours per week",
+    img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop&auto=format",
+    quote:
+      "The dogs remember you. Every time I walk in, they know I'm there to help.",
+    quotee: "James, Shelter Volunteer",
+    requirements: [
+      "Physical fitness for handling dogs",
+      "Background check required",
+      "Minimum 6-month commitment",
+    ],
+  },
+];
+
+const STEPS = [
+  {
+    num: "01",
+    title: "Browse Roles",
+    desc: "Review available volunteer roles and identify the best fit for your schedule and skills.",
+  },
+  {
+    num: "02",
+    title: "Submit Application",
+    desc: "Complete a brief online application. We review all applications within 5 business days.",
+  },
+  {
+    num: "03",
+    title: "Orientation",
+    desc: "Attend a 2-hour orientation session covering dog handling, safety, and protocols.",
+  },
+  {
+    num: "04",
+    title: "Start Volunteering",
+    desc: "Get matched with your first placement and begin making a direct impact.",
+  },
+];
+
+export default function VolunteerPage() {
+  const { isAuthenticated, openAuthDialog } = useAuth();
+  const { summary: dashboard } = useDashboardSummary();
+  const { volunteerStatus } = useVolunteerStatus();
+
+  const volunteerProfile = (dashboard?.volunteer_profile ??
+    volunteerStatus?.profile ??
+    null) as VolunteerProfileResponse | null;
+  const applicationInfo = volunteerStatus?.application;
+  const vLifecycleStatus = normalizeVolunteerLifecycleStatus(
+    volunteerStatus?.status,
+    volunteerProfile,
+    applicationInfo
+  );
+
+  const canApply = volunteerProfile
+    ? false
+    : volunteerStatus
+    ? volunteerStatus.can_apply
+    : true;
+  const canReapply = volunteerStatus ? volunteerStatus.can_reapply : false;
+  const [form, setForm] = useState({
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    role: "",
+    availability: "",
+    animalHandlingExperience: "",
+    medicalConditions: "",
+    message: "",
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { setRef } = useFocusOnError(errors);
+
+
+  const [formStep, setFormStep] = useState<"basic" | "details">("basic");
+
+  function validateStep() {
+    const e: Record<string, string> = {};
+    if (formStep === "basic") {
+      if (!form.emergencyContactName.trim())
+        e.emergencyContactName = "Emergency contact name is required";
+      if (!form.emergencyContactPhone.trim())
+        e.emergencyContactPhone = "Emergency contact phone is required";
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (formStep === "basic") {
+      if (!validateStep()) return;
+      setFormStep("details");
+      return;
+    }
+    if (!validateStep()) return;
+    if (!isAuthenticated) {
+      openAuthDialog("sign-in");
+      return;
+    }
+    setIsLoading(true);
+    setHasError(false);
+    setFormError("");
+    setProgress(0);
+    const interval = setInterval(
+      () => setProgress((p) => Math.min(p + 8, 92)),
+      120,
+    );
+    communityService
+      .applyVolunteer({
+        emergency_contact_name: form.emergencyContactName.trim(),
+        emergency_contact_phone: form.emergencyContactPhone.trim(),
+        applied_role: form.role ? form.role.trim() : null,
+        availability: form.availability.trim() || null,
+        notes: form.message.trim() || null,
+        skills: form.role ? `Role: ${form.role}` : null,
+        animal_handling_experience:
+          form.animalHandlingExperience.trim() || null,
+        medical_conditions: form.medicalConditions.trim() || null,
+      })
+      .then(() => {
+        clearInterval(interval);
+        setProgress(100);
+        void queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.community.volunteerStatus,
+        });
+        void queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.community.meDashboard,
+        });
+        setTimeout(() => {
+          setIsLoading(false);
+          setSubmitted(true);
+        }, 400);
+      })
+      .catch((err) => {
+        clearInterval(interval);
+        setIsLoading(false);
+        setHasError(true);
+        setFormError(getErrorMessage(err));
+      });
+  }
+
+  return (
+    <PageShell>
+      <main id="main-content" className="flex-1">
+        <PageHeader
+          eyebrow="Get Involved"
+          title="Your time saves lives directly."
+          subtitle="Every volunteer hour translates to a faster rescue, a warmer foster bed, or a smoother adoption. Pick a role that fits your life."
+          right={
+            <div className="aspect-[4/3] lg:aspect-[16/9] bg-secondary rounded-img overflow-hidden shadow-md">
+              <img
+                src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=640&h=480&fit=crop&auto=format"
+                alt="Volunteer with rescued dogs"
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          }
+        >
+          <div className="flex items-center gap-4 flex-wrap">
+            {!canApply ? (
+              <Link href="/volunteer/dashboard">
+                <Button variant="primary" size="lg">
+                  Go to Volunteer Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={() => {
+                    const el = document.getElementById("apply");
+                    if (el) scrollTo(el);
+                  }}
+                >
+                  Apply to Volunteer
+                </Button>
+                <Link href="/volunteer/dashboard">
+                  <Button variant="secondary" size="lg">
+                    Volunteer Dashboard
+                  </Button>
+                </Link>
+              </>
+            )}
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => {
+                const el = document.getElementById("roles");
+                if (el) scrollTo(el);
+              }}
+            >
+              View Roles
+            </Button>
+          </div>
+        </PageHeader>
+
+        <Section bg="dark">
+          <VolunteerImpactPanel />
+        </Section>
+
+        <Reveal>
+          <Section id="roles" bg="card">
+            <div className="flex flex-col gap-12">
+              <SectionHeading eyebrow="Available Positions">
+                Volunteer Roles
+              </SectionHeading>
+              <StaggerGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-grid-md">
+                {ROLES.map((role) => (
+                  <StaggerItem key={role.title}>
+                    <div className="bg-background border border-border rounded-card overflow-hidden shadow-sm hover:shadow-glow-card hover:border-primary/20 transition-all duration-ui group flex flex-col h-full">
+                      <div className="relative aspect-[4/3] bg-secondary overflow-hidden">
+                        <img
+                          src={role.img}
+                          alt={role.title}
+                          className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-gentle ease-out will-change-transform"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                        <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm text-foreground text-2xs font-bold tracking-wider uppercase px-2.5 py-1 rounded-full shadow-sm">
+                          Make an Impact
+                        </div>
+                        <div className="absolute bottom-3 left-3 right-3">
+                          <p className="text-white text-xs font-semibold">
+                            {role.commitment}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-5 flex flex-col gap-3 flex-1">
+                        <h3 className="text-foreground font-bold text-xl">
+                          {role.title}
+                        </h3>
+                        <p className="text-muted-foreground text-sm leading-relaxed">
+                          {role.desc}
+                        </p>
+                        <div className="bg-card border border-border rounded-lg p-4 mt-auto">
+                          <Quote size={14} className="text-primary/30 mb-1" />
+                          <p className="text-foreground text-sm italic leading-relaxed">
+                            &ldquo;{role.quote}&rdquo;
+                          </p>
+                          <p className="text-muted-foreground text-xs font-medium mt-2">
+                            &mdash; {role.quotee}
+                          </p>
+                        </div>
+                        {role.requirements.length > 0 && (
+                          <div className="mt-1">
+                            <p className="text-foreground text-xs font-semibold uppercase tracking-wider font-condensed mb-2">
+                              Requirements
+                            </p>
+                            <ul className="flex flex-col gap-1">
+                              {role.requirements.map((req) => (
+                                <li
+                                  key={req}
+                                  className="flex items-start gap-2 text-muted-foreground text-xs leading-relaxed"
+                                >
+                                  <span className="mt-0.5 shrink-0 w-3.5 h-3.5 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <span className="text-primary text-[8px] font-bold">&#10003;</span>
+                                  </span>
+                                  {req}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        <button
+                          onClick={() => {
+                            setForm((prev) => ({ ...prev, role: role.title }));
+                            const el = document.getElementById("apply");
+                            if (el) scrollTo(el);
+                          }}
+                          className="w-full mt-1 text-center text-primary font-semibold text-xs tracking-wider uppercase py-2.5 rounded-btn border border-primary/30 hover:bg-primary hover:text-primary-foreground transition-all duration-fast"
+                        >
+                          Apply for This Role
+                        </button>
+                      </div>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerGrid>
+            </div>
+          </Section>
+        </Reveal>
+
+        <Reveal>
+          <Section bg="default">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-[var(--space-12)] lg:gap-[var(--space-16)] items-start">
+              <div className="flex flex-col gap-8">
+                <SectionHeading eyebrow="Eligibility">
+                  General Requirements
+                </SectionHeading>
+                <div className="flex flex-col gap-0">
+                  {[
+                    {
+                      label: "Age",
+                      detail:
+                        "18 years or older (16+ with guardian consent for some roles)",
+                    },
+                    {
+                      label: "Time Commitment",
+                      detail: "Minimum 4 hours per week for ongoing positions",
+                    },
+                    {
+                      label: "Background Check",
+                      detail:
+                        "Required for all roles involving direct dog contact",
+                    },
+                    {
+                      label: "Training",
+                      detail:
+                        "2-hour orientation mandatory before first placement",
+                    },
+                    {
+                      label: "Location",
+                      detail:
+                        "Must reside within 30 miles of an active facility",
+                    },
+                  ].map((req) => (
+                    <div
+                      key={req.label}
+                      className="flex items-start gap-4 py-4 border-b border-border last:border-0"
+                    >
+                      <div className="w-5 h-5 shrink-0 bg-primary flex items-center justify-center mt-0.5 rounded-full">
+                        <span className="text-primary-foreground text-2xs font-bold">
+                          &#10003;
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-foreground font-semibold text-sm">
+                          {req.label}
+                        </span>
+                        <span className="text-muted-foreground text-sm">
+                          {req.detail}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-8">
+                <SectionHeading eyebrow="Process">How to Apply</SectionHeading>
+                <div className="flex flex-col gap-6">
+                  {STEPS.map((step) => (
+                    <div key={step.num} className="flex items-start gap-5">
+                      <span className="shrink-0 w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <span className="font-mono text-primary font-bold text-xs">
+                          {step.num}
+                        </span>
+                      </span>
+                      <div className="flex flex-col gap-1 pt-0.5">
+                        <h3 className="text-foreground font-semibold text-base">
+                          {step.title}
+                        </h3>
+                        <p className="text-muted-foreground text-sm leading-relaxed">
+                          {step.desc}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Section>
+        </Reveal>
+
+        <Reveal>
+          <Section id="apply" bg="card" containerWidth="narrow">
+            <div className="flex flex-col gap-12">
+              <SectionHeading eyebrow="Apply Now" align="center">
+                Volunteer Application
+              </SectionHeading>
+              {isAuthenticated && (!canApply || !canReapply) && vLifecycleStatus !== "NOT_APPLIED" ? (
+                <div
+                  className="bg-background border border-border rounded-modal p-8 flex flex-col gap-5 shadow-sm"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                      <BadgeCheck size={22} />
+                    </span>
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-foreground font-bold text-xl">
+                        {vLifecycleStatus === "PENDING"
+                          ? "Application Submitted & Under Review"
+                          : vLifecycleStatus === "ACTIVE"
+                          ? "Active Volunteer Profile"
+                          : vLifecycleStatus === "REJECTED"
+                          ? "Volunteer Application Status"
+                          : "Inactive Volunteer Profile"}
+                      </h3>
+                      <span
+                        className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold tracking-wider uppercase ${
+                          vLifecycleStatus === "PENDING"
+                            ? "bg-amber-500/10 border border-amber-500/25 text-amber-700"
+                            : vLifecycleStatus === "ACTIVE"
+                            ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-700"
+                            : vLifecycleStatus === "REJECTED"
+                            ? "bg-destructive/10 border border-destructive/25 text-destructive"
+                            : "bg-muted text-muted-foreground border border-border"
+                        }`}
+                      >
+                        {LIFECYCLE_LABEL[vLifecycleStatus] ?? vLifecycleStatus}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {vLifecycleStatus === "PENDING"
+                      ? "Your application has been received and is currently under review by our shelter coordinator. Duplicate applications are not accepted."
+                      : vLifecycleStatus === "ACTIVE"
+                      ? "You are an active PawGuard volunteer. Access your dashboard to view assigned shifts, log hours, and manage your profile."
+                      : vLifecycleStatus === "REJECTED"
+                      ? applicationInfo?.rejection_reason || "Thank you for applying. Our shelter team is unable to approve your application at this time."
+                      : "Your profile is currently inactive. Please contact shelter support for reactivation."}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm border-t border-border pt-4">
+                    <div className="flex items-start gap-2 text-muted-foreground">
+                      <CalendarDays size={15} className="mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-foreground font-semibold text-xs uppercase tracking-wider">
+                          Submitted Date
+                        </p>
+                        <p>
+                          {applicationInfo?.submitted_at
+                            ? new Date(applicationInfo.submitted_at).toLocaleDateString()
+                            : volunteerProfile?.created_at
+                            ? new Date(volunteerProfile.created_at).toLocaleDateString()
+                            : "Recorded"}
+                        </p>
+                      </div>
+                    </div>
+                    {applicationInfo?.id && (
+                      <div className="flex items-start gap-2 text-muted-foreground">
+                        <Clock size={15} className="mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-foreground font-semibold text-xs uppercase tracking-wider">
+                            Application Ref ID
+                          </p>
+                          <p className="font-mono text-xs text-foreground">{applicationInfo.id}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-3 border-t border-border pt-4">
+                    <Link
+                      href="/volunteer/dashboard"
+                      className="inline-flex items-center gap-2 bg-primary text-primary-foreground text-xs font-semibold tracking-wider uppercase px-5 py-2.5 rounded-btn hover:bg-primary-hover transition-all duration-fast"
+                    >
+                      Go to Volunteer Dashboard
+                      <ArrowRight size={13} />
+                    </Link>
+                    <Link
+                      href="/account"
+                      className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground text-xs font-semibold tracking-wider uppercase px-5 py-2.5 rounded-btn hover:bg-secondary/80 transition-all duration-fast font-condensed"
+                    >
+                      View Account Overview
+                    </Link>
+                  </div>
+                </div>
+              ) : hasError ? (
+                <div
+                  className="bg-background border border-border rounded-modal p-8 flex flex-col gap-4 shadow-sm"
+                  role="alert"
+                >
+                  <div className="w-12 h-12 bg-destructive/10 rounded-2xl flex items-center justify-center">
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="text-destructive"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                  </div>
+                  <h3 className="text-foreground font-bold text-xl">
+                    Submission failed
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {formError ||
+                      "We could not process your application. Please check your information and try again."}
+                  </p>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={() => {
+                      setHasError(false);
+                      setFormError("");
+                    }}
+                    className="self-start"
+                  >
+                    Try Again
+                  </Button>
+                </div>
+              ) : submitted ? (
+                <div
+                  className="bg-background border border-border rounded-modal p-8 flex flex-col gap-4 shadow-sm animate-celebration-pop"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <h3 className="text-foreground font-bold text-xl">
+                    Application Received
+                  </h3>
+                  <p className="text-muted-foreground text-base leading-relaxed">
+                    Thank you for applying. Our volunteer coordinator will be in
+                    touch within 5 business days to discuss next steps.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                  {formStep === "basic" ? (
+                    <>
+                      <div className="rounded-lg border border-border bg-card p-4 flex flex-col gap-1">
+                        <p className="text-foreground font-semibold text-sm">
+                          Emergency Contact
+                        </p>
+                        <p className="text-muted-foreground text-xs leading-relaxed">
+                          Please provide the details of a person we can contact
+                          in case of an emergency during your volunteer activity.
+                          This is not your personal contact information — it is
+                          the person we should reach if something happens to you.
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <Input
+                          label="Emergency Contact Name"
+                          placeholder="e.g. Ramesh Kumar"
+                          ref={setRef("emergencyContactName")}
+                          value={form.emergencyContactName}
+                          onChange={(e) => {
+                            setForm({
+                              ...form,
+                              emergencyContactName: e.target.value,
+                            });
+                            if (errors.emergencyContactName)
+                              setErrors({
+                                ...errors,
+                                emergencyContactName: "",
+                              });
+                          }}
+                          error={errors.emergencyContactName}
+                          autoComplete="off"
+                        />
+                        <Input
+                          label="Emergency Contact Phone"
+                          type="tel"
+                          placeholder="+91 98765 43210"
+                          ref={setRef("emergencyContactPhone")}
+                          value={form.emergencyContactPhone}
+                          onChange={(e) => {
+                            setForm({
+                              ...form,
+                              emergencyContactPhone: e.target.value,
+                            });
+                            if (errors.emergencyContactPhone)
+                              setErrors({
+                                ...errors,
+                                emergencyContactPhone: "",
+                              });
+                          }}
+                          error={errors.emergencyContactPhone}
+                          autoComplete="tel"
+                          inputMode="tel"
+                        />
+                      </div>
+                      <Button type="submit" variant="secondary" size="lg">
+                        Continue <ArrowRight size={14} />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <Input
+                          label="Animal Handling Experience (Optional)"
+                          placeholder="e.g. 2 years fostering, dog training"
+                          value={form.animalHandlingExperience}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              animalHandlingExperience: e.target.value,
+                            })
+                          }
+                          autoComplete="off"
+                        />
+                        <div className="flex flex-col gap-2">
+                          <label className="text-foreground text-xs font-semibold tracking-wider uppercase font-condensed">
+                            Preferred Role
+                          </label>
+                          <select
+                            value={form.role}
+                            onChange={(e) =>
+                              setForm({ ...form, role: e.target.value })
+                            }
+                            aria-label="Preferred Role"
+                            className="w-full h-12 bg-input-background border border-border rounded-input px-4 text-foreground text-base focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-standard"
+                          >
+                            <option value="">Select a role</option>
+                            {ROLES.map((r) => (
+                              <option key={r.title}>{r.title}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <Input
+                        label="Availability"
+                        placeholder="e.g. Weekday evenings, Saturday mornings"
+                        value={form.availability}
+                        onChange={(e) =>
+                          setForm({ ...form, availability: e.target.value })
+                        }
+                      />
+                      <Textarea
+                        label="Medical Conditions / Allergies (Optional)"
+                        placeholder="Please mention any medical conditions, allergies, or health considerations we should be aware of while assigning volunteer duties."
+                        value={form.medicalConditions}
+                        onChange={(e) =>
+                          setForm({ ...form, medicalConditions: e.target.value })
+                        }
+                        maxLength={500}
+                        rows={3}
+                      />
+                      <Textarea
+                        label="Message (Optional)"
+                        placeholder="Tell us about your experience with dogs..."
+                        value={form.message}
+                        onChange={(e) =>
+                          setForm({ ...form, message: e.target.value })
+                        }
+                        maxLength={500}
+                        rows={4}
+                      />
+                      <div className="flex flex-col gap-2">
+                        {isLoading && (
+                          <div className="h-1 w-full bg-border rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary rounded-full transition-all duration-gentle ease-out"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        )}
+                        <div className="flex gap-3">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="md"
+                            onClick={() => setFormStep("basic")}
+                          >
+                            Back
+                          </Button>
+                          <Button
+                            type="submit"
+                            variant="secondary"
+                            size="lg"
+                            isLoading={isLoading}
+                            context="volunteer"
+                            className="flex-1"
+                          >
+                            Submit Application
+                          </Button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </form>
+              )}
+            </div>
+          </Section>
+        </Reveal>
+      </main>
+    </PageShell>
+  );
+}

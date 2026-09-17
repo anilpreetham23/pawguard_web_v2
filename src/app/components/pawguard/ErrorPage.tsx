@@ -12,7 +12,7 @@ import {
 import { cn } from "../ui/utils";
 
 const LottieHappyDog = lazy(() =>
-  import("../../../motion/components/lottie-happy-dog").then((m) => ({
+  import("@/motion/components/lottie-happy-dog").then((m) => ({
     default: m.LottieHappyDog,
   })),
 );
