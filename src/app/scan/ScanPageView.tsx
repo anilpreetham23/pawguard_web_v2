@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeft,
   QrCode,
@@ -402,10 +403,12 @@ export default function ScanPage() {
             <Card className="overflow-hidden border border-border shadow-lg">
               <div className="aspect-[16/9] sm:aspect-[21/9] w-full bg-gradient-to-br from-primary/10 via-background to-amber-100/40 relative flex items-center justify-center overflow-hidden">
                 {pet.photo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={pet.photo_url}
                     alt={`${pet.name}${speciesLabel ? `, a ${speciesLabel.toLowerCase()}` : ""}`}
+                    width={800}
+                    height={400}
+                    unoptimized
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -862,11 +865,13 @@ export default function ScanPage() {
         <Card className="overflow-hidden max-w-[920px] mx-auto border border-border shadow-lg">
           <div className="aspect-[16/9] sm:aspect-[21/9] w-full bg-gradient-to-br from-primary/10 via-background to-amber-100/40 relative flex items-center justify-center overflow-hidden">
             {dog.photo_gallery_urls && dog.photo_gallery_urls.length > 0 ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={dog.photo_gallery_urls[0]}
                 alt={`${dog.name}${speciesLabel ? `, a ${speciesLabel.toLowerCase()}` : ""}`}
-                className="w-full h-full object-cover"
+                fill
+                sizes="(max-width: 920px) 100vw, 920px"
+                className="object-cover"
+                unoptimized
               />
             ) : (
               <div className="flex flex-col items-center gap-3 text-muted-foreground p-6 text-center">

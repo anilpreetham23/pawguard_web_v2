@@ -1,8 +1,10 @@
 import type { MetadataRoute } from "next";
-import { adoptionService } from "@/services/api/adoption";
 import { lostFoundService } from "@/services/api/lost-found";
-import { rescueService } from "@/services/api/rescue";
-import { communityService } from "@/services/api/community";
+import {
+  fetchServerCachedAdoptableDogs,
+  fetchServerCachedBlogPosts,
+  fetchServerCachedSuccessStories,
+} from "@/lib/api/server-public-data";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://pawguard-web-v2.vercel.app";
@@ -109,18 +111,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Safely fetch dynamic content entries using Promise.allSettled
   const [dogsResult, lostResult, foundResult, storiesResult, blogResult] =
     await Promise.allSettled([
-      adoptionService.listDogs({ page_size: 100 }),
+      fetchServerCachedAdoptableDogs(),
       lostFoundService.listLost({ page_size: 100 }),
       lostFoundService.listFound({ page_size: 100 }),
-      rescueService.getSuccessStories(),
-      communityService.getBlogPosts(),
+      fetchServerCachedSuccessStories(),
+      fetchServerCachedBlogPosts(),
     ]);
 
   const seenUrls = new Set<string>(publicRoutes.map((r) => r.url));
 
   // Dynamic adoptable dog entries
-  if (dogsResult.status === "fulfilled" && Array.isArray(dogsResult.value?.items)) {
-    for (const dog of dogsResult.value.items) {
+  if (dogsResult.status === "fulfilled" && Array.isArray(dogsResult.value)) {
+    for (const dog of dogsResult.value) {
       if (dog?.id) {
         const url = `${baseUrl}/adopt/${dog.id}`;
         if (!seenUrls.has(url)) {
@@ -200,7 +202,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           seenUrls.add(url);
           publicRoutes.push({
             url,
-            lastModified: post.publishedAt ? new Date(post.publishedAt) : new Date(),
+            lastModified: post.published_at ? new Date(post.published_at) : new Date(),
             changeFrequency: "monthly",
             priority: 0.6,
           });

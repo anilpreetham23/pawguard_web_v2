@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Bell,
   FileText,
@@ -438,10 +439,13 @@ export default function AccountPage() {
                     const activeAvatar = resolveAvatarUrl(avatarUrl) || getAvatarUrl(user);
                     if (activeAvatar && !headerImageFailed) {
                       return (
-                        <img
+                        <Image
                           src={activeAvatar}
                           alt={user?.full_name ?? "User"}
+                          width={80}
+                          height={80}
                           className="w-full h-full object-cover"
+                          unoptimized
                           onError={() => {
                             setHeaderImageFailed(true);
                           }}

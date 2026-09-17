@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeft,
   CalendarDays,
@@ -132,7 +133,7 @@ function PhotoPanel({ caseItem }: { caseItem: LostFoundCase }) {
               )}
               aria-label={`View photo ${idx + 1}`}
             >
-              <img src={url} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+              <Image src={url} alt={`Thumbnail ${idx + 1}`} width={64} height={64} unoptimized className="w-full h-full object-cover" />
             </button>
           ))}
         </div>

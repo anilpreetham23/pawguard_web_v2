@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   CalendarDays,
   CalendarClock,
@@ -210,11 +211,13 @@ function CompanionPetCard({
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           {pet.photo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={pet.photo_url}
               alt={pet.name}
+              width={44}
+              height={44}
               className="w-11 h-11 shrink-0 rounded-xl object-cover border border-border"
+              unoptimized
             />
           ) : (
             <span className="w-11 h-11 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center">

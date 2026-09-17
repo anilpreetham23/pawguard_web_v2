@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Home,
@@ -556,10 +557,13 @@ export default function FosterDashboardPage() {
                       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 pb-4">
                         <div className="flex items-center gap-4">
                           {(selectedPlacement.dog?.image_urls?.[0] ?? selectedPlacement.dog?.photo_gallery_urls?.[0] ?? selectedPlacement.dog?.image_url ?? selectedPlacement.dog?.photo_url) ? (
-                            <img
+                            <Image
                               src={(selectedPlacement.dog?.image_urls?.[0] ?? selectedPlacement.dog?.photo_gallery_urls?.[0] ?? selectedPlacement.dog?.image_url ?? selectedPlacement.dog?.photo_url)!}
                               alt={selectedPlacement.dog?.name ?? "Foster Dog"}
+                              width={64}
+                              height={64}
                               className="w-16 h-16 rounded-xl object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="w-16 h-16 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-bold text-xl">
@@ -898,9 +902,9 @@ export default function FosterDashboardPage() {
                                             href={photoUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="w-16 h-16 rounded-card overflow-hidden border border-border hover:opacity-85 transition-opacity"
+                                            className="relative w-16 h-16 rounded-card overflow-hidden border border-border hover:opacity-85 transition-opacity"
                                           >
-                                            <img src={photoUrl} alt={`Progress ${pIdx + 1}`} className="w-full h-full object-cover" />
+                                            <Image src={photoUrl} alt={`Progress ${pIdx + 1}`} fill className="object-cover" sizes="64px" unoptimized />
                                           </a>
                                         ))}
                                       </div>

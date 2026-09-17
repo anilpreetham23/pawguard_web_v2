@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import {
   ArrowLeft,
@@ -634,10 +635,13 @@ function LivePetDetailPage({ id }: { id: string }) {
                             : "border-transparent opacity-70 hover:opacity-100",
                         )}
                       >
-                        <img
+                        <Image
                           src={imgUrl}
                           alt={`${pet.name} photo ${idx + 1}`}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="64px"
+                          className="object-cover"
+                          unoptimized
                         />
                       </button>
                     ))}

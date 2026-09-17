@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Bell, ChevronDown, FileText, LogIn, LogOut, PawPrint, User } from "lucide-react";
 import { getAvatarUrl } from "@/lib/api";
 import { useAuth } from "@/app/providers/auth-provider";
@@ -105,10 +106,13 @@ export function AuthNavControls({ className }: { className?: string }) {
           >
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold uppercase overflow-hidden">
               {avatarSrc ? (
-                <img
+                <Image
                   src={avatarSrc}
                   alt={user.full_name}
+                  width={28}
+                  height={28}
                   className="w-full h-full object-cover"
+                  unoptimized
                   onError={(e) => {
                     (e.currentTarget as HTMLElement).style.display = "none";
                   }}

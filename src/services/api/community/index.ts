@@ -16,6 +16,7 @@
  */
 
 import { API_ROUTES, QUERY_KEYS, apiGet, apiGetPage, apiPost } from "@/lib/api";
+import { blogPostSchema, publicHeroStatsSchema } from "@/lib/api/schemas";
 import { queryClient } from "@/lib/react-query";
 import type {
   BlogPostResponse,
@@ -65,14 +66,14 @@ export function isProductionUrgentAlert(alert?: UrgentAlertResponse | null): boo
 export const communityService = {
   /** `GET /portal/blog` — published blog posts. */
   getBlogPosts(): Promise<BlogPost[]> {
-    return apiGet<BlogPostResponse[]>(API_ROUTES.community.blog).then((list) =>
+    return apiGet<BlogPostResponse[]>(API_ROUTES.community.blog, { schema: blogPostSchema }).then((list) =>
       (list ?? []).map((post, index) => blogPostResponseToBlogPost(post, index))
     );
   },
 
   /** `GET /portal/blog/slug/{slug}` — a single published blog post. */
   getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
-    return apiGet<BlogPostResponse>(API_ROUTES.community.blogPost(slug)).then(
+    return apiGet<BlogPostResponse>(API_ROUTES.community.blogPost(slug), { schema: blogPostSchema }).then(
       (post) => (post ? blogPostResponseToBlogPost(post) : null)
     );
   },
@@ -95,7 +96,7 @@ export const communityService = {
 
   /** `GET /portal/stats` — hero impact statistics. */
   getStats(): Promise<PublicHeroStats> {
-    return apiGet<PublicHeroStats>(API_ROUTES.community.stats);
+    return apiGet<PublicHeroStats>(API_ROUTES.community.stats, { schema: publicHeroStatsSchema });
   },
 
   /** `GET /volunteers/me/status` — authoritative volunteer lifecycle status. */

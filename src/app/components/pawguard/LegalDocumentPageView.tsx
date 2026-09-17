@@ -1,11 +1,6 @@
-"use client";
-
 import Link from "next/link";
 import PageHeader from "@/app/components/PageHeader";
 import { PageShell, Section, Card } from "@/app/components/pawguard";
-import { QUERY_KEYS } from "@/lib/api";
-import { useApiQuery } from "@/lib/api/hooks";
-import { communityService } from "@/services/api/community";
 
 export type LegalDocType = "privacy" | "terms" | "adoption-agreement" | "data-usage";
 
@@ -91,43 +86,27 @@ const STATIC_DOCS: Record<LegalDocType, { title: string; subtitle: string; secti
 export default function LegalDocumentPage({ type }: { type: LegalDocType }) {
   const staticData = STATIC_DOCS[type];
 
-  // Best-effort check if backend exposes dynamic legal document endpoint
-  const { data: remoteDoc } = useApiQuery({
-    queryKey: QUERY_KEYS.community.legalDoc(type),
-    queryFn: () => communityService.getLegalDocumentBySlug(type),
-    enabled: true,
-  });
-
-  const title = remoteDoc?.title || staticData.title;
-  const subtitle = staticData.subtitle;
-
   return (
     <PageShell>
       <main id="main-content" className="flex-1">
         <PageHeader
           eyebrow="Legal & Policy"
-          title={title}
-          subtitle={subtitle}
+          title={staticData.title}
+          subtitle={staticData.subtitle}
         />
 
         <Section bg="default">
           <div className="max-w-[800px] mx-auto flex flex-col gap-8">
-            {remoteDoc?.body ? (
-              <Card variant="default" className="p-6 text-foreground leading-relaxed whitespace-pre-line">
-                {remoteDoc.body}
+            {staticData.sections.map((sec, i) => (
+              <Card key={i} variant="default" className="p-6 flex flex-col gap-3">
+                <h2 className="font-serif font-bold text-xl text-foreground">
+                  {sec.heading}
+                </h2>
+                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                  {sec.body}
+                </p>
               </Card>
-            ) : (
-              staticData.sections.map((sec, i) => (
-                <Card key={i} variant="default" className="p-6 flex flex-col gap-3">
-                  <h2 className="font-serif font-bold text-xl text-foreground">
-                    {sec.heading}
-                  </h2>
-                  <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-                    {sec.body}
-                  </p>
-                </Card>
-              ))
-            )}
+            ))}
 
             <div className="border-t border-border pt-6 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
               <span>Last updated: October 2025</span>

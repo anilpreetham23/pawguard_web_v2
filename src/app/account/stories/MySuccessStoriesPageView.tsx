@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Heart,
   Clock,
@@ -84,11 +85,14 @@ function StoryCard({ story }: { story: SuccessStoryResponse }) {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="flex gap-4 min-w-0">
           {story.hero_image_url ? (
-            <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted shrink-0 border border-border shadow-xs">
-              <img
+            <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-muted shrink-0 border border-border shadow-xs">
+              <Image
                 src={story.hero_image_url}
                 alt={story.title}
-                className="w-full h-full object-cover"
+                fill
+                sizes="80px"
+                className="object-cover"
+                unoptimized
               />
             </div>
           ) : (

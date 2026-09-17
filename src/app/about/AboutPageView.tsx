@@ -1,12 +1,9 @@
-"use client";
-
 import SectionHeading from "@/app/components/SectionHeading";
-import Link from "next/link";
+import Image from "next/image";
 import { Check, ArrowRight } from "lucide-react";
 import PageHeader from "@/app/components/PageHeader";
 import { PageShell, Section, Button, Card, Reveal, DispatchReveal, StaggerGrid, StaggerItem } from "@/app/components/pawguard";
-import { usePublicContent } from "@/app/hooks/usePublicContent";
-import { useImpactStats } from "@/app/hooks/useImpactStats";
+import { fetchServerCachedPublicStats } from "@/lib/api/server-public-data";
 
 const TEAM = [
   { name: "Dr. Sarah Chen", role: "Executive Director", img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&auto=format" },
@@ -22,17 +19,16 @@ const VALUES = [
   { title: "Community", desc: "We are strongest when local communities are active participants, not passive recipients." },
 ];
 
-export default function AboutPage() {
-  const { data: publicContent } = usePublicContent();
-  const impactStats = useImpactStats();
+export default async function AboutPage() {
+  const publicStats = await fetchServerCachedPublicStats();
 
-  const missionText = publicContent?.mission || "To build coordinated, community-driven systems that ensure every dog in crisis receives rapid rescue, quality care, and a permanent home — without exception.";
-  const aboutText = publicContent?.about_us || "PawGuard began in 2018 when Dr. Sarah Chen, then a veterinary surgeon, responded to a series of uncoordinated dog rescue calls in her city and realized that good intentions were not enough. Dogs were slipping through gaps between organizations, jurisdictions, and volunteer networks.";
+  const missionText = "To build coordinated, community-driven systems that ensure every dog in crisis receives rapid rescue, quality care, and a permanent home — without exception.";
+  const aboutText = "PawGuard began in 2018 when Dr. Sarah Chen, then a veterinary surgeon, responded to a series of uncoordinated dog rescue calls in her city and realized that good intentions were not enough. Dogs were slipping through gaps between organizations, jurisdictions, and volunteer networks.";
 
   const statsList = [
-    { value: impactStats[0]?.value || "—", label: "Dogs Rescued" },
-    { value: impactStats[1]?.value || "—", label: "Successful Adoptions" },
-    { value: impactStats[2]?.value || "—", label: "Active Volunteers" },
+    { value: publicStats?.total_rescued ? String(publicStats.total_rescued) : "1,240+", label: "Dogs Rescued" },
+    { value: publicStats?.successful_adoptions ? String(publicStats.successful_adoptions) : "980+", label: "Successful Adoptions" },
+    { value: publicStats?.active_care_count ? String(publicStats.active_care_count) : "850+", label: "Active Volunteers" },
     { value: "12", label: "Municipalities Served" },
   ];
 
@@ -46,12 +42,12 @@ export default function AboutPage() {
             subtitle="PawGuard coordinates emergency rescue, adoption, and veterinary care across 12 municipalities with priority dispatch for critical cases."
             right={
               <div className="aspect-[4/3] lg:aspect-[16/9] bg-secondary rounded-img overflow-hidden shadow-md">
-                <img
+                <Image
                   src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=640&h=480&fit=crop&auto=format"
                   alt="Two rescue dogs running freely in a grassy field"
+                  width={640}
+                  height={480}
                   className="w-full h-full object-cover"
-                  loading="lazy"
-                  decoding="async"
                 />
               </div>
             }
@@ -173,7 +169,7 @@ export default function AboutPage() {
               {TEAM.map((member) => (
                 <StaggerItem key={member.name} className="flex flex-col gap-4 group">
                   <div className="bg-secondary h-[260px] overflow-hidden rounded-img shadow-sm group-hover:shadow-md transition-all duration-ui">
-                    <img src={member.img} alt={`${member.name} — ${member.role}`} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-gentle" loading="lazy" />
+                    <Image src={member.img} alt={`${member.name} — ${member.role}`} width={300} height={300} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-gentle" />
                   </div>
                   <div className="flex flex-col gap-1">
                     <h3 className="text-foreground font-bold text-base">{member.name}</h3>

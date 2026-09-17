@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import Image from "next/image";
 import type { JourneyCardData } from "./rescue-gallery";
 
 interface JourneyCardProps {
@@ -10,23 +10,13 @@ interface JourneyCardProps {
 }
 
 export function JourneyCard({ item, eager = false }: JourneyCardProps) {
-  const imgRef = useRef<HTMLImageElement>(null);
-
-  useEffect(() => {
-    if (imgRef.current) {
-      imgRef.current.fetchPriority = eager ? "high" : "low";
-    }
-  }, [eager]);
-
   return (
     <article className="rj-card">
       <div className="rj-card__media">
-        <img
-          ref={imgRef}
+        <Image
           src={item.img}
           alt={item.alt}
-          loading={eager ? "eager" : "lazy"}
-          decoding="async"
+          priority={eager}
           width={500}
           height={380}
         />

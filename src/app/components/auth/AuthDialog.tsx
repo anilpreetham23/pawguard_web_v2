@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -235,9 +236,11 @@ export default function AuthDialog() {
         <div className="px-5 pt-5 sm:px-8 sm:pt-8 sticky top-0 z-10 bg-card rounded-t-card">
           <DialogHeader className="text-left gap-2">
             <div className="flex items-center gap-2 mb-1">
-              <img
+              <Image
                 src="/images/rescue-process/assets/Logo.png"
                 alt="PawGuard Logo"
+                width={112}
+                height={28}
                 className="h-7 w-auto object-contain"
               />
               <span className="font-bold text-foreground text-lg tracking-tight font-serif">PawGuard</span>

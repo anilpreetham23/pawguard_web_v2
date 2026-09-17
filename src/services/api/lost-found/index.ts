@@ -16,6 +16,7 @@
  */
 
 import { API_ROUTES, apiGet, apiGetPage, apiPost, isApiError } from "@/lib/api";
+import { lostFoundReportSchema } from "@/lib/api/schemas";
 import type {
   FoundReportCreate,
   FoundReportResponse,
@@ -42,26 +43,27 @@ async function listCases(
   if (kind === "lost") {
     const page = await apiGetPage<LostReportResponse>(
       API_ROUTES.lostFound.lost,
-      params
+      params,
+      { schema: lostFoundReportSchema }
     );
     return { ...page, items: page.items.map(lostReportToCase) };
   }
   const page = await apiGetPage<FoundReportResponse>(
     API_ROUTES.lostFound.found,
-    params
+    params,
+    { schema: lostFoundReportSchema }
   );
   return { ...page, items: page.items.map(foundReportToCase) };
 }
-
 export const lostFoundService = {
   /** `GET /lost-found/lost` — paginated, searchable list of lost-pet reports. */
   listLost(params?: LostFoundQueryParams): Promise<Page<LostReportResponse>> {
-    return apiGetPage<LostReportResponse>(API_ROUTES.lostFound.lost, params);
+    return apiGetPage<LostReportResponse>(API_ROUTES.lostFound.lost, params, { schema: lostFoundReportSchema });
   },
 
   /** `GET /lost-found/found` — paginated, searchable list of found reports. */
   listFound(params?: LostFoundQueryParams): Promise<Page<FoundReportResponse>> {
-    return apiGetPage<FoundReportResponse>(API_ROUTES.lostFound.found, params);
+    return apiGetPage<FoundReportResponse>(API_ROUTES.lostFound.found, params, { schema: lostFoundReportSchema });
   },
 
   /**

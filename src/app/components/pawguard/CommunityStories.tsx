@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import Image from "next/image";
 import { cn } from "../ui/utils";
 import { useMotionStore } from "@/motion/motion-store";
 import { duration, ease } from "@/motion/motion.config";
@@ -150,15 +151,16 @@ export function StoryCard({
       )}
       onMouseEnter={onFocus}
     >
-      <img
+      <Image
         src={story.img}
         alt={story.headline || story.animal || "Story image"}
+        fill
+        sizes="(max-width: 1024px) 85vw, 75vw"
         className={cn(
-          "absolute inset-0 w-full h-full object-cover transition-all duration-narrative ease-gentle will-change-transform animate-story-photo-zoom",
+          "object-cover transition-all duration-narrative ease-gentle will-change-transform animate-story-photo-zoom",
           isActive ? "scale-100" : "scale-[1.02]",
         )}
-        loading="lazy"
-        decoding="async"
+        unoptimized
       />
       <div
         className={cn(

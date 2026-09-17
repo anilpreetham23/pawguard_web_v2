@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -210,9 +211,11 @@ export default function Navbar() {
                 className="group flex items-center gap-2.5 shrink-0 origin-left transition-transform duration-fast ease-gentle relative z-10"
                 aria-label="PawGuard home"
               >
-                <img
+                <Image
                   src="/images/rescue-process/assets/Logo.png"
                   alt="PawGuard Logo"
+                  width={40}
+                  height={40}
                   className="h-10 w-auto object-contain transition-transform duration-fast group-hover:scale-105"
                 />
                 <span className="font-bold text-primary text-xl tracking-tight">PawGuard</span>

@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { ThemeProvider } from "next-themes";
 import { QueryProvider } from "./providers/query-provider";
 import { AuthProvider } from "./providers/auth-provider";
@@ -11,7 +12,10 @@ import PuppyProgress from "@/app/components/PuppyProgress";
 import { OfflineBanner } from "@/app/components/OfflineBanner";
 import { ErrorBoundary } from "@/app/components/ErrorBoundary";
 import { Toaster } from "@/app/components/ui/sonner";
-import AuthDialog from "@/app/components/auth/AuthDialog";
+
+const AuthDialog = dynamic(() => import("@/app/components/auth/AuthDialog"), {
+  ssr: false,
+});
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (

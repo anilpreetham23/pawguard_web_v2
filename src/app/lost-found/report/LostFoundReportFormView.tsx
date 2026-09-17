@@ -13,9 +13,14 @@ import { lostFoundService } from "@/services/api/lost-found";
 import { useGeolocation } from "@/app/hooks/useGeolocation";
 import { useAuth } from "@/app/providers/auth-provider";
 import { useMyPets } from "@/app/hooks/useMyPets";
-import { LocationMapPicker } from "@/app/components/LocationMapPicker";
+import dynamic from "next/dynamic";
 import type { Species, LostReportCreate, FoundReportCreate } from "@/lib/api";
 import type { LostFoundKind } from "@/types";
+
+const LocationMapPicker = dynamic(
+  () => import("@/app/components/LocationMapPicker").then((m) => m.LocationMapPicker),
+  { ssr: false }
+);
 
 const SPECIES_OPTIONS: { value: Species; label: string }[] = [
   { value: "dog", label: "Dog" },

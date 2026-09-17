@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "motion/react";
 import { Twitter, Instagram, Facebook, Heart, Shield, Mail, Phone, MapPin, ChevronRight } from "lucide-react";
 import { Button, Input } from "./pawguard";
@@ -137,9 +138,11 @@ export default function Footer() {
               className="flex flex-col gap-3 lg:col-span-3 lg:order-1"
             >
               <Link href="/" className="flex items-center gap-2.5 group">
-                <img
+                <Image
                   src="/images/rescue-process/assets/Logo.png"
                   alt="PawGuard Logo"
+                  width={40}
+                  height={40}
                   className="h-10 w-auto object-contain transition-transform duration-fast group-hover:scale-105"
                 />
                 <span className="font-bold text-white text-lg tracking-tight">PawGuard</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useSafeScrollTrigger } from "./hooks/useSafeScrollTrigger";
@@ -374,14 +375,16 @@ export default function EmergencyStory() {
                     >
                       <div className="flex gap-4">
                         {/* Dog image — consistent size via CSS class */}
-                        <div className="relative shrink-0">
-                          <img
+                        <div className="relative shrink-0 w-24 h-24">
+                          <Image
                             src={stage.image}
                             alt={`${stage.title} — ${stage.emotion} dog`}
-                            loading="lazy"
-                            className="rescue-card-img"
+                            fill
+                            sizes="96px"
+                            className="rescue-card-img object-cover rounded-xl"
+                            unoptimized
                           />
-                          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-border/60 bg-card px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-foreground/70">
+                          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-border/60 bg-card px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-foreground/70 z-10">
                             {stage.emotion}
                           </span>
                         </div>

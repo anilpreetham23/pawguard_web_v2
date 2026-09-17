@@ -12,6 +12,7 @@
  */
 
 import { API_ROUTES, apiGet, apiGetPage, apiPost } from "@/lib/api";
+import { rescueRequestSchema, successStorySchema } from "@/lib/api/schemas";
 import type {
   Page,
   PublicRescueStatusResponse,
@@ -30,12 +31,12 @@ import type {
 export const rescueService = {
   /** `GET /rescue` — paginated, searchable, filterable list of rescue requests. */
   listCases(params?: RescueQueryParams): Promise<Page<RescueRequestResponse>> {
-    return apiGetPage<RescueRequestResponse>(API_ROUTES.rescue.base, params);
+    return apiGetPage<RescueRequestResponse>(API_ROUTES.rescue.base, params, { schema: rescueRequestSchema });
   },
 
   /** `GET /rescue/{id}` — a single rescue request. */
   getCase(id: string): Promise<RescueRequestResponse> {
-    return apiGet<RescueRequestResponse>(API_ROUTES.rescue.case(id));
+    return apiGet<RescueRequestResponse>(API_ROUTES.rescue.case(id), { schema: rescueRequestSchema });
   },
 
   /** `GET /rescue` — latest requests, used as related cases for a detail page. */
@@ -132,31 +133,31 @@ export const rescueService = {
 
   /** `GET /portal/success-stories` — published rescue success stories. */
   getSuccessStories(): Promise<SuccessStoryResponse[]> {
-    return apiGet<SuccessStoryResponse[]>(API_ROUTES.community.successStories);
+    return apiGet<SuccessStoryResponse[]>(API_ROUTES.community.successStories, { schema: successStorySchema });
   },
 
   /** `GET /portal/success-stories/{id}` or `/portal/success-stories/slug/{slug}` — a single published success story. */
   getSuccessStory(idOrSlug: string): Promise<SuccessStoryResponse> {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
     if (isUuid) {
-      return apiGet<SuccessStoryResponse>(API_ROUTES.community.successStory(idOrSlug));
+      return apiGet<SuccessStoryResponse>(API_ROUTES.community.successStory(idOrSlug), { schema: successStorySchema });
     }
-    return apiGet<SuccessStoryResponse>(API_ROUTES.community.successStoryBySlug(idOrSlug));
+    return apiGet<SuccessStoryResponse>(API_ROUTES.community.successStoryBySlug(idOrSlug), { schema: successStorySchema });
   },
 
   /** `GET /portal/success-stories/slug/{slug}` — a single published success story by slug. */
   getSuccessStoryBySlug(slug: string): Promise<SuccessStoryResponse> {
-    return apiGet<SuccessStoryResponse>(API_ROUTES.community.successStoryBySlug(slug));
+    return apiGet<SuccessStoryResponse>(API_ROUTES.community.successStoryBySlug(slug), { schema: successStorySchema });
   },
 
   /** `POST /portal/stories` — submit a new adopter success story (auth required, status pending_review). */
   submitStory(data: SuccessStoryUserSubmit): Promise<SuccessStoryResponse> {
-    return apiPost<SuccessStoryResponse>(API_ROUTES.community.stories, data);
+    return apiPost<SuccessStoryResponse>(API_ROUTES.community.stories, data, { schema: successStorySchema });
   },
 
   /** `GET /portal/stories/me` — retrieve current user's submitted stories (auth required). */
   getMyStories(params?: SuccessStoryQueryParams): Promise<Page<SuccessStoryResponse>> {
-    return apiGetPage<SuccessStoryResponse>(API_ROUTES.community.myStories, params);
+    return apiGetPage<SuccessStoryResponse>(API_ROUTES.community.myStories, params, { schema: successStorySchema });
   },
 };
 

@@ -1,36 +1,26 @@
-"use client";
-
 import Link from "next/link";
-import { ArrowLeft, Clock, BookOpen, Share2 } from "lucide-react";
+import { ArrowLeft, Clock, BookOpen } from "lucide-react";
 import PageHeader from "@/app/components/PageHeader";
-import { PageShell, Section, Card, Reveal, Button } from "@/app/components/pawguard";
+import { PageShell, Section, Card, Button } from "@/app/components/pawguard";
 import { GUIDES } from "../EducationPageView";
-import { useBlogPost } from "@/app/hooks/useBlogPost";
+import { fetchServerCachedBlogPostBySlug } from "@/lib/api/server-public-data";
 
-export default function EducationDetailPage({ slug }: { slug: string }) {
-  const { data: remotePost, isLoading } = useBlogPost(slug);
+export default async function EducationDetailPage({ slug }: { slug: string }) {
+  const remotePost = await fetchServerCachedBlogPostBySlug(slug);
   const staticGuide = GUIDES.find((g) => g.slug === slug);
-
-  if (isLoading) {
-    return (
-      <PageShell>
-        <main id="main-content" className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+3rem)] text-center">
-          <p className="text-muted-foreground">Loading guide details...</p>
-        </main>
-      </PageShell>
-    );
-  }
 
   const guide = remotePost
     ? {
-        category: remotePost.category.replace("-", " ").toUpperCase(),
+        category: remotePost.category ? remotePost.category.replace("-", " ").toUpperCase() : "GUIDE",
         title: remotePost.title,
-        description: remotePost.shortDescription,
-        readTime: `${remotePost.readTimeMinutes} min read`,
-        sections: remotePost.sections.map((s) => ({
-          heading: s.heading,
-          content: s.paragraphs.join("\n\n"),
-        })),
+        description: remotePost.excerpt || (remotePost.body ? remotePost.body.slice(0, 150) : ""),
+        readTime: "5 min read",
+        sections: [
+          {
+            heading: remotePost.title,
+            content: remotePost.body || "",
+          },
+        ],
         icon: BookOpen,
       }
     : staticGuide

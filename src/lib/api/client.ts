@@ -17,6 +17,7 @@ import axios, {
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
 } from "axios";
+import type { z } from "zod";
 import { getAccessToken } from "./auth/session";
 import { refreshAccessToken } from "./auth/refresh";
 import { apiConfig } from "./config";
@@ -38,6 +39,8 @@ export interface ApiRequestConfig
   params?: QueryParams;
   /** Set `false` to skip attaching the bearer token (default: true). */
   auth?: boolean;
+  /** Optional Zod schema for runtime response validation. */
+  schema?: z.ZodSchema<any>;
 }
 
 type RetryableConfig = InternalAxiosRequestConfig & {
@@ -214,7 +217,16 @@ export async function apiRequest<T>(
   config: ApiRequestConfig
 ): Promise<T> {
   const response = await httpClient.request<T>(toAxiosConfig(config));
-  return unwrapEnvelope<T>(response.data);
+  const unwrapped = unwrapEnvelope<T>(response.data);
+  if (config.schema) {
+    const result = config.schema.safeParse(unwrapped);
+    if (!result.success) {
+      console.warn(`[API Validation Warning] ${config.url || "endpoint"}:`, result.error.format());
+    } else {
+      return result.data as T;
+    }
+  }
+  return unwrapped;
 }
 
 /** GET request that returns the unwrapped `ApiResponse.data`. */

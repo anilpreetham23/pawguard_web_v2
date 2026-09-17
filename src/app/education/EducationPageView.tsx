@@ -1,11 +1,8 @@
-"use client";
-
 import Link from "next/link";
 import { BookOpen, ShieldCheck, Heart, Stethoscope, AlertTriangle, ArrowRight } from "lucide-react";
 import PageHeader from "@/app/components/PageHeader";
-import SectionHeading from "@/app/components/SectionHeading";
-import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem, Button } from "@/app/components/pawguard";
-import { useBlogPosts } from "@/app/hooks/useBlogPosts";
+import { PageShell, Section, Card, Reveal, StaggerGrid, StaggerItem } from "@/app/components/pawguard";
+import { fetchServerCachedBlogPosts } from "@/lib/api/server-public-data";
 
 export const GUIDES = [
   {
@@ -121,18 +118,18 @@ export const GUIDES = [
   }
 ];
 
-export default function EducationPage() {
-  const { data: apiPosts } = useBlogPosts();
+export default async function EducationPage() {
+  const apiPosts = await fetchServerCachedBlogPosts();
 
   const guidesToDisplay =
     apiPosts && apiPosts.length > 0
       ? apiPosts.map((post) => ({
           slug: post.slug,
           title: post.title,
-          category: post.category.replace("-", " ").toUpperCase(),
+          category: post.category ? post.category.replace("-", " ").toUpperCase() : "GUIDE",
           icon: BookOpen,
-          readTime: `${post.readTimeMinutes} min read`,
-          summary: post.shortDescription,
+          readTime: "5 min read",
+          summary: post.excerpt || (post.body ? post.body.slice(0, 150) : ""),
         }))
       : GUIDES.map((g) => ({
           slug: g.slug,

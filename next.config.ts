@@ -11,6 +11,18 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "pawguard-backend-mqri.onrender.com",
+      },
+      {
+        protocol: "https",
+        hostname: "raw.githubusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.pixabay.com",
+      },
     ],
   },
 
@@ -21,7 +33,6 @@ const nextConfig: NextConfig = {
     "motion",
     "lottie-react",
     "react-awesome-reveal",
-    "react-type-animation",
   ],
 
   /* ── API Rewrites (Same-origin HttpOnly Cookie Proxy) ─────────────── */
@@ -36,10 +47,26 @@ const nextConfig: NextConfig = {
 
   /* ── Security & cache headers (migrated from vercel.json) ─────────── */
   async headers() {
+    const cspHeader = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.razorpay.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "img-src 'self' data: blob: https:",
+      "connect-src 'self' https://pawguard-backend-mqri.onrender.com https://*.razorpay.com wss:",
+      "frame-src 'self' https://api.razorpay.com https://*.razorpay.com",
+      "media-src 'self' blob: data:",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ].join("; ");
+
     return [
       {
         source: "/(.*)",
         headers: [
+          { key: "Content-Security-Policy", value: cspHeader },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-XSS-Protection", value: "1; mode=block" },

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Quote,
   ArrowRight,
@@ -272,12 +273,12 @@ export default function VolunteerPage() {
           subtitle="Every volunteer hour translates to a faster rescue, a warmer foster bed, or a smoother adoption. Pick a role that fits your life."
           right={
             <div className="aspect-[4/3] lg:aspect-[16/9] bg-secondary rounded-img overflow-hidden shadow-md">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=640&h=480&fit=crop&auto=format"
                 alt="Volunteer with rescued dogs"
+                width={640}
+                height={480}
                 className="w-full h-full object-cover"
-                loading="lazy"
-                decoding="async"
               />
             </div>
           }
@@ -336,12 +337,12 @@ export default function VolunteerPage() {
                   <StaggerItem key={role.title}>
                     <div className="bg-background border border-border rounded-card overflow-hidden shadow-sm hover:shadow-glow-card hover:border-primary/20 transition-all duration-ui group flex flex-col h-full">
                       <div className="relative aspect-[4/3] bg-secondary overflow-hidden">
-                        <img
+                        <Image
                           src={role.img}
                           alt={role.title}
+                          width={400}
+                          height={300}
                           className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-gentle ease-out will-change-transform"
-                          loading="lazy"
-                          decoding="async"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                         <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm text-foreground text-2xs font-bold tracking-wider uppercase px-2.5 py-1 rounded-full shadow-sm">

@@ -1,12 +1,11 @@
-"use client";
-
 import Link from "next/link";
+import Image from "next/image";
 import StoryCard from "@/app/components/StoryCard";
 import { ArrowRight } from "lucide-react";
 import PageHeader from "@/app/components/PageHeader";
 import { PageShell, Section, Button, Reveal, StaggerGrid, StaggerItem } from "@/app/components/pawguard";
 import { Quote } from "lucide-react";
-import { useSuccessStories } from "@/app/hooks/useSuccessStories";
+import { fetchServerCachedSuccessStories } from "@/lib/api/server-public-data";
 
 const FEATURED = {
   id: "featured-static",
@@ -36,8 +35,8 @@ const STORIES = [
   { id: "nala-static", animal: "Nala", type: "Dog · Rescued April 2024", headline: "The Office Dog Who Wasn't", excerpt: "Nala was surrendered when her owner relocated. Two weeks at PawGuard, and she walked straight into the arms of her new family.", img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=280&fit=crop&auto=format", adopter: "James & Priya Mehta" },
 ];
 
-export default function SuccessStoriesPage() {
-  const { data: remoteStories } = useSuccessStories();
+export default async function SuccessStoriesPage() {
+  const remoteStories = await fetchServerCachedSuccessStories();
 
   const featured = remoteStories && remoteStories.length > 0
     ? {
@@ -46,9 +45,9 @@ export default function SuccessStoriesPage() {
         animal: remoteStories[0].title,
         type: `Rescue Story · ${remoteStories[0].published_at ? remoteStories[0].published_at.slice(0, 10) : "Recent"}`,
         date: remoteStories[0].published_at ? remoteStories[0].published_at.slice(0, 10) : "Recent",
-        excerpt: remoteStories[0].summary || remoteStories[0].body.slice(0, 150),
+        excerpt: remoteStories[0].summary || (remoteStories[0].body ? remoteStories[0].body.slice(0, 150) : ""),
         quote: remoteStories[0].summary || "A heart-warming rescue transformation story.",
-        img: remoteStories[0].hero_image_url || FEATURED.img,
+        img: remoteStories[0].hero_image_url || remoteStories[0].cover_image_url || FEATURED.img,
         adopter: "PawGuard Rescue Family",
         timeline: FEATURED.timeline,
       }
@@ -60,8 +59,8 @@ export default function SuccessStoriesPage() {
         animal: s.title,
         type: `Rescue Story · ${s.published_at ? s.published_at.slice(0, 10) : "Recent"}`,
         headline: s.title,
-        excerpt: s.summary || s.body.slice(0, 120),
-        img: s.hero_image_url || "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=280&fit=crop&auto=format",
+        excerpt: s.summary || (s.body ? s.body.slice(0, 120) : ""),
+        img: s.hero_image_url || s.cover_image_url || "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=280&fit=crop&auto=format",
         adopter: "PawGuard Family",
       }))
     : STORIES;
@@ -79,12 +78,12 @@ export default function SuccessStoriesPage() {
           <div className="max-w-[1440px] 2xl:max-w-[1536px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-[var(--space-12)] lg:gap-[var(--space-16)]">
               <div className="lg:col-span-7 relative aspect-[4/3] lg:aspect-[7/5] bg-secondary rounded-img overflow-hidden shadow-lg group">
-                <img
+                <Image
                   src={featured.img}
                   alt={featured.title}
+                  width={700}
+                  height={500}
                   className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-gentle ease-out will-change-transform"
-                  loading="lazy"
-                  decoding="async"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                 <div className="absolute bottom-6 left-6 right-6">

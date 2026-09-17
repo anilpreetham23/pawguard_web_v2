@@ -12,6 +12,7 @@
  */
 
 import { API_ROUTES, apiGet, apiGetPage, apiPost } from "@/lib/api";
+import { dogSchema } from "@/lib/api/schemas";
 import type {
   AdoptionApplicationCreate,
   AdoptionApplicationResponse,
@@ -22,12 +23,12 @@ import type {
 export const adoptionService = {
   /** `GET /dogs` — paginated, searchable, filterable list of dog profiles. */
   listDogs(params?: DogQueryParams): Promise<Page<DogProfileResponse>> {
-    return apiGetPage<DogProfileResponse>(API_ROUTES.adoption.dogs, params);
+    return apiGetPage<DogProfileResponse>(API_ROUTES.adoption.dogs, params, { schema: dogSchema });
   },
 
   /** `GET /dogs/{id}` — a single dog profile. */
   getDog(id: string): Promise<DogProfileResponse> {
-    return apiGet<DogProfileResponse>(API_ROUTES.adoption.dog(id));
+    return apiGet<DogProfileResponse>(API_ROUTES.adoption.dog(id), { schema: dogSchema });
   },
 
   /** `GET /dogs` filtered to a breed — related pets for a detail page. */
@@ -41,7 +42,7 @@ export const adoptionService = {
       page_size: limit + 1,
       sort_by: "created_at",
       sort_order: "desc",
-    }).then((page) => page.items.filter((dog) => dog.id !== id).slice(0, limit));
+    }, { schema: dogSchema }).then((page) => page.items.filter((dog) => dog.id !== id).slice(0, limit));
   },
 
   /** `POST /adoptions` — submit an adoption application. */

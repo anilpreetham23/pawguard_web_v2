@@ -1,25 +1,14 @@
-"use client";
-
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Calendar, Heart } from "lucide-react";
 import PageHeader from "@/app/components/PageHeader";
 import { PageShell, Section, Card, Button } from "@/app/components/pawguard";
-import { useSuccessStory } from "@/app/hooks/useSuccessStory";
+import { fetchServerCachedSuccessStoryById } from "@/lib/api/server-public-data";
 
-export default function SuccessStoryDetailPage({ id }: { id: string }) {
-  const { data: story, isLoading, isError } = useSuccessStory(id);
+export default async function SuccessStoryDetailPage({ id }: { id: string }) {
+  const story = await fetchServerCachedSuccessStoryById(id);
 
-  if (isLoading) {
-    return (
-      <PageShell>
-        <main id="main-content" className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+3rem)] text-center">
-          <p className="text-muted-foreground">Loading success story...</p>
-        </main>
-      </PageShell>
-    );
-  }
-
-  if (!story || isError) {
+  if (!story) {
     return (
       <PageShell>
         <main id="main-content" className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+3rem)] text-center">
@@ -39,6 +28,8 @@ export default function SuccessStoryDetailPage({ id }: { id: string }) {
         year: "numeric",
       })
     : "Recent Rescue";
+
+  const heroImage = story.hero_image_url || story.cover_image_url;
 
   return (
     <PageShell>
@@ -61,11 +52,13 @@ export default function SuccessStoryDetailPage({ id }: { id: string }) {
 
         <Section bg="default">
           <div className="max-w-[800px] mx-auto flex flex-col gap-8">
-            {story.hero_image_url && (
+            {heroImage && (
               <div className="aspect-[16/9] rounded-img overflow-hidden shadow-lg">
-                <img
-                  src={story.hero_image_url}
+                <Image
+                  src={heroImage}
                   alt={story.title}
+                  width={800}
+                  height={450}
                   className="w-full h-full object-cover"
                 />
               </div>

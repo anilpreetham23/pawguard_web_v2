@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Heart,
   ShieldCheck,
@@ -254,12 +255,12 @@ export default function FosterPage({ initialFocusApply = false }: FosterPageProp
           subtitle="Provide temporary housing, care, and love for dogs recovering from injury, illness, or rescue trauma while they await permanent adoption."
           right={
             <div className="aspect-[4/3] lg:aspect-[16/9] bg-secondary rounded-img overflow-hidden shadow-md">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=640&h=480&fit=crop&auto=format"
                 alt="Foster dog playing happily in a warm home"
+                width={640}
+                height={480}
                 className="w-full h-full object-cover"
-                loading="lazy"
-                decoding="async"
               />
             </div>
           }
@@ -535,11 +536,12 @@ export default function FosterPage({ initialFocusApply = false }: FosterPageProp
                   <StaggerItem key={role.title}>
                     <Card className="h-full flex flex-col overflow-hidden hover:shadow-md transition-all duration-fast">
                       <div className="aspect-[16/9] bg-secondary overflow-hidden relative">
-                        <img
+                        <Image
                           src={role.img}
                           alt={role.title}
+                          width={600}
+                          height={337}
                           className="w-full h-full object-cover"
-                          loading="lazy"
                         />
                         <div className="absolute top-4 left-4">
                           <Badge variant="default">{role.commitment}</Badge>
