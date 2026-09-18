@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { duration as durConfig } from "../motion.config";
 import { useMotionStore } from "../motion-store";
-import { getGsap } from "../gsap-register";
 
 interface UseCountUpOptions {
   from?: number;
@@ -62,30 +61,32 @@ export function useCountUp(formattedValue: string, options: UseCountUpOptions = 
           return;
         }
 
-        getGsap().then(({ gsap }) => {
-          const obj = { value: options.from ?? 0 };
-          tween = gsap.to(obj, {
-            value: num,
-            duration: dur,
-            delay,
-            ease: "power2.out",
-            onUpdate: () => {
-              const rounded = Math.round(obj.value);
-              setDisplay(formatDisplay(rounded, prefix, suffix));
-            },
-            onComplete: () => setAnimated(true),
-          });
-        }).catch(() => {
-          setDisplay(formattedValue);
-          setAnimated(true);
-        });
+        let rafId: number;
+        const startTime = performance.now();
+        const animDuration = dur * 1000;
+        const startVal = options.from ?? 0;
+
+        const animate = (now: number) => {
+          const elapsed = Math.max(0, now - (startTime + delay * 1000));
+          const progress = Math.min(elapsed / animDuration, 1);
+          const easeProgress = 1 - Math.pow(1 - progress, 3);
+          const current = Math.round(startVal + (num - startVal) * easeProgress);
+          setDisplay(formatDisplay(current, prefix, suffix));
+
+          if (progress < 1) {
+            rafId = requestAnimationFrame(animate);
+          } else {
+            setAnimated(true);
+          }
+        };
+
+        rafId = requestAnimationFrame(animate);
       },
       { threshold: 0.3 }
     );
     obs.observe(el);
     return () => {
       obs.disconnect();
-      if (tween?.kill) tween.kill();
     };
   }, [num, prefix, suffix, formattedValue, options.from, options.duration, options.delay, motionTier, animated]);
 

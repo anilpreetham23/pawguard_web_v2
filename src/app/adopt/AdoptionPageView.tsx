@@ -96,7 +96,7 @@ export default function AdoptionPage({ initialDogs }: { initialDogs?: import("@/
     };
   }, [debouncedSearch, selectedAge, selectedSize, page]);
 
-  const { data: pets = [], isLoading, isError, error, refetch } = useAdoptionPets(apiParams, initialDogs);
+  const { pets = [], isLoading, isError, error, refetch } = useAdoptionPets(apiParams, initialDogs);
 
   function toggle(list: string[], value: string, setter: (v: string[]) => void) {
     setter(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);

@@ -78,11 +78,12 @@ export default function AdoptionClientIsland({
       min_weight,
       max_weight,
       page,
-      page_size: 24,
+      page_size: PAGE_SIZE,
+      ...(sortBy !== "default" ? { sort_by: sortBy === "name" ? "name" : "created_at" } : {}),
     };
-  }, [debouncedSearch, selectedAge, selectedSize, page]);
+  }, [debouncedSearch, selectedAge, selectedSize, sortBy, page]);
 
-  const { data: pets = [], isLoading, isError, error, refetch } = useAdoptionPets(apiParams, initialDogs);
+  const { pets, meta, isLoading, isError, error, refetch } = useAdoptionPets(apiParams, initialDogs);
 
   function clearAllFilters() {
     setSearchQuery("");
@@ -91,34 +92,14 @@ export default function AdoptionClientIsland({
     setSortBy("default");
   }
 
-  const filtered = pets.filter((pet: Pet) => {
-    if (pet.adoptionBadge === "adopted") return false;
-    if (selectedAge.length && !selectedAge.includes(AGE_LABEL[pet.ageGroup])) return false;
-    if (selectedSize.length && !selectedSize.includes(SIZE_LABEL[pet.size])) return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      const matchName = pet.name.toLowerCase().includes(q);
-      const matchBreed = pet.breed.toLowerCase().includes(q);
-      const matchColor = pet.color.toLowerCase().includes(q);
-      const matchDesc = pet.description.toLowerCase().includes(q);
-      if (!matchName && !matchBreed && !matchColor && !matchDesc) return false;
-    }
-    return true;
-  }).sort((a: Pet, b: Pet) => {
-    if (sortBy === "name") return a.name.localeCompare(b.name);
-    if (sortBy === "age") return AGE_ORDER[a.ageGroup] - AGE_ORDER[b.ageGroup];
-    return 0;
-  });
-
   const hasFilters = selectedAge.length > 0 || selectedSize.length > 0 || searchQuery.trim().length > 0 || sortBy !== "default";
 
   useEffect(() => {
     setPage(1);
-  }, [selectedAge, selectedSize, sortBy, searchQuery]);
+  }, [selectedAge, selectedSize, sortBy, debouncedSearch]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pagePets = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const totalPages = Math.max(1, meta.total_pages);
+  const pagePets = pets;
 
   return (
     <>
@@ -220,12 +201,12 @@ export default function AdoptionClientIsland({
       {/* Results Summary & Dog Grid */}
       <div className="flex items-center justify-between mb-4 lg:mb-6">
         <p className="text-muted-foreground text-xs sm:text-sm">
-          <span className="font-semibold text-foreground">{isLoading ? "…" : filtered.length}</span> {filtered.length === 1 ? "companion available" : "companions available"}
+          <span className="font-semibold text-foreground">{isLoading ? "…" : meta.total}</span> {meta.total === 1 ? "companion available" : "companions available"}
         </p>
       </div>
 
       {isLoading ? (
-        <StaggerGrid key={`skeleton-${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-grid-md lg:gap-6">
+        <StaggerGrid key={`skeleton-${page}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-grid-md lg:gap-6">
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <StaggerItem key={i}>
               <CardSkeleton />
@@ -236,14 +217,14 @@ export default function AdoptionClientIsland({
         <Alert variant="error" title="Couldn't load available dogs">
           {getErrorMessage(error)} <button onClick={() => refetch()} className="font-semibold text-destructive underline underline-offset-2 hover:opacity-80 transition-opacity">Retry</button>
         </Alert>
-      ) : filtered.length === 0 ? (
+      ) : pets.length === 0 ? (
         <EmptyState
-          title={pets.length === 0 ? "No dogs available right now" : "No dogs match your filters"}
-          description={pets.length === 0 ? "New dogs join our care every week. Check back soon or follow us for updates." : "Try adjusting your selection — every dog here is waiting for someone like you."}
+          title="No dogs match your filters"
+          description="Try adjusting your selection — every dog here is waiting for someone like you."
           action={hasFilters ? { label: "Clear Filters", onClick() { setSelectedAge([]); setSelectedSize([]); } } : undefined}
         />
       ) : (
-        <StaggerGrid key={`${currentPage}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-grid-md lg:gap-6">
+        <StaggerGrid key={`${page}-${selectedAge.join(",")}-${selectedSize.join(",")}-${sortBy}`} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-grid-md lg:gap-6">
           {pagePets.map((pet: Pet) => (
             <StaggerItem key={pet.id}>
               <AdoptionCard
@@ -272,18 +253,18 @@ export default function AdoptionClientIsland({
         <div className="flex items-center justify-between mt-10 gap-4">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage <= 1}
+            disabled={page <= 1}
             className="inline-flex items-center gap-2 bg-card border border-border text-foreground text-xs font-semibold tracking-wider uppercase px-4 py-2.5 rounded-btn hover:border-primary hover:text-primary transition-all duration-fast disabled:opacity-40 disabled:pointer-events-none"
           >
             <ChevronLeft size={15} />
             Prev
           </button>
           <p className="text-muted-foreground text-sm">
-            Page <span className="font-semibold text-foreground">{currentPage}</span> of {totalPages}
+            Page <span className="font-semibold text-foreground">{page}</span> of {totalPages}
           </p>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage >= totalPages}
+            disabled={page >= totalPages}
             className="inline-flex items-center gap-2 bg-card border border-border text-foreground text-xs font-semibold tracking-wider uppercase px-4 py-2.5 rounded-btn hover:border-primary hover:text-primary transition-all duration-fast disabled:opacity-40 disabled:pointer-events-none"
           >
             Next

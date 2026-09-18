@@ -221,10 +221,17 @@ export async function apiRequest<T>(
   if (config.schema) {
     const result = config.schema.safeParse(unwrapped);
     if (!result.success) {
-      console.warn(`[API Validation Warning] ${config.url || "endpoint"}:`, result.error.format());
-    } else {
-      return result.data as T;
+      const issueDetails = result.error.issues
+        .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+        .join("; ");
+      throw new ApiError({
+        kind: "validation",
+        code: "RESPONSE_VALIDATION_ERROR",
+        message: `Response validation failed for ${config.url || "endpoint"}: ${issueDetails}`,
+        detail: result.error.format(),
+      });
     }
+    return result.data as T;
   }
   return unwrapped;
 }

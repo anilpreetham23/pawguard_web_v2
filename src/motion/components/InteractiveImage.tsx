@@ -27,6 +27,7 @@ import {
   type ReactNode,
   type ImgHTMLAttributes,
 } from "react";
+import Image, { type ImageProps as NextImageProps } from "next/image";
 import {
   motion,
   useInView,
@@ -37,6 +38,8 @@ import {
 } from "motion/react";
 import { cn } from "@/components/ui/utils";
 import { useMotionStore } from "../motion-store";
+
+const MotionNextImage = motion(Image);
 
 // ─── Motion constants ─────────────────────────────────────────────────────────
 export const IMG_EASE = [0.22, 1, 0.36, 1] as const;
@@ -53,13 +56,19 @@ export type ImageVariant =
   | "portrait"
   | "partner";
 
-export interface InteractiveImageProps extends ImgHTMLAttributes<HTMLImageElement> {
+export interface InteractiveImageProps
+  extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "width" | "height"> {
   src: string;
   alt: string;
   variant?: ImageVariant;
   className?: string;
   imgClassName?: string;
   aspectRatio?: string;
+  width?: number;
+  height?: number;
+  fill?: boolean;
+  sizes?: string;
+  priority?: boolean;
   /** Disable cursor parallax (use inside overflow:hidden parents) */
   noParallax?: boolean;
   noSweep?: boolean;
@@ -192,14 +201,17 @@ export function InteractiveImage({
   className,
   imgClassName,
   aspectRatio,
+  width,
+  height,
+  fill,
+  sizes,
+  priority,
   noParallax = false,
   noSweep = false,
   noGlow = false,
   noFloat = false,
   overlay,
   onImageLoad,
-  loading = "lazy",
-  decoding = "async",
   ...imgProps
 }: InteractiveImageProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -341,13 +353,17 @@ export function InteractiveImage({
       </AnimatePresence>
 
       {/* ── Image ────────────────────────────────────────────────────────── */}
-      <motion.img
+      <MotionNextImage
         src={src}
         alt={alt}
-        loading={loading}
-        decoding={decoding}
+        fill={fill ?? (!width && !height)}
+        width={!fill ? width : undefined}
+        height={!fill ? height : undefined}
+        sizes={sizes ?? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
+        priority={priority}
         onLoad={handleLoad}
         onError={handleError}
+        unoptimized={typeof src === "string" && (src.startsWith("blob:") || src.startsWith("data:"))}
         className={cn(
           "w-full h-full object-cover will-change-transform",
           imgClassName,

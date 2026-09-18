@@ -3,8 +3,10 @@ import {
   dogSchema,
   lostFoundReportSchema,
   userSchema,
+  createApiResponseSchema,
   safeValidateResponse,
 } from "@/lib/api/schemas";
+import { ApiError } from "@/lib/api/errors";
 
 describe("Zod API Response Validation Schemas", () => {
   it("validates a valid dog DTO payload", () => {
@@ -39,14 +41,35 @@ describe("Zod API Response Validation Schemas", () => {
     expect(parsed.success).toBe(true);
   });
 
-  it("safeValidateResponse falls back gracefully without throwing errors", () => {
+  it("safeValidateResponse throws ApiError on invalid field types", () => {
     const invalidUserPayload = {
       id: 12345, // invalid type (number instead of string)
       email: "not-an-email",
     };
 
-    // Should not throw, logs warning and returns payload as fallback
-    const result = safeValidateResponse(userSchema, invalidUserPayload, "TestUser");
-    expect(result).toBeDefined();
+    expect(() =>
+      safeValidateResponse(userSchema, invalidUserPayload, "TestUser")
+    ).toThrowError(ApiError);
+  });
+
+  it("safeValidateResponse throws ApiError on missing required fields", () => {
+    const missingFieldPayload = {
+      name: "No ID",
+    };
+
+    expect(() =>
+      safeValidateResponse(dogSchema, missingFieldPayload, "TestDog")
+    ).toThrowError(ApiError);
+  });
+
+  it("validates malformed envelopes securely", () => {
+    const malformedEnvelope = {
+      success: "yes", // boolean expected
+      data: null,
+    };
+
+    const envelopeSchema = createApiResponseSchema(userSchema);
+    const parsed = envelopeSchema.safeParse(malformedEnvelope);
+    expect(parsed.success).toBe(false);
   });
 });

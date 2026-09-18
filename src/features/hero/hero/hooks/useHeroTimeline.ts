@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { ease as motionEase } from "@/motion/motion.config";
 const ease = motionEase as any;
-import { getGsap } from "@/motion/gsap-register";
 import { useMotionStore } from "@/motion/motion-store";
 
 /**
@@ -20,7 +19,9 @@ export function useHeroTimeline(
 
     let ctx: any = null;
 
-    getGsap().then(({ gsap }) => {
+    import("@/motion/gsap-register")
+      .then(({ getGsap }) => getGsap())
+      .then(({ gsap }) => {
       ctx = gsap.context(() => {
         const target = (selector: string) => {
           const found = section.querySelectorAll(selector);

@@ -211,9 +211,9 @@ function VideoSection() {
   );
 }
 
-function ImpactSection() {
+function ImpactSection({ initialStats }: { initialStats?: import("@/lib/api").PublicHeroStats | null }) {
   const sectionRef = useAmbientPause<HTMLElement>();
-  const stats = useImpactStats();
+  const stats = useImpactStats(initialStats);
 
   return (
     <section ref={sectionRef} className="bg-white py-section-md lg:py-section-lg px-4 sm:px-6 lg:px-8 relative overflow-hidden">
@@ -249,8 +249,8 @@ function HowItWorksSection() {
   );
 }
 
-function FeaturedDogsSection() {
-  const { data: apiDogs } = useAdoptionPets({ is_adoptable: true, page_size: 4 });
+function FeaturedDogsSection({ initialDogs }: { initialDogs?: import("@/lib/api").DogProfileResponse[] }) {
+  const { pets: apiDogs = [] } = useAdoptionPets({ is_adoptable: true, page_size: 4 }, initialDogs);
 
   const dogsToDisplay =
     apiDogs && apiDogs.length > 0
@@ -425,7 +425,14 @@ function FaqSection() {
 
 
 
-export default function HomePage() {
+interface HomePageViewProps {
+  initialStats?: import("@/lib/api").PublicHeroStats | null;
+  initialDogs?: import("@/lib/api").DogProfileResponse[];
+  initialStories?: import("@/lib/api").SuccessStoryResponse[];
+  initialBlogPosts?: import("@/lib/api").BlogPostResponse[];
+}
+
+export default function HomePage({ initialStats, initialDogs }: HomePageViewProps) {
   const { data: urgentAlerts } = useUrgentAlerts();
 
   return (
@@ -437,11 +444,11 @@ export default function HomePage() {
         <EmergencyStory />
         <Reveal variant="section"><MissionSection /></Reveal>
         <Reveal variant="section"><VideoSection /></Reveal>
-        <Reveal variant="section"><ImpactSection /></Reveal>
+        <Reveal variant="section"><ImpactSection initialStats={initialStats} /></Reveal>
         <Reveal variant="section"><HowItWorksSection /></Reveal>
         <ServicesExperience />
         <RescueJourneySection />
-        <Reveal variant="section"><FeaturedDogsSection /></Reveal>
+        <Reveal variant="section"><FeaturedDogsSection initialDogs={initialDogs} /></Reveal>
         <Reveal variant="section"><VolunteerDonateSection /></Reveal>
         <Reveal variant="section"><StoriesSection /></Reveal>
         <Reveal variant="section"><FaqSection /></Reveal>

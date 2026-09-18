@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { getGsap } from "@/motion/gsap-register";
 import { CheckCircle2, Clock } from "lucide-react";
 import { useMotionStore } from "@/motion/motion-store";
 import { cn } from "@/components/ui/utils";
@@ -203,8 +202,10 @@ export function RescueTimelineGSAP({
     const isBasic = motionTier === "reduced" || motionTier === "none";
     let ctx: any = null;
 
-    getGsap().then(({ gsap }) => {
-      ctx = gsap.context(() => {
+    import("@/motion/gsap-register")
+      .then(({ getGsap }) => getGsap())
+      .then(({ gsap }) => {
+        ctx = gsap.context(() => {
         if (isBasic) {
           gsap.set(
             [

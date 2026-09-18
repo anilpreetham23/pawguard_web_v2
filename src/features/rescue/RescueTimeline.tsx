@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { useMotionStore } from "@/motion/motion-store";
 import { useSafeScrollTrigger } from "@/hooks/useSafeScrollTrigger";
-import { getGsap } from "@/motion/gsap-register";
 import { cn } from "@/components/ui/utils";
 
 type StepIcon = "phone" | "check" | "team" | "shield" | "heart" | "home";
@@ -97,8 +96,10 @@ export default function RescueTimeline({ steps }: RescueTimelineProps) {
     const isBasic = motionTier === "reduced" || motionTier === "none";
     let ctx: any = null;
 
-    getGsap().then(({ gsap }) => {
-      ctx = gsap.context(() => {
+    import("@/motion/gsap-register")
+      .then(({ getGsap }) => getGsap())
+      .then(({ gsap }) => {
+        ctx = gsap.context(() => {
         if (isBasic) {
           gsap.set([connector, connectorGlow, ...nodeRefs.current, ...cardRefs.current], { clearProps: "all" });
           gsap.set(connector, { scaleY: 1 });

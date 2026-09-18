@@ -23,11 +23,25 @@ export interface LostFoundListResult {
 /** Paginated list of display-ready lost/found cases for the given kind. */
 export function useLostFoundReports(
   kind: LostFoundKind,
-  params?: LostFoundQueryParams
+  params?: LostFoundQueryParams,
+  initialCases?: LostFoundCase[]
 ): LostFoundListResult {
+  const initialData: Page<LostFoundCase> | undefined = initialCases
+    ? {
+        items: initialCases,
+        meta: {
+          total: initialCases.length,
+          page: 1,
+          page_size: initialCases.length,
+          total_pages: 1,
+        },
+      }
+    : undefined;
+
   const { data, isLoading, isError, error, refetch } = useApiQuery({
     queryKey: [QUERY_KEYS.lostFound.reports, kind, params],
     queryFn: () => lostFoundService.getReports(kind, params),
+    initialData,
   });
 
   return {

@@ -49,12 +49,12 @@ const nextConfig: NextConfig = {
   async headers() {
     const cspHeader = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.razorpay.com",
+      "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://*.razorpay.com https://accounts.google.com https://*.googleapis.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https:",
       "connect-src 'self' https://pawguard-backend-mqri.onrender.com https://*.razorpay.com wss:",
-      "frame-src 'self' https://api.razorpay.com https://*.razorpay.com",
+      "frame-src 'self' https://api.razorpay.com https://*.razorpay.com https://accounts.google.com",
       "media-src 'self' blob: data:",
       "object-src 'none'",
       "base-uri 'self'",

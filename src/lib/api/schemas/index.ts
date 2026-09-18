@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ApiError } from "../errors";
 
 /* -------------------------------------------------------------------------- */
 /* Generic Envelopes & Meta                                                   */
@@ -133,8 +134,7 @@ export const publicHeroStatsSchema = z.object({
 
 /**
  * Validates data against a Zod schema.
- * In development / testing, throws or logs validation warnings.
- * In production, logs error and returns data cleanly (graceful fallback).
+ * Throws a typed ApiError on validation failure.
  */
 export function safeValidateResponse<T>(
   schema: z.ZodSchema<T>,
@@ -143,9 +143,15 @@ export function safeValidateResponse<T>(
 ): T {
   const result = schema.safeParse(data);
   if (!result.success) {
-    console.warn(`[Zod Validation Warning] ${context}:`, result.error.format());
-    // Return unparsed data cast as T for safe graceful runtime degradation
-    return data as T;
+    const issueDetails = result.error.issues
+      .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+      .join("; ");
+    throw new ApiError({
+      kind: "validation",
+      code: "RESPONSE_VALIDATION_ERROR",
+      message: `Validation failed for ${context}: ${issueDetails}`,
+      detail: result.error.format(),
+    });
   }
   return result.data;
 }

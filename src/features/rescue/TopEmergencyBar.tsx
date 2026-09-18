@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Phone, Dog, Heart } from "lucide-react";
 import { motion } from "motion/react";
 import { useMotionStore } from "@/motion";
-import { getGsap } from "@/motion/gsap-register";
 import { duration, ease, stagger, delay } from "@/motion/motion.config";
 import { cn } from "@/components/ui/utils";
 import { EMERGENCY, SITE_STATS } from "@/app/config/site";
@@ -48,24 +47,26 @@ function useCountUpOnMount(value: string) {
       return;
     }
 
-    let tween: any = null;
-    getGsap().then(({ gsap }) => {
-      const obj = { value: 0 };
-      tween = gsap.to(obj, {
-        value: target,
-        duration: duration.deliberate / 1000,
-        delay: delay.medium / 1000,
-        ease: "power2.out",
-        onUpdate: () => setDisplay(fmt(Math.round(obj.value))),
-        onComplete: () => setDisplay(value),
-      });
-    }).catch(() => {
-      setDisplay(value);
-    });
+    let rafId: number;
+    const startTime = performance.now();
+    const animDuration = 1200;
 
-    return () => {
-      if (tween?.kill) tween.kill();
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / animDuration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(target * easeProgress);
+      setDisplay(fmt(current));
+
+      if (progress < 1) {
+        rafId = requestAnimationFrame(animate);
+      } else {
+        setDisplay(value);
+      }
     };
+
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
   }, [value, motionTier]);
 
   return display;
